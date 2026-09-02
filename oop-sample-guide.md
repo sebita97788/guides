@@ -8,16 +8,25 @@
 - [(US003) Add Items to a Purchase Order](#add-items-to-a-purchase-order-us003)
 - [(US004) Calculate Purchase Order Item Subtotal](#calculate-purchase-order-item-subtotal-us004)
 - [(US005) Calculate Purchase Order Total](#calculate-purchase-order-total-us005)
-- [Wrap-Up](#wrap-up)
+- [Add a Console Presentation Layer](#add-a-console-presentation-layer)
+- [Prepare the First Release](#prepare-the-first-release)
 - [Release](#release)
 - [(US006) Merge Duplicate Items in a Purchase Order](#merge-duplicate-items-in-a-purchase-order-us006)
 - [Document the Project](#document-the-project)
 - [Testing (optional, explore on your own)](#testing-optional-explore-on-your-own)
 - [Appendix](#appendix)
+  - [Continuing on another computer](#continuing-on-another-computer)
+  - [Signing in to GitHub with a token](#signing-in-to-github-with-a-token)
+  - [Backing up unfinished work](#backing-up-unfinished-work)
+  - [Feature Finish and pull requests](#feature-finish-and-pull-requests)
+  - [Removing a stray .git folder](#removing-a-stray-git-folder)
+  - [Creating the repo without the GitHub CLI](#creating-the-repo-without-the-github-cli)
+  - [If the class diagram doesn't render](#if-the-class-diagram-doesnt-render)
+  - [Free JetBrains license for students](#free-jetbrains-license-for-students)
 
 ## Project Setup
 
-1. **Open Rider and create the new solution.**
+1. **Open Rider and create a new solution.**
    - Solution already open: `File` → `New Solution...`
    - On the Welcome screen (no solution open yet): click **New Solution**, or `File` → `New Solution...` if that screen shows a `File` menu
 
@@ -28,6 +37,9 @@
    - **Create Git repository**: leave it unchecked (`git init -b main` is done by hand in step 6)
    - Target framework: `net10.0`
    - Click **Create**
+
+   **Note:** every IDE action in this guide comes with a menu path and a keyboard shortcut, and the shortcuts are the ones from Rider's **IntelliJ** keymap. Rider ships with a Visual Studio keymap by default, so switch it once: open `Settings` (`Rider → Settings` on macOS, `File → Settings` on Windows) → `Keymap` and pick **`IntelliJ`** from the dropdown at the top (on a Mac it may read `IntelliJ (macOS)`), not `Visual Studio`, `ReSharper`, `VS Code`, or another scheme. If a shortcut ever does something unexpected, use the menu path instead. On macOS, function-key shortcuts (`F6` and similar) may need `Fn` held down, or *Use F1, F2, etc. keys as standard function keys* turned on in System Settings → Keyboard.
+
 2. **Set the project properties.** Solution Explorer defaults to **Solution** view, which doesn't show the `.csproj`. Switch it: the dropdown at the top of the Solution Explorer panel → **File System**. Open `Acme.OOProgramming.csproj`, confirm `<ImplicitUsings>enable</ImplicitUsings>` and `<Nullable>enable</Nullable>` are set (the wizard adds them), and add `<Version>0.1.0-preview</Version>` in the same `<PropertyGroup>`. Leave the dropdown on **File System** view; the rest of Project Setup stays there.
 
    **Note:** the dropdown at the top of Solution Explorer switches between two layouts:
@@ -39,6 +51,7 @@
    **Note:** `Nullable` is what makes `string?` mean something later (Feature 1's `Address.StateOrRegion`, the project's only optional field). `ImplicitUsings` is why the guide's code never needs an explicit `using System;`.
 
    **Note:** a `-preview` (or `-alpha` / `-beta` / `-rc`) suffix is NuGet's way of marking a version "prerelease", the closest .NET equivalent to Maven's `-SNAPSHOT`. Starting below `1.0.0` signals early development: the code's structure and behavior can still change freely from one version to the next. `1.0.0` is reserved for the first release meant to stay stable. `## Release` later walks through exactly that cycle.
+
 3. **Create `docs/user-stories.md`.** Right-click the project root → `Add` → `File` → type `docs/user-stories.md` → Enter.
 
    **Tip:** typing the `docs/` prefix creates that folder too.
@@ -145,8 +158,6 @@
    - Each context's aggregate roots, entities, and value objects
    - How a reference crosses from one context into another without either one depending on the other's internals directly (context mapping)
 
-   **Note:** you're implementing a given architecture, not designing one. The client (here, this course) sets DDD and this bounded-context split as part of the **Definition of Done**, not something negotiated project by project. Reading a given architecture correctly and implementing it well is a skill just as real as designing one from scratch.
-
    <details>
    <summary>docs/class-diagram.puml</summary>
 
@@ -226,11 +237,14 @@
    ```
    </details>
 
-   **Note:** if the diagram doesn't render, PlantUML needs Graphviz installed separately. macOS: `brew install graphviz`, then restart the IDE. Windows: install it from [graphviz.org](https://graphviz.org/download/) and restart.
+   **Note:** you're implementing a given architecture, not designing one. The client (here, this course) sets DDD and this bounded-context split as part of the **Definition of Done**, not something negotiated project by project. Reading a given architecture correctly and implementing it well is a skill just as real as designing one from scratch.
+
+   **Tip:** if it shows an error instead of a diagram, see [Appendix: If the class diagram doesn't render](#if-the-class-diagram-doesnt-render).
 
    **Note:** `SupplyChain` and `Procurement` each have their own `SupplierId` on the diagram, deliberately. Each context owns the identity type of the aggregate it holds (`SupplierId` belongs to SupplyChain, home of `Supplier`); no other context references it directly, and Procurement defines its own. That's **Context Mapping** in practice, not an accident. More on why in `## Document the Project` later.
 
    **Note:** everything on this diagram gets built feature by feature from here on, including parts (`Currency`, `PurchaseOrder.OrderDate` as a `DateOnly`) that only become code later in the guide.
+
 5. **Create `.gitignore`.** Still in **File System** view: right-click the project root → `Add` → `File` → type `.gitignore` → Enter, then paste the block below. If Rider already left a `.gitignore` at the solution root, open that one and replace its contents instead. Solution view won't create a dotfile, which is one reason Project Setup stays in File System view.
 
    <details>
@@ -252,7 +266,11 @@
    **Note:**
    - `.idea/` and `.vs/` have to be ignored **before** the first commit: the IDE constantly rewrites files inside them (indexing, installing plugins), which would otherwise leave the working tree dirty every time you go to commit.
    - `.DS_Store` is macOS Finder metadata, `*.user` is per-developer Rider settings; neither belongs in shared history.
-6. **Enable Git and make the first commit.** Open Rider's **Terminal** tool window (bottom toolbar); it opens at the solution root (`oop-sample/`) by default. Run:
+
+6. **Enable Git and make the first commit.** Open Rider's **Terminal** tool window (bottom toolbar); it opens at the solution root (`oop-sample/`, the folder with `oop-sample.sln`) by default.
+
+   **Note:** check the terminal prompt is at the solution root, not inside `Acme.OOProgramming/`, before you run anything below. `git init` acts on the current folder, so from a subfolder the repo lands in the wrong place.
+
    ```
    git init -b main
    git config user.name "Your Name"
@@ -261,60 +279,88 @@
    git commit -m "chore: initial commit."
    ```
 
-   **Note:** `git init` runs at the solution root so the whole solution ends up tracked, not just one project inside it. Every terminal block in this guide reuses this same session, so they all stay at the solution root.
+   **Note:** ran it from a subfolder by mistake? See [Appendix: Removing a stray .git folder](#removing-a-stray-git-folder).
 
    **Note:**
+   - `git init` at the solution root tracks the whole solution, not just one project inside it. Every terminal block in this guide reuses this same session, so they all stay at the solution root.
    - `-b main` (short for `--initial-branch`) names the first branch `main`. It needs to be `main` here to match what **Git Flow Helper** (installed shortly) expects.
    - `git config` without `--global` scopes this to just this repo.
+
 7. **Connect to GitHub.**
 
-   **Sign in first.** Install the GitHub CLI once:
-   - macOS: `brew install gh`
-   - Windows: `winget install --id GitHub.cli`, or the installer from [cli.github.com](https://cli.github.com/) if you don't have `winget`
-
-   Then `gh auth login` → `GitHub.com` → `HTTPS` → **Login with a web browser** (accept the defaults on the other prompts). Paste the one-time code into the page it opens and authorize. This sets up git too, so your pushes won't ask for anything.
-
-   **Create the private repo and push.** Two ways, pick one. Either way, the repo's About description is:
-   `Console application demonstrating object-oriented programming (OOP) and domain-driven design (DDD) principles within the context of SupplyChain and Procurement domains.`
-
-   - **With the GitHub CLI,** one command from the solution root:
-     ```
-     gh repo create <org>/oop-sample --private --source=. --remote=origin --push --description "Console application demonstrating object-oriented programming (OOP) and domain-driven design (DDD) principles within the context of SupplyChain and Procurement domains."
-     ```
-     It creates the repo in the org, adds it as `origin`, pushes `main`, and sets the About text.
-   - **The traditional way:**
-     - On GitHub, create an empty **private** repo named `oop-sample` in the org (no README/license/`.gitignore`, this repo has all of that).
-     - Copy its **Clone → HTTPS** URL from the "Quick setup" page (ends in `.git`, e.g. `https://github.com/<org>/oop-sample.git`), **not** the address bar URL.
-     - Add the remote and push:
+   **Sign in first.**
+   - Install the GitHub CLI once.
+     - macOS:
        ```
-       git remote add origin https://github.com/<org>/oop-sample.git
-       git push -u origin main
+       brew install gh
        ```
-     - On the repo page, click the gear icon next to **About** and paste the description from above.
+     - Windows:
+       ```
+       winget install --id GitHub.cli
+       ```
+       No `winget`? Grab the installer from [cli.github.com](https://cli.github.com/).
+   - Check it installed:
+     ```
+     gh --version
+     ```
+     It should print a version number. If you get "command not found", close and reopen the terminal (the installer only updates the PATH for new sessions).
+   - On a shared machine, sign out whoever used it last:
+     ```
+     gh auth logout
+     ```
+   - Sign in:
+     ```
+     gh auth login
+     ```
+     Answer its four prompts:
+     - *Where do you use GitHub?* → `GitHub.com`
+     - *What is your preferred protocol for Git operations on this host?* → `HTTPS`
+     - *Authenticate Git with your GitHub credentials?* → `Yes`
+     - *How would you like to authenticate GitHub CLI?* → `Login with a web browser`
 
-   **Note:** `--source=.` uses the current folder; `--remote=origin --push` adds the remote and pushes `main`; `--description` fills the About text.
+     It then shows a one-time code (like `3155-2B43`) and waits at `Press Enter to open https://github.com/login/device in your browser...`. Copy the code, press Enter, then paste it into the page that opens and click **Authorize**.
 
-   **Note:** on a shared machine, run `gh auth logout` first in case someone else is still signed in.
+     Answering `Yes` to the third prompt also configures git, so `git push` won't ask for a username or password later.
 
-   **Note:** if you can't install `gh`, GitHub also takes a Personal Access Token: see *Appendix: Signing in to GitHub with a token*.
+   **Create your own GitHub organization first.** Everything below pushes to a GitHub organization that is yours, never the course's.
+   - If you don't have one, go to [github.com/organizations/plan](https://github.com/organizations/plan), pick the **Free** plan, and choose an account name for it.
+   - That account name is your `<org>` in the commands below: if the organization is `acme-labs`, the repo ends up at `github.com/acme-labs/oop-sample`.
 
-   **Note:** the About text is GitHub's own repo-level summary (repo page + org/search listings), separate from `README.md`.
+   **Create the private repo and push.** One command with the GitHub CLI. Replace `<org>` with your organization's name, no angle brackets (`<org>/oop-sample` becomes for example `acme-labs/oop-sample`).
 
-   **Note:** `-u` (short for `--set-upstream`) links your local `main` to `origin`'s `main`, so later `git push`/`git pull` need no arguments.
+   **Note:** before running it, check the terminal is at the solution root (`oop-sample/`, the folder with `oop-sample.sln`), not inside `Acme.OOProgramming/`. `--source=.` and `git init` act on the current folder, so from a subfolder the repo lands in the wrong place.
+
+   ```
+   gh repo create <org>/oop-sample --private --source=. --remote=origin --push --description "Console application demonstrating object-oriented programming (OOP) and domain-driven design (DDD) principles within the context of SupplyChain and Procurement domains."
+   ```
+   It creates the private repo in your org, adds it as `origin`, pushes `main`, and sets the About text.
+
+   **Note:** `--source=.` uses the current folder; `--remote=origin --push` adds the remote and pushes `main`; `--description` fills the About text, GitHub's own repo-level summary shown on the repo page and in org/search listings, separate from `README.md`.
+
+   **Note:** ran it from a subfolder by mistake? See [Appendix: Removing a stray .git folder](#removing-a-stray-git-folder).
+
+   **Note:** no GitHub CLI? Create the repo on the website and push by hand: see [Appendix: Creating the repo without the GitHub CLI](#creating-the-repo-without-the-github-cli).
+
 8. **Install the Git Flow Helper plugin.**
    - macOS: `Rider → Settings → Plugins → Marketplace → search "Git Flow Helper"`
    - Windows: `File → Settings → Plugins → Marketplace → search "Git Flow Helper"`
+
 9. **Initialize Git Flow.**
-   - Run `gh auth token` in the terminal and copy what it prints. Git Flow Helper pushes through Rider's own GitHub connection, not the one `gh` set up for the terminal, so Rider needs its own account and you'll paste this token in a moment.
+
+   Git Flow Helper pushes through Rider's own GitHub connection, not the terminal's. Register **your** account there first, and make sure it's the only one.
+
+   - Get your token, copy what it prints:
+     ```
+     gh auth token
+     ```
+     This is the same token your terminal git already uses.
+   - Open `Settings` → `Version Control` → `GitHub` (macOS: `Rider → Settings`; Windows: `File → Settings`).
+   - If any account is already listed (a shared machine may still have someone else's), select each one and click **`−`** to remove it. The list must be empty before you add yours.
+   - Click **`+`** → **`Log In with Token...`** (not `Log In via GitHub...`, whose browser sign-in produces an OAuth token your organization blocks for third-party apps) → paste the `gh auth token` value → **`Add Account`**. Your account appears in the list; close `Settings`.
    - Click the Git Flow Helper widget in the status bar → `Init`.
    - The branch prefix fields (`Main`, `Develop`, `Feature`, `Release`, `Hotfix`) are pre-filled with sensible defaults; click `OK`.
-   - Rider then shows a **Login with GitHub** popup, since pushing the new `develop` branch is its first push. Click **`Log In with Token`**, paste the token, and confirm.
 
-   This creates a `develop` branch from `main` and pushes it to `origin`.
-
-   **Note:** use `Log In with Token`, not `Log In via GitHub...`. The browser (OAuth) sign-in gives a token your organization blocks for third-party apps, and the push then fails with "Repository not found". The `gh auth token` value is the same one your terminal git already uses, so it works.
-
-   **Note:** if the popup doesn't appear, or you dismissed it, add the account by hand: `Settings` → `Version Control` → `GitHub` → `+` → **`Log In with Token...`** → paste the `gh auth token` value. Then run `Init` again from the widget.
+   This creates a `develop` branch from `main` and pushes it to `origin` through the account you just added.
 
    **Note:** from here on, `main` is only touched through a Release or Hotfix, never worked on directly.
 
@@ -324,334 +370,40 @@
 
 1. **Start the feature.** Git Flow Helper widget in the status bar → `Feature` → `Feature Start` → **Feature description** `register-supplier` → `OK`. Creates and switches you to `feature/register-supplier`.
 
-   **Tip:** need to stop before the feature is done? See *Appendix: Backing up unfinished work*.
-2. **Create the `Supplier` aggregate (properties only for now).** Switch the Solution Explorer dropdown to **Solution** view now (Project Setup left it on **File System** view). From here through the user stories you're adding C# types, so it stays on **Solution** view except where a step says otherwise. Re-read **US001**'s `Scenario: Successfully register a supplier` first (a valid code, name, and address in, a registered supplier out). Right-click the project root in the Solution Explorer → `Add` → `Class/Interface` → type the full path and name in the **Name** field, `SupplyChain/Domain/Model/Aggregates/Supplier` → Enter.
+   **Tip:** need to stop before the feature is done? See [Appendix: Backing up unfinished work](#backing-up-unfinished-work).
 
-   **Tip:** the first time you add a file, Rider may pop up an "Add File to Git" dialog. Check `Don't ask again` and click `Cancel`, so it won't ask again. This guide stages and commits through explicit `git add`/`git commit`, not Rider's add-on-create prompt.
+2. **Create the `Supplier` aggregate (properties only for now).** Switch the Solution Explorer dropdown to **Solution** view (Project Setup left it on **File System** view); it stays on **Solution** view through the user stories. Re-read US001's `Scenario: Successfully register a supplier`, then right-click the project root → `Add` → `Class/Interface` → type `SupplyChain/Domain/Model/Aggregates/Supplier` in the **Name** field → Enter.
 
-   Write only the properties:
-   - `Id` (`SupplierId`), `get`-only
-   - `Name` / `Address` (`Address`), auto-implemented `get; init;`, no validation yet
+   Write only the three properties:
+   - `Id` (`SupplierId`), `Name` (`string`), `Address` (`Address`), all `get;` only: assignable in the constructor and never again, this project's equivalent of Java's `final`
 
-   **Note:**
-   - All three are write-once: assigned in the constructor, never reassignable after. `init` doesn't loosen that, it just permits that initial assignment.
-   - `Id` stays a bare `get;` because `SupplierId` validates itself. `Name` and `Address` use `init` because each grows a validation body in that accessor in steps 5 and 6, and a guard needs an accessor to live in.
+   **Note:** the properties carry no validation. `Supplier` is an aggregate root, so its creation invariant is enforced in the constructor a few steps from now, not in the properties: the constructor is the aggregate's single entry point, and the only place a rule spanning more than one field could ever go. Its value objects (`SupplierId`, `Address`) still validate themselves. This split, value objects validate in their `init` accessor, aggregate roots in the constructor, is a deliberate decision, written up in `## Document the Project` as ADR-0011.
 
-   **Tip:** `SupplierId` and `Address` don't resolve yet, that's fine. The IDE tells you what's missing; you stub both in the next step and flesh them out in step 8.
+   **Tip:** if Rider pops up an "Add File to Git" dialog, check `Don't ask again` and click `Cancel`. This guide stages through explicit `git add` / `git commit`.
 
-   **Tip:** first time a C# property shows up in this track:
-   - `public SupplierId Id { get; }` has a getter, no setter, so it's only assignable inside the constructor, this project's equivalent of Java's `final`.
-   - `get; init;` is the auto-implemented shorthand: `init` (not `set`) allows assignment only in the constructor or an object initializer, never after.
+   **Tip:** `SupplierId` and `Address` don't exist yet, so they show red with no `using`. That's expected: you build both in the next steps, then come back here. Rider adds the `using` once the type exists, or `Option+Enter` (macOS) / `Alt+Enter` (Windows) on the red name.
 
    <details>
-   <summary>Supplier.cs (attributes only)</summary>
+   <summary>Supplier.cs (properties only)</summary>
 
    ```csharp
-   using Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
-   using Acme.OOProgramming.SupplyChain.Domain.Model.ValueObjects;
-
    namespace Acme.OOProgramming.SupplyChain.Domain.Model.Aggregates;
 
    public class Supplier
    {
        public SupplierId Id { get; }
-       public string Name { get; init; }
-       public Address Address { get; init; }
+       public string Name { get; }
+       public Address Address { get; }
    }
    ```
    </details>
 
-3. **Create `SupplierId` and `Address` as stubs.** `Supplier` references both. Create them now with just enough shape to compile; you'll harden them in step 8, once `Supplier` itself is done. Two ways to create each file, both used throughout this course:
-   - **From the unresolved reference** (good when building the domain up one type at a time): cursor on `SupplierId` in `Supplier.cs` → `Option+Enter` (macOS) / `Alt+Enter` (Windows) → the type-creation quick-fix. Rider generates it inline; make it a `readonly record struct`. Move it to its own file: cursor on the new type → `Fn+F6` (macOS) / `F6` (Windows) → pick **`Move To Folder`** from the popup → set the target folder to `SupplyChain/Domain/Model/ValueObjects` → confirm. Same for `Address`, target folder `Shared/Domain/Model/ValueObjects`.
-   - **From the Solution Explorer** (what you'll mostly do once the repo is large and you're pasting complete code from a guide): right-click the project root → `Add` → `Class/Interface` → type `SupplyChain/Domain/Model/ValueObjects/SupplierId`, **select `Record Struct`** → Enter. Same for `Shared/Domain/Model/ValueObjects/Address`.
+3. **Create `SupplierId`.** A `readonly record struct` wrapping a single `Identifier` string: its `init` accessor rejects null or blank (C# 13 `field` keyword) and its `get` returns `field ?? string.Empty`. Right-click the project root → `Add` → `Class/Interface` → `SupplyChain/Domain/Model/ValueObjects/SupplierId` → select `Record Struct` → Enter.
 
-   A positional `readonly record struct` for each, no validation yet:
+   **Tip:** you can also create it from the red underline in `Supplier.cs`: `Option+Enter` (macOS) / `Alt+Enter` (Windows) → create the type inline → `F6` → `Move To Folder` → `SupplyChain/Domain/Model/ValueObjects`.
 
    <details>
-   <summary>SupplierId.cs (stub)</summary>
-
-   ```csharp
-   namespace Acme.OOProgramming.SupplyChain.Domain.Model.ValueObjects;
-
-   public readonly record struct SupplierId(string Identifier);
-   ```
-   </details>
-
-   <details>
-   <summary>Address.cs (stub)</summary>
-
-   ```csharp
-   namespace Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
-
-   public readonly record struct Address(
-       string Street, string Number, string City, string? StateOrRegion, string PostalCode, string Country);
-   ```
-   </details>
-
-   **Note:** read `readonly record struct` as "a small, immutable value".
-   - `record` gives it value-based equality: two `SupplierId`s with the same `Identifier` are equal.
-   - `struct` + `readonly` make it behave like a number: copied when you pass it, never `null`, no separate object on the heap.
-   - It's a `struct` and not a `class` because a `SupplierId` is a value, not a thing with its own identity. Making it a `class` would cost a heap allocation per instance and buy nothing back.
-
-4. **Add `Supplier`'s constructors (happy path, no validation yet).** Both stubs exist now, in different namespaces than `Supplier`, so Rider underlines them red: cursor on each → `Option+Enter` (macOS) / `Alt+Enter` (Windows) → `using Acme.OOProgramming...;`. Then write:
-   - **The full constructor** `Supplier(SupplierId id, string name, Address address)`: assigns the three properties directly.
-   - **A thin convenience constructor** `Supplier(string identifier, string name, Address address)`: wraps a raw string into a `SupplierId` and delegates to the full one.
-
-   **Note:** same `using`-fixing mechanism every time a new file references a type from another namespace, for the rest of the guide.
-
-   **Note:** the convenience constructor is what `Program.cs` uses shortly: a raw string is what a caller has on hand, not a `SupplierId` instance already.
-
-   **Tip:** this is the first point everything compiles. `new Supplier(new SupplierId("SUP001"), "Supplier Inc.", address)` already satisfies `Scenario: Successfully register a supplier`, even though invalid input isn't rejected yet.
-
-   <details>
-   <summary>Supplier.cs (happy path, no validation yet)</summary>
-
-   ```csharp
-   public SupplierId Id { get; }
-   public string Name { get; init; }
-   public Address Address { get; init; }
-
-   public Supplier(SupplierId id, string name, Address address)
-   {
-       Id = id;
-       Name = name;
-       Address = address;
-   }
-
-   public Supplier(string identifier, string name, Address address)
-       : this(new SupplierId(identifier), name, address)
-   {
-   }
-   ```
-   </details>
-
-5. **Add the name guard.** Re-read `Scenario: Invalid supplier name`: an empty name in, an exception with a clear message out. Replace the auto-implemented `Name` property with one that validates in its `init` accessor.
-
-   **Tip:** try writing it yourself first. Which accessor does it belong in? Not the constructor, this project's validation lives right next to the property it protects.
-
-   <details>
-   <summary>Supplier.cs (addition: name guard)</summary>
-
-   ```csharp
-   public string Name
-   {
-       get;
-       init
-       {
-           ArgumentException.ThrowIfNullOrWhiteSpace(value);
-           field = value;
-       }
-   }
-   ```
-   </details>
-
-6. **Add the address guard.** Re-read `Scenario: Invalid supplier address`: a missing address in (a `default(Address)`; once `Address` is fleshed out in step 8 it also guarantees its own fields are never blank), an exception out. This one checks `== default` instead of blank, since `Address` isn't a `string`. Replace the auto-implemented `Address` property the same way.
-
-   **Tip:** try it yourself first, same shape as the name guard.
-
-   <details>
-   <summary>Supplier.cs (addition: address guard)</summary>
-
-   ```csharp
-   public Address Address
-   {
-       get;
-       init
-       {
-           if (value == default)
-               throw new ArgumentException("Supplier address must be provided.", nameof(value));
-           field = value;
-       }
-   }
-   ```
-   </details>
-
-7. **Add `Supplier`'s identity methods.** `Equals()`, `GetHashCode()`, `ToString()`.
-
-   **Note:** `Equals()` / `GetHashCode()` compare only `Id`, not every property. An aggregate's identity is what makes two instances "the same", not their current state, unlike a `readonly record struct` (like `SupplierId` / `Address`), which gets value-based equality for free from every component. As a plain `class`, `Supplier` gets none of that automatically, so it's written by hand, comparing identity only.
-
-   <details>
-   <summary>Supplier.cs (addition: identity methods)</summary>
-
-   ```csharp
-   public override bool Equals(object? obj)
-   {
-       return obj is Supplier other && Id == other.Id;
-   }
-
-   public override int GetHashCode() => Id.GetHashCode();
-
-   public override string ToString() => $"Supplier[Id={Id}, Name={Name}, Address={Address}]";
-   ```
-   </details>
-
-   `Supplier` is complete, enforcing every scenario from US001's acceptance criteria against the value objects it will receive. The full file:
-
-   <details>
-   <summary>Supplier.cs (no docs)</summary>
-
-   ```csharp
-   using Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
-   using Acme.OOProgramming.SupplyChain.Domain.Model.ValueObjects;
-
-   namespace Acme.OOProgramming.SupplyChain.Domain.Model.Aggregates;
-
-   public class Supplier
-   {
-       public SupplierId Id { get; }
-
-       public string Name
-       {
-           get;
-           init
-           {
-               ArgumentException.ThrowIfNullOrWhiteSpace(value);
-               field = value;
-           }
-       }
-
-       public Address Address
-       {
-           get;
-           init
-           {
-               if (value == default)
-                   throw new ArgumentException("Supplier address must be provided.", nameof(value));
-               field = value;
-           }
-       }
-
-       public Supplier(SupplierId id, string name, Address address)
-       {
-           Id = id;
-           Name = name;
-           Address = address;
-       }
-
-       public Supplier(string identifier, string name, Address address)
-           : this(new SupplierId(identifier), name, address)
-       {
-       }
-
-       public override bool Equals(object? obj)
-       {
-           return obj is Supplier other && Id == other.Id;
-       }
-
-       public override int GetHashCode() => Id.GetHashCode();
-
-       public override string ToString() => $"Supplier[Id={Id}, Name={Name}, Address={Address}]";
-   }
-   ```
-   </details>
-
-   That's the version you type by hand. The committed file also carries full XML docs:
-
-   <details>
-   <summary>Supplier.cs</summary>
-
-   ```csharp
-   using Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
-   using Acme.OOProgramming.SupplyChain.Domain.Model.ValueObjects;
-
-   namespace Acme.OOProgramming.SupplyChain.Domain.Model.Aggregates;
-
-   /// <summary>
-   /// Represents a supplier aggregate root in the Supply Chain bounded context.
-   /// </summary>
-   public class Supplier
-   {
-       /// <summary>
-       /// The unique identifier for the supplier.
-       /// </summary>
-       public SupplierId Id { get; }
-
-       /// <summary>
-       /// The name of the supplier.
-       /// </summary>
-       /// <exception cref="ArgumentException">Thrown when the name is null or blank.</exception>
-       public string Name
-       {
-           get;
-           init
-           {
-               ArgumentException.ThrowIfNullOrWhiteSpace(value);
-               field = value;
-           }
-       }
-
-       /// <summary>
-       /// The address of the supplier.
-       /// </summary>
-       /// <exception cref="ArgumentException">Thrown when the address is not initialized.</exception>
-       public Address Address
-       {
-           get;
-           init
-           {
-               if (value == default)
-                   throw new ArgumentException("Supplier address must be provided.", nameof(value));
-               field = value;
-           }
-       }
-
-       /// <summary>
-       /// Creates a new instance of <see cref="Supplier"/>.
-       /// </summary>
-       /// <param name="id">The supplier identifier.</param>
-       /// <param name="name">The supplier name.</param>
-       /// <param name="address">The supplier address.</param>
-       public Supplier(SupplierId id, string name, Address address)
-       {
-           Id = id;
-           Name = name;
-           Address = address;
-       }
-
-       /// <summary>
-       /// Creates a new instance of <see cref="Supplier"/> with a string identifier.
-       /// </summary>
-       /// <param name="identifier">The supplier identifier string.</param>
-       /// <param name="name">The supplier name.</param>
-       /// <param name="address">The supplier address.</param>
-       public Supplier(string identifier, string name, Address address)
-           : this(new SupplierId(identifier), name, address)
-       {
-       }
-
-       /// <summary>
-       /// Determines whether this <see cref="Supplier"/> is equal to another object, by identity.
-       /// </summary>
-       /// <param name="obj">The object to compare against.</param>
-       /// <returns><see langword="true"/> if the other object is a <see cref="Supplier"/> with the same <see cref="Id"/>.</returns>
-       public override bool Equals(object? obj)
-       {
-           return obj is Supplier other && Id == other.Id;
-       }
-
-       /// <summary>
-       /// Returns a hash code based on the supplier's identity.
-       /// </summary>
-       /// <returns>A hash code derived from <see cref="Id"/>.</returns>
-       public override int GetHashCode() => Id.GetHashCode();
-
-       /// <summary>
-       /// Returns a string representation of the supplier.
-       /// </summary>
-       /// <returns>A string representation of the supplier.</returns>
-       public override string ToString() => $"Supplier[Id={Id}, Name={Name}, Address={Address}]";
-   }
-   ```
-   </details>
-
-8. **Flesh out `SupplierId` and `Address`.** `Supplier` is done; now make the two stubs real. Replace each positional record with its full form: every required property validating in its own `init` accessor, a blocked parameterless constructor, `ToString()`.
-
-   **Note:** the one catch with a `struct`: it can't be `null`, but it can be `default` (all-zero fields). Every struct has a parameterless constructor you can't remove, so `default(SupplierId)` is always legal and never runs your validation. The code handles that:
-   - `Identifier` validates in a full `init` body (C# 13 `field` keyword), and `get` returns `field ?? string.Empty`, so a stray `default(SupplierId)` reads back a safe empty string, not `null`.
-   - the blocked `SupplierId()` only stops `new SupplierId()`; the `?? string.Empty` fallback is what covers `default(SupplierId)`.
-
-   <details>
-   <summary>SupplierId.cs (no docs)</summary>
+   <summary>SupplierId.cs (so far)</summary>
 
    ```csharp
    namespace Acme.OOProgramming.SupplyChain.Domain.Model.ValueObjects;
@@ -667,17 +419,27 @@
                field = value;
            }
        }
-
-       public SupplierId() => throw new InvalidOperationException("SupplierId must be initialized with a non-empty identifier.");
-
-       public SupplierId(string identifier) => Identifier = identifier;
-
-       public override string ToString() => Identifier;
    }
    ```
    </details>
 
-   That's the version you type by hand. The committed file also carries full XML docs:
+   **Note:** `readonly record struct` = a small immutable value. `record` gives value-based equality (two `SupplierId`s with the same `Identifier` are equal); `struct` + `readonly` make it behave like a number (copied when passed, never `null`, no heap object). It's a `struct`, not a `class`, because a `SupplierId` is a value, not a thing with its own identity.
+
+   **Note:** a `struct` can't be `null`, but it can be `default` (all-zero fields), and `default(SupplierId)` never runs your `init` validation. `get => field ?? string.Empty` makes a stray `default` read back a safe empty string instead of `null`; the next step blocks the parameterless constructor so `new SupplierId()` throws too.
+
+4. **Add `SupplierId`'s constructors and `ToString()`.** The blocked parameterless constructor (so `new SupplierId()` throws instead of producing an unvalidated `default`), a constructor taking the raw string (`Supplier` and `Program.cs` call `new SupplierId("...")`), and `ToString()` returning the identifier. That completes `SupplierId`. The full file below includes its XML docs.
+
+   <details>
+   <summary>SupplierId.cs (addition: constructors and ToString)</summary>
+
+   ```csharp
+   public SupplierId() => throw new InvalidOperationException("SupplierId must be initialized with a non-empty identifier.");
+
+   public SupplierId(string identifier) => Identifier = identifier;
+
+   public override string ToString() => Identifier;
+   ```
+   </details>
 
    <details>
    <summary>SupplierId.cs</summary>
@@ -728,108 +490,129 @@
    ```
    </details>
 
-   `Address` follows the same pattern, with more properties: `Street` / `Number` / `City` / `StateOrRegion` (nullable) / `PostalCode` / `Country`. Each required property validates itself in its own `init` accessor, plus a blocked parameterless constructor and `ToString()`.
-
-   **Note:** `StateOrRegion` is the one exception: a plain auto-implemented nullable property (`public string? StateOrRegion { get; init; }`), no full accessor body needed, since `null` is already a valid, safe value for an optional field, there's no `default`-bypass gap to close there the way there is for the other five.
-
-   **Note:** the five length limits (`100`, `10`, `100`, `20`, `100`) are named `const`s, not magic numbers repeated inline: each constant makes the limit's meaning obvious at the declaration site and keeps the guard and its own error message from silently drifting apart if the limit ever changes.
+5. **Create `Address` (minimal).** Same shape, six properties. Right-click the project root → `Add` → `Class/Interface` → `Shared/Domain/Model/ValueObjects/Address` → select `Record Struct` → Enter.
 
    <details>
-   <summary>Address.cs (no docs)</summary>
+   <summary>Address.cs (minimal)</summary>
 
    ```csharp
    namespace Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
 
    public readonly record struct Address
    {
-       private const int MaxStreetLength = 100;
-       private const int MaxNumberLength = 10;
-       private const int MaxCityLength = 100;
-       private const int MaxPostalCodeLength = 20;
-       private const int MaxCountryLength = 100;
-
-       public string Street
-       {
-           get => field ?? string.Empty;
-           init
-           {
-               ArgumentException.ThrowIfNullOrWhiteSpace(value);
-               if (value.Length > MaxStreetLength)
-                   throw new ArgumentException($"Street cannot exceed {MaxStreetLength} characters.", nameof(value));
-               field = value;
-           }
-       }
-
-       public string Number
-       {
-           get => field ?? string.Empty;
-           init
-           {
-               ArgumentException.ThrowIfNullOrWhiteSpace(value);
-               if (value.Length > MaxNumberLength)
-                   throw new ArgumentException($"Number cannot exceed {MaxNumberLength} characters.", nameof(value));
-               field = value;
-           }
-       }
-
-       public string City
-       {
-           get => field ?? string.Empty;
-           init
-           {
-               ArgumentException.ThrowIfNullOrWhiteSpace(value);
-               if (value.Length > MaxCityLength)
-                   throw new ArgumentException($"City cannot exceed {MaxCityLength} characters.", nameof(value));
-               field = value;
-           }
-       }
-
+       public string Street { get; init; }
+       public string Number { get; init; }
+       public string City { get; init; }
        public string? StateOrRegion { get; init; }
-
-       public string PostalCode
-       {
-           get => field ?? string.Empty;
-           init
-           {
-               ArgumentException.ThrowIfNullOrWhiteSpace(value);
-               if (value.Length > MaxPostalCodeLength)
-                   throw new ArgumentException($"Postal code cannot exceed {MaxPostalCodeLength} characters.", nameof(value));
-               field = value;
-           }
-       }
-
-       public string Country
-       {
-           get => field ?? string.Empty;
-           init
-           {
-               ArgumentException.ThrowIfNullOrWhiteSpace(value);
-               if (value.Length > MaxCountryLength)
-                   throw new ArgumentException($"Country cannot exceed {MaxCountryLength} characters.", nameof(value));
-               field = value;
-           }
-       }
-
-       public Address() => throw new InvalidOperationException("Address must be initialized with street, number, city, postal code, and country.");
-
-       public Address(string street, string number, string city, string? stateOrRegion, string postalCode, string country)
-       {
-           Street = street;
-           Number = number;
-           City = city;
-           StateOrRegion = stateOrRegion;
-           PostalCode = postalCode;
-           Country = country;
-       }
-
-       public override string ToString() => string.IsNullOrWhiteSpace(StateOrRegion)
-           ? $"{Street}, {Number}, {City}, {PostalCode}, {Country}"
-           : $"{Street}, {Number}, {City}, {StateOrRegion}, {PostalCode}, {Country}";
+       public string PostalCode { get; init; }
+       public string Country { get; init; }
    }
    ```
    </details>
 
-   That's the version you type by hand. The committed file also carries full XML docs:
+6. **Add `Address`'s validation.** Replace the five required properties from step 5 (`Street`, `Number`, `City`, `PostalCode`, `Country`) with versions that validate in their `init` accessor (not null/blank, under a length limit) and expose a `get` returning `field ?? string.Empty`, and add the five length limits as named `const`s. `StateOrRegion` is left as it is.
+
+   <details>
+   <summary>Address.cs (the five required properties, with validation)</summary>
+
+   ```csharp
+   private const int MaxStreetLength = 100;
+   private const int MaxNumberLength = 10;
+   private const int MaxCityLength = 100;
+   private const int MaxPostalCodeLength = 20;
+   private const int MaxCountryLength = 100;
+
+   public string Street
+   {
+       get => field ?? string.Empty;
+       init
+       {
+           ArgumentException.ThrowIfNullOrWhiteSpace(value);
+           if (value.Length > MaxStreetLength)
+               throw new ArgumentException($"Street cannot exceed {MaxStreetLength} characters.", nameof(value));
+           field = value;
+       }
+   }
+
+   public string Number
+   {
+       get => field ?? string.Empty;
+       init
+       {
+           ArgumentException.ThrowIfNullOrWhiteSpace(value);
+           if (value.Length > MaxNumberLength)
+               throw new ArgumentException($"Number cannot exceed {MaxNumberLength} characters.", nameof(value));
+           field = value;
+       }
+   }
+
+   public string City
+   {
+       get => field ?? string.Empty;
+       init
+       {
+           ArgumentException.ThrowIfNullOrWhiteSpace(value);
+           if (value.Length > MaxCityLength)
+               throw new ArgumentException($"City cannot exceed {MaxCityLength} characters.", nameof(value));
+           field = value;
+       }
+   }
+
+   public string PostalCode
+   {
+       get => field ?? string.Empty;
+       init
+       {
+           ArgumentException.ThrowIfNullOrWhiteSpace(value);
+           if (value.Length > MaxPostalCodeLength)
+               throw new ArgumentException($"Postal code cannot exceed {MaxPostalCodeLength} characters.", nameof(value));
+           field = value;
+       }
+   }
+
+   public string Country
+   {
+       get => field ?? string.Empty;
+       init
+       {
+           ArgumentException.ThrowIfNullOrWhiteSpace(value);
+           if (value.Length > MaxCountryLength)
+               throw new ArgumentException($"Country cannot exceed {MaxCountryLength} characters.", nameof(value));
+           field = value;
+       }
+   }
+   ```
+   </details>
+
+   **Note:** these guards are written `if (cond) throw ...;` with no braces, on purpose for this track. The body is always a single `throw`, so any line mistakenly added after it is unreachable and the compiler flags it, unlike a brace-less `if` guarding an assignment. Checks the framework already covers use `ArgumentException.ThrowIf*` and need no `if` at all. Braces only come back where a check runs more than one statement, `PurchaseOrder.AddItem`'s merge branch, later.
+
+   **Note:** `StateOrRegion` is the exception: it stays `public string? StateOrRegion { get; init; }`, since `null` is already valid for an optional field, no `default`-bypass gap to close.
+
+   **Note:** the five length limits are named `const`s, not magic numbers repeated inline: the constant makes each limit's meaning obvious and keeps the guard and its error message from drifting apart.
+
+7. **Add `Address`'s constructors and `ToString()`.** The blocked parameterless constructor, a six-parameter constructor, and a `ToString()` that skips `StateOrRegion` when it's blank. That completes `Address`. The full file below includes its XML docs.
+
+   <details>
+   <summary>Address.cs (addition: constructors and ToString)</summary>
+
+   ```csharp
+   public Address() => throw new InvalidOperationException("Address must be initialized with street, number, city, postal code, and country.");
+
+   public Address(string street, string number, string city, string? stateOrRegion, string postalCode, string country)
+   {
+       Street = street;
+       Number = number;
+       City = city;
+       StateOrRegion = stateOrRegion;
+       PostalCode = postalCode;
+       Country = country;
+   }
+
+   public override string ToString() => string.IsNullOrWhiteSpace(StateOrRegion)
+       ? $"{Street}, {Number}, {City}, {PostalCode}, {Country}"
+       : $"{Street}, {Number}, {City}, {StateOrRegion}, {PostalCode}, {Country}";
+   ```
+   </details>
 
    <details>
    <summary>Address.cs</summary>
@@ -969,13 +752,224 @@
    ```
    </details>
 
+8. **Add `Supplier`'s full constructor (happy path, no validation yet).** `Supplier(SupplierId id, string name, Address address)`: assigns the three properties directly. The value objects are in different namespaces than `Supplier`, so Rider underlines them red: cursor on each → `Option+Enter` (macOS) / `Alt+Enter` (Windows) → `using Acme.OOProgramming...;`.
+
+   <details>
+   <summary>Supplier.cs (addition: full constructor)</summary>
+
+   ```csharp
+   public Supplier(SupplierId id, string name, Address address)
+   {
+       Id = id;
+       Name = name;
+       Address = address;
+   }
+   ```
+   </details>
+
+   **Note:** same `using`-fixing mechanism every time a new file references a type from another namespace, for the rest of the guide.
+
+9. **Add `Supplier`'s convenience constructor.** `Supplier(string identifier, string name, Address address)`: wraps a raw string into a `SupplierId` and delegates to the full one. That's what `Program.cs` uses shortly, a raw string is what a caller has on hand, not a `SupplierId` instance.
+
+   **Tip:** `new Supplier(new SupplierId("SUP001"), "Supplier Inc.", address)` now satisfies `Scenario: Successfully register a supplier`, even though invalid input isn't rejected yet.
+
+   <details>
+   <summary>Supplier.cs (addition: convenience constructor)</summary>
+
+   ```csharp
+   public Supplier(string identifier, string name, Address address)
+       : this(new SupplierId(identifier), name, address)
+   {
+   }
+   ```
+   </details>
+
+10. **Add `Supplier`'s validation guards.** Re-read `Scenario: Invalid supplier name` and `Scenario: Invalid supplier address`. Replace the full constructor from step 8 with the version below: three guards above the assignments. `Name` is a bare `string`, so it gets `ThrowIfNullOrWhiteSpace`. `SupplierId` and `Address` are self-validating value objects, so the aggregate only adds `== default`: a `struct` is never `null`, but a caller can still pass `default(SupplierId)` / `default(Address)`, the struct's zero value, which never ran the type's own validation. The aggregate rejects that.
+
+   **Tip:** try writing the guards yourself first. In an aggregate root they go in the constructor, the aggregate's single entry point, not in the properties.
+
+   <details>
+   <summary>Supplier.cs (constructor, with guards)</summary>
+
+   ```csharp
+   public Supplier(SupplierId id, string name, Address address)
+   {
+       if (id == default)
+           throw new ArgumentException("Supplier ID is required.", nameof(id));
+       ArgumentException.ThrowIfNullOrWhiteSpace(name);
+       if (address == default)
+           throw new ArgumentException("Supplier address is required.", nameof(address));
+
+       Id = id;
+       Name = name;
+       Address = address;
+   }
+   ```
+   </details>
+
+   **Note:** the same shape recurs for every aggregate root in this guide: value objects carry their own rules, and the root's constructor adds a `== default` guard for each one it receives (`PurchaseOrder` does the same for its `SupplierId` and `Currency`). See [ADR-0005](docs/adrs.md#adr-0005-value-objects-as-readonly-record-struct).
+
+11. **Add `Supplier`'s identity methods.** `Equals()`, `GetHashCode()`, `ToString()`.
+
+   <details>
+   <summary>Supplier.cs (addition: identity methods)</summary>
+
+   ```csharp
+   public override bool Equals(object? obj)
+   {
+       return obj is Supplier other && Id == other.Id;
+   }
+
+   public override int GetHashCode() => Id.GetHashCode();
+
+   public override string ToString() => $"Supplier[Id={Id}, Name={Name}, Address={Address}]";
+   ```
+   </details>
+
+   `Supplier` is complete, enforcing every scenario from US001's acceptance criteria. The full file:
+
+   <details>
+   <summary>Supplier.cs (no docs)</summary>
+
+   ```csharp
+   using Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
+   using Acme.OOProgramming.SupplyChain.Domain.Model.ValueObjects;
+
+   namespace Acme.OOProgramming.SupplyChain.Domain.Model.Aggregates;
+
+   public class Supplier
+   {
+       public SupplierId Id { get; }
+       public string Name { get; }
+       public Address Address { get; }
+
+       public Supplier(SupplierId id, string name, Address address)
+       {
+           if (id == default)
+               throw new ArgumentException("Supplier ID is required.", nameof(id));
+           ArgumentException.ThrowIfNullOrWhiteSpace(name);
+           if (address == default)
+               throw new ArgumentException("Supplier address is required.", nameof(address));
+
+           Id = id;
+           Name = name;
+           Address = address;
+       }
+
+       public Supplier(string identifier, string name, Address address)
+           : this(new SupplierId(identifier), name, address)
+       {
+       }
+
+       public override bool Equals(object? obj)
+       {
+           return obj is Supplier other && Id == other.Id;
+       }
+
+       public override int GetHashCode() => Id.GetHashCode();
+
+       public override string ToString() => $"Supplier[Id={Id}, Name={Name}, Address={Address}]";
+   }
+   ```
+   </details>
+
+   The same file with its XML docs, the version you keep:
+
+   <details>
+   <summary>Supplier.cs</summary>
+
+   ```csharp
+   using Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
+   using Acme.OOProgramming.SupplyChain.Domain.Model.ValueObjects;
+
+   namespace Acme.OOProgramming.SupplyChain.Domain.Model.Aggregates;
+
+   /// <summary>
+   /// Represents a supplier aggregate root in the Supply Chain bounded context.
+   /// </summary>
+   public class Supplier
+   {
+       /// <summary>
+       /// The unique identifier for the supplier.
+       /// </summary>
+       public SupplierId Id { get; }
+
+       /// <summary>
+       /// The name of the supplier.
+       /// </summary>
+       public string Name { get; }
+
+       /// <summary>
+       /// The address of the supplier.
+       /// </summary>
+       public Address Address { get; }
+
+       /// <summary>
+       /// Creates a new instance of <see cref="Supplier"/>.
+       /// </summary>
+       /// <param name="id">The supplier identifier, which must not be the default value.</param>
+       /// <param name="name">The supplier name, which must not be null or blank.</param>
+       /// <param name="address">The supplier address, which must not be the default value.</param>
+       /// <exception cref="ArgumentException">Thrown when the id or address is the default value, or the name is null or blank.</exception>
+       public Supplier(SupplierId id, string name, Address address)
+       {
+           if (id == default)
+               throw new ArgumentException("Supplier ID is required.", nameof(id));
+           ArgumentException.ThrowIfNullOrWhiteSpace(name);
+           if (address == default)
+               throw new ArgumentException("Supplier address is required.", nameof(address));
+
+           Id = id;
+           Name = name;
+           Address = address;
+       }
+
+       /// <summary>
+       /// Creates a new instance of <see cref="Supplier"/> with a string identifier.
+       /// </summary>
+       /// <param name="identifier">The supplier identifier string.</param>
+       /// <param name="name">The supplier name.</param>
+       /// <param name="address">The supplier address.</param>
+       public Supplier(string identifier, string name, Address address)
+           : this(new SupplierId(identifier), name, address)
+       {
+       }
+
+       /// <summary>
+       /// Determines whether this <see cref="Supplier"/> is equal to another object, by identity.
+       /// </summary>
+       /// <param name="obj">The object to compare against.</param>
+       /// <returns><see langword="true"/> if the other object is a <see cref="Supplier"/> with the same <see cref="Id"/>.</returns>
+       public override bool Equals(object? obj)
+       {
+           return obj is Supplier other && Id == other.Id;
+       }
+
+       /// <summary>
+       /// Returns a hash code based on the supplier's identity.
+       /// </summary>
+       /// <returns>A hash code derived from <see cref="Id"/>.</returns>
+       public override int GetHashCode() => Id.GetHashCode();
+
+       /// <summary>
+       /// Returns a string representation of the supplier.
+       /// </summary>
+       /// <returns>A string representation of the supplier.</returns>
+       public override string ToString() => $"Supplier[Id={Id}, Name={Name}, Address={Address}]";
+   }
+   ```
+   </details>
+
+   **Note:** `Equals()` / `GetHashCode()` compare only `Id`, not every property. An aggregate's identity is what makes two instances "the same", not their current state, unlike a `readonly record struct` (like `SupplierId` / `Address`), which gets value-based equality for free from every component. As a plain `class`, `Supplier` gets none of that automatically, so it's written by hand, comparing identity only.
+
    ```
    git add .
    git commit -m "feat(supplier): add supplier aggregate, supplier id and address value objects."
    ```
 
-   **Note:** this is the first point where `Supplier` and its value objects are all real, `Supplier` enforcing every invariant from US001 and the value objects validating themselves. That's the meaningful unit of work worth committing. If you didn't commit earlier, everything from step 2 lands here together.
-9. **Register the supplier in `Program.cs`.** Delete the wizard's default `Console.WriteLine("Hello, World!");` first. Then create an `Address` and a `Supplier` from it, using SupplyChain's own `SupplierId`, and print the supplier's own `ToString()`.
+   **Note:** this is the first point where `Supplier` and both value objects are all real. That's the meaningful unit of work worth committing. If you didn't commit earlier, everything from step 2 lands here together.
+
+12. **Register the supplier in `Program.cs`.** Delete the wizard's default `Console.WriteLine("Hello, World!");` first. Then create an `Address` and a `Supplier` from it, using SupplyChain's own `SupplierId`, and print the supplier's own `ToString()`.
 
    **Tip:** missing types (`Address`, `Supplier`, `SupplierId`) resolve with Rider's auto-import quick-fix (`Option+Enter` / `Alt+Enter`) as you type.
 
@@ -997,7 +991,8 @@
    git add .
    git commit -m "feat(main): register the initial supplier."
    ```
-10. **Publish and finish the feature.** Click the Git Flow Helper widget in the status bar → `Feature` → `Feature Publish`, then the widget again → `Feature` → `Feature Finish`. Merges `feature/register-supplier` into `develop` and pushes it too.
+
+13. **Publish and finish the feature.** Click the Git Flow Helper widget in the status bar → `Feature` → `Feature Publish`, then the widget again → `Feature` → `Feature Finish`. Merges `feature/register-supplier` into `develop` and pushes it too.
 
    **Note:** `Feature Publish` is the only push of `feature/register-supplier`: it pushes the branch to `origin` (setting it up there too, same as the very first push of `main` did back in Project Setup), no manual `git push -u` needed.
 
@@ -1007,93 +1002,46 @@
 
    **Note:** deleting the remote branch on finish keeps the repo clean, same as GitHub's own "Delete branch" prompt after merging a PR.
 
-   **Note:** how this maps to a real pull-request workflow: see *Appendix: Feature Finish and pull requests*.
+   **Note:** how this maps to a real pull-request workflow: see [Appendix: Feature Finish and pull requests](#feature-finish-and-pull-requests).
 
    From here on the later features show this step condensed as "**Publish and finish the feature.**", which always means exactly this sequence.
 
 ## Create a Purchase Order ([US002](./user-stories.md))
 
 1. **Start the feature.** Feature description: `create-purchase-order` → `OK`. Creates and switches you to `feature/create-purchase-order`.
-2. **Create the `PurchaseOrder` aggregate.** Right-click the project root → `Add` → `Class/Interface` → type `Procurement/Domain/Model/Aggregates/PurchaseOrder` → Enter (`Class` is selected by default). Re-read US002's `Scenario: Invalid order number`, `Scenario: Invalid supplier`, and `Scenario: Invalid currency` first, then write:
-   - `OrderNumber` / `SupplierId` / `OrderDate` / `Currency` properties
-   - a constructor that validates each one
-   - `Equals()` / `GetHashCode()` / `ToString()`
 
-   **Tip:** try writing the three checks yourself first. `SupplierId` doesn't resolve yet, that's fine; the IDE tells you what's missing.
+2. **Create the `PurchaseOrder` aggregate (properties only for now).** Re-read US002's `Scenario: Successfully create a purchase order` first. Right-click the project root → `Add` → `Class/Interface` → type `Procurement/Domain/Model/Aggregates/PurchaseOrder` → Enter (`Class` is selected by default).
 
-   **Note:** identity-based equality, comparing only `OrderNumber`, this aggregate's natural business key rather than a generated surrogate ID (same reasoning as `Supplier`).
+   Write only the properties:
+   - `OrderNumber` (`string`), `SupplierId` (`SupplierId`), `OrderDate` (`DateOnly`), `Currency` (`Currency`), all `get`-only
 
-   **Note:** no items list yet: `PurchaseOrderItem` doesn't exist until Feature 3, where the items collection is added alongside it. `ToString()` gets extended then too, to include the item count.
+   **Note:**
+   - All four are write-once: assigned in the constructor, never reassignable after.
+   - `OrderNumber` grows a guard in the constructor a few steps from now; `SupplierId` and `Currency` validate themselves; `OrderDate` needs no guard, any date is valid.
+   - `OrderDate` is a `DateOnly`, not a `DateTime`: a purchase order date is a calendar business date, nothing in this domain ever needs a time-of-day or time-zone component.
 
-   <details>
-   <summary>PurchaseOrder.cs (validation)</summary>
-
-   ```csharp
-   public PurchaseOrder(string orderNumber, SupplierId supplierId, DateTime orderDate, string currency)
-   {
-       ArgumentException.ThrowIfNullOrWhiteSpace(orderNumber);
-       if (supplierId == default)
-           throw new ArgumentException("Supplier ID is required.", nameof(supplierId));
-       if (string.IsNullOrWhiteSpace(currency) || currency.Length != 3)
-           throw new ArgumentException("Currency must be a valid 3-letter code.", nameof(currency));
-
-       OrderNumber = orderNumber;
-       SupplierId = supplierId;
-       OrderDate = orderDate;
-       Currency = currency;
-   }
-   ```
-   </details>
-
-   Then the complete file, no docs yet (`PurchaseOrder.cs` gets revised several more times as later features and refactors land, this isn't its last commit):
+   **Tip:** `SupplierId` and `Currency` don't resolve yet, that's fine, and there's no `using` for them yet: nothing to import until they exist. You build Procurement's own `SupplierId` and the shared `Currency` in the next steps, then come back to `PurchaseOrder`.
 
    <details>
-   <summary>PurchaseOrder.cs (so far)</summary>
+   <summary>PurchaseOrder.cs (properties only)</summary>
 
    ```csharp
-   using Acme.OOProgramming.Procurement.Domain.Model.ValueObjects;
-
    namespace Acme.OOProgramming.Procurement.Domain.Model.Aggregates;
 
    public class PurchaseOrder
    {
        public string OrderNumber { get; }
        public SupplierId SupplierId { get; }
-       public DateTime OrderDate { get; }
-       public string Currency { get; }
-
-       public PurchaseOrder(string orderNumber, SupplierId supplierId, DateTime orderDate, string currency)
-       {
-           ArgumentException.ThrowIfNullOrWhiteSpace(orderNumber);
-           if (supplierId == default)
-               throw new ArgumentException("Supplier ID is required.", nameof(supplierId));
-           if (string.IsNullOrWhiteSpace(currency) || currency.Length != 3)
-               throw new ArgumentException("Currency must be a valid 3-letter code.", nameof(currency));
-
-           OrderNumber = orderNumber;
-           SupplierId = supplierId;
-           OrderDate = orderDate;
-           Currency = currency;
-       }
-
-       public override bool Equals(object? obj)
-       {
-           return obj is PurchaseOrder other && OrderNumber == other.OrderNumber;
-       }
-
-       public override int GetHashCode() => OrderNumber.GetHashCode();
-
-       public override string ToString() => $"PurchaseOrder[OrderNumber={OrderNumber}, SupplierId={SupplierId}, OrderDate={OrderDate}, Currency={Currency}]";
+       public DateOnly OrderDate { get; }
+       public Currency Currency { get; }
    }
    ```
    </details>
 
-3. **Create Procurement's own `SupplierId` value object.** Right-click the project root → `Add` → `Class/Interface` → type `Procurement/Domain/Model/ValueObjects/SupplierId`, **select `Record Struct`** → Enter. Same shape as SupplyChain's, but a completely separate type.
-
-   **Note:** this is the Context Mapping call from the Project Setup diagram showing up in code: **Procurement never imports SupplyChain's `SupplierId`**, it models its own reference to a supplier independently, even though both refer to the same real-world supplier.
+3. **Create Procurement's own `SupplierId`.** Same shape as SupplyChain's from Feature 1: a `readonly record struct` wrapping a single `Identifier` string, validated in its `init` accessor, with a `get` returning `field ?? string.Empty`. Right-click the project root → `Add` → `Class/Interface` → type `Procurement/Domain/Model/ValueObjects/SupplierId`, **select `Record Struct`** → Enter.
 
    <details>
-   <summary>SupplierId.cs (no docs)</summary>
+   <summary>SupplierId.cs (so far)</summary>
 
    ```csharp
    namespace Acme.OOProgramming.Procurement.Domain.Model.ValueObjects;
@@ -1109,17 +1057,25 @@
                field = value;
            }
        }
-
-       public SupplierId() => throw new InvalidOperationException("SupplierId must be initialized with a non-empty identifier.");
-
-       public SupplierId(string identifier) => Identifier = identifier;
-
-       public override string ToString() => Identifier;
    }
    ```
    </details>
 
-   That's the version you type by hand. The committed file also carries full XML docs:
+   **Note:** this is the Context Mapping call from the Project Setup diagram showing up in code: **Procurement never imports SupplyChain's `SupplierId`**, it models its own reference to a supplier independently, even though both refer to the same real-world supplier.
+
+4. **Add `SupplierId`'s constructors and `ToString()`.** The blocked parameterless constructor, a constructor taking the raw string (`PurchaseOrder` and `Program.cs` call `new SupplierId("...")`), and `ToString()` returning the identifier. That completes `SupplierId`. The full file below includes its XML docs.
+
+   <details>
+   <summary>SupplierId.cs (addition: constructors and ToString)</summary>
+
+   ```csharp
+   public SupplierId() => throw new InvalidOperationException("SupplierId must be initialized with a non-empty identifier.");
+
+   public SupplierId(string identifier) => Identifier = identifier;
+
+   public override string ToString() => Identifier;
+   ```
+   </details>
 
    <details>
    <summary>SupplierId.cs</summary>
@@ -1170,16 +1126,231 @@
    ```
    </details>
 
-   Then back in `PurchaseOrder.cs`, add the missing `using` so `SupplierId` resolves to Procurement's own type, not SupplyChain's:
+5. **Create the `Currency` value object.** A `readonly record struct` in the shared kernel wrapping a single `Code` string: its `init` accessor rejects anything that isn't three ASCII letters and stores it upper-cased (C# 14 `field` keyword), its `get` returns `field ?? string.Empty`. The length limit is a named `const`, not a literal `3` repeated inline. Right-click the project root → `Add` → `Class/Interface` → type `Shared/Domain/Model/ValueObjects/Currency`, **select `Record Struct`** → Enter.
+
+   <details>
+   <summary>Currency.cs (so far)</summary>
+
+   ```csharp
+   namespace Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
+
+   public readonly record struct Currency
+   {
+       private const int CodeLength = 3;
+
+       public string Code
+       {
+           get => field ?? string.Empty;
+           init
+           {
+               ArgumentException.ThrowIfNullOrWhiteSpace(value);
+               if (value.Length != CodeLength || !value.All(char.IsAsciiLetter))
+                   throw new ArgumentException($"Currency must be a valid {CodeLength}-letter ISO code.", nameof(Code));
+               field = value.ToUpperInvariant();
+           }
+       }
+   }
+   ```
+   </details>
+
+   **Note:** `Currency` is its own type, not a bare 3-letter `string`, for the same reason as `SupplierId` and `ProductId`: the validation rule lives in one place, and the compiler stops a caller from comparing a currency code against any other 3-character string (a product SKU, say). `PurchaseOrder` uses it now; `Money` uses it in Feature 3.
+
+6. **Add `Currency`'s constructors and `ToString()`.** The blocked parameterless constructor, a constructor taking the raw code, and `ToString()` returning it. That completes `Currency`. The full file below includes its XML docs.
+
+   <details>
+   <summary>Currency.cs (addition: constructors and ToString)</summary>
+
+   ```csharp
+   public Currency() => throw new InvalidOperationException("Currency must be initialized with a valid 3-letter code.");
+
+   public Currency(string code) => Code = code;
+
+   public override string ToString() => Code;
+   ```
+   </details>
+
+   <details>
+   <summary>Currency.cs</summary>
+
+   ```csharp
+   namespace Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
+
+   /// <summary>
+   /// Represents a currency value object: a validated ISO 4217 alphabetic code.
+   /// </summary>
+   public readonly record struct Currency
+   {
+       private const int CodeLength = 3;
+
+       /// <summary>
+       /// The currency code.
+       /// </summary>
+       /// <exception cref="ArgumentException">Thrown when the currency code is null, empty, or not a valid 3-letter ISO code.</exception>
+       public string Code
+       {
+           get => field ?? string.Empty;
+           init
+           {
+               ArgumentException.ThrowIfNullOrWhiteSpace(value);
+               if (value.Length != CodeLength || !value.All(char.IsAsciiLetter))
+                   throw new ArgumentException($"Currency must be a valid {CodeLength}-letter ISO code.", nameof(Code));
+               field = value.ToUpperInvariant();
+           }
+       }
+
+       /// <summary>
+       /// Prevents parameterless construction of <see cref="Currency"/>.
+       /// </summary>
+       /// <exception cref="InvalidOperationException">Always thrown because a currency code is required.</exception>
+       public Currency() => throw new InvalidOperationException("Currency must be initialized with a valid 3-letter code.");
+
+       /// <summary>
+       /// Creates a new instance of <see cref="Currency"/>.
+       /// </summary>
+       /// <param name="code">The currency code.</param>
+       /// <exception cref="ArgumentException">Thrown when the currency code is null, empty, or not a valid 3-letter ISO code.</exception>
+       public Currency(string code) => Code = code;
+
+       /// <summary>
+       /// Returns a string representation of the currency code.
+       /// </summary>
+       /// <returns>A string representation of the currency code.</returns>
+       public override string ToString() => Code;
+   }
+   ```
+   </details>
+
+7. **Add `PurchaseOrder`'s constructor (happy path, no validation yet).** The canonical constructor `PurchaseOrder(string orderNumber, SupplierId supplierId, DateOnly orderDate, Currency currency)` assigns the four properties directly. Add two convenience overloads next to it, each delegating to the canonical one with `: this(...)`: a caller at the edge usually has a raw `"USD"` string and a `DateTime` on hand, not a `Currency` and a `DateOnly`. This assigns the `get`-only properties, so `PurchaseOrder` compiles from here on.
+
+   **Tip:** `SupplierId` and `Currency` now resolve, but Rider still needs the `using`s: `Option+Enter` (macOS) / `Alt+Enter` (Windows) on each red name. For `SupplierId`, pick `Acme.OOProgramming.Procurement.Domain.Model.ValueObjects`, Procurement's own type, not SupplyChain's.
+
+   <details>
+   <summary>PurchaseOrder.cs (addition: constructors)</summary>
+
+   ```csharp
+   public PurchaseOrder(string orderNumber, SupplierId supplierId, DateOnly orderDate, Currency currency)
+   {
+       OrderNumber = orderNumber;
+       SupplierId = supplierId;
+       OrderDate = orderDate;
+       Currency = currency;
+   }
+
+   public PurchaseOrder(string orderNumber, SupplierId supplierId, DateOnly orderDate, string currency)
+       : this(orderNumber, supplierId, orderDate, new Currency(currency)) { }
+
+   public PurchaseOrder(string orderNumber, SupplierId supplierId, DateTime orderDate, string currency)
+       : this(orderNumber, supplierId, DateOnly.FromDateTime(orderDate), new Currency(currency)) { }
+   ```
+   </details>
+
+   **Note:** the `DateTime` overload takes only the date component of whatever timestamp it's handed (`DateOnly.FromDateTime`), discarding the time-of-day. It's a convenience for the common "I have a `DateTime.UtcNow`, I want today's date" call, not a second way to model the order date.
+
+8. **Add `PurchaseOrder`'s validation guards.** Replace the primary constructor from step 7 with the version below: three guards above the assignments. Re-read `Scenario: Invalid order number`, `Scenario: Invalid supplier`, and `Scenario: Invalid currency` first.
+
+   **Tip:** try writing the three checks yourself first.
+
+   <details>
+   <summary>PurchaseOrder.cs (primary constructor, with guards)</summary>
+
+   ```csharp
+   public PurchaseOrder(string orderNumber, SupplierId supplierId, DateOnly orderDate, Currency currency)
+   {
+       ArgumentException.ThrowIfNullOrWhiteSpace(orderNumber);
+       if (supplierId == default)
+           throw new ArgumentException("Supplier ID is required.", nameof(supplierId));
+       if (currency == default)
+           throw new ArgumentException("Currency is required.", nameof(currency));
+
+       OrderNumber = orderNumber;
+       SupplierId = supplierId;
+       OrderDate = orderDate;
+       Currency = currency;
+   }
+   ```
+   </details>
+
+   **Note:** the guards live in the constructor, same as `Supplier`'s: an aggregate root enforces its creation invariant in its constructor, the single entry point and the only place a rule spanning more than one field could go (ADR-0011). `SupplierId` and `Currency` each also validate themselves, so `== default` is all the aggregate adds, a caller must pass a real one, not the struct's zero value.
+
+9. **Add `PurchaseOrder`'s identity methods.** `Equals()` / `GetHashCode()` / `ToString()`, identity-based, comparing only `OrderNumber`.
+
+   <details>
+   <summary>PurchaseOrder.cs (addition: identity methods)</summary>
+
+   ```csharp
+   public override bool Equals(object? obj)
+   {
+       return obj is PurchaseOrder other && OrderNumber == other.OrderNumber;
+   }
+
+   public override int GetHashCode() => OrderNumber.GetHashCode();
+
+   public override string ToString() => $"PurchaseOrder[OrderNumber={OrderNumber}, SupplierId={SupplierId}, OrderDate={OrderDate}, Currency={Currency}]";
+   ```
+   </details>
+
+   `PurchaseOrder` is complete, enforcing every scenario from US002's acceptance criteria. The full file, no docs yet (`PurchaseOrder.cs` gets revised several more times as later features and refactors land, this isn't its last commit):
+
+   <details>
+   <summary>PurchaseOrder.cs (so far)</summary>
+
    ```csharp
    using Acme.OOProgramming.Procurement.Domain.Model.ValueObjects;
+   using Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
+
+   namespace Acme.OOProgramming.Procurement.Domain.Model.Aggregates;
+
+   public class PurchaseOrder
+   {
+       public string OrderNumber { get; }
+       public SupplierId SupplierId { get; }
+       public DateOnly OrderDate { get; }
+       public Currency Currency { get; }
+
+       public PurchaseOrder(string orderNumber, SupplierId supplierId, DateOnly orderDate, Currency currency)
+       {
+           ArgumentException.ThrowIfNullOrWhiteSpace(orderNumber);
+           if (supplierId == default)
+               throw new ArgumentException("Supplier ID is required.", nameof(supplierId));
+           if (currency == default)
+               throw new ArgumentException("Currency is required.", nameof(currency));
+
+           OrderNumber = orderNumber;
+           SupplierId = supplierId;
+           OrderDate = orderDate;
+           Currency = currency;
+       }
+
+       public PurchaseOrder(string orderNumber, SupplierId supplierId, DateOnly orderDate, string currency)
+           : this(orderNumber, supplierId, orderDate, new Currency(currency)) { }
+
+       public PurchaseOrder(string orderNumber, SupplierId supplierId, DateTime orderDate, string currency)
+           : this(orderNumber, supplierId, DateOnly.FromDateTime(orderDate), new Currency(currency)) { }
+
+       public override bool Equals(object? obj)
+       {
+           return obj is PurchaseOrder other && OrderNumber == other.OrderNumber;
+       }
+
+       public override int GetHashCode() => OrderNumber.GetHashCode();
+
+       public override string ToString() => $"PurchaseOrder[OrderNumber={OrderNumber}, SupplierId={SupplierId}, OrderDate={OrderDate}, Currency={Currency}]";
+   }
    ```
+   </details>
+
+   **Note:** `OrderNumber` is this aggregate's natural business key, not a generated surrogate ID, so equality compares it directly (same reasoning as `Supplier` comparing `Id`).
+
+   **Note:** no items list yet: `PurchaseOrderItem` doesn't exist until Feature 3, where the items collection is added alongside it. `ToString()` gets extended there too, to include the item count.
 
    ```
    git add .
-   git commit -m "feat(purchase-order): add purchase order aggregate and its own supplier id."
+   git commit -m "feat(purchase-order): add purchase order aggregate, its own supplier id, and the currency value object."
    ```
-4. **Create the order in `Program.cs`.** Procurement's own `SupplierId` now shares a name with SupplyChain's, so the earlier `new SupplierId("SUP001")` call is ambiguous. Add an alias at the top of `Program.cs`, next to the other `using` directives:
+
+   **Note:** this is the first point where `PurchaseOrder`, its `SupplierId`, and `Currency` are all real. Steps 2 to 9 land in this one commit together.
+
+10. **Create the order in `Program.cs`.** Procurement's own `SupplierId` now shares a name with SupplyChain's, so the earlier `new SupplierId("SUP001")` call is ambiguous. Add an alias at the top of `Program.cs`, next to the other `using` directives:
    ```csharp
    using SupplyChainSupplierId = Acme.OOProgramming.SupplyChain.Domain.Model.ValueObjects.SupplierId;
    ```
@@ -1189,8 +1360,6 @@
    - Use `DateTime.UtcNow`, not `DateTime.Now`, for the order date
 
    **Tip:** `PurchaseOrder` and the bare `SupplierId` are new to this file: resolve them with Rider's auto-import quick-fix as you type, or add the `using`s by hand.
-
-   **Note:** a real system timestamps things in UTC, never the server's local time zone, so timestamps stay consistent across servers and deployments.
 
    <details>
    <summary>Program.cs (so far)</summary>
@@ -1214,15 +1383,19 @@
    ```
    </details>
 
+   **Note:** a real system timestamps things in UTC, never the server's local time zone, so timestamps stay consistent across servers and deployments.
+
    ```
    git add .
    git commit -m "feat(main): create a purchase order for the registered supplier."
    ```
-5. **Publish and finish the feature.** Git Flow Helper widget → `Feature` → `Feature Publish`, then → `Feature Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked). Merges into `develop` and pushes it too, no extra `git push` needed after.
+
+11. **Publish and finish the feature.** Git Flow Helper widget → `Feature` → `Feature Publish`, then → `Feature Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked). Merges into `develop` and pushes it too, no extra `git push` needed after.
 
 ## Add Items to a Purchase Order ([US003](./user-stories.md))
 
 1. **Start the feature.** Feature description: `add-item-to-purchase-order` → `OK`. Creates and switches you to `feature/add-item-to-purchase-order`.
+
 2. **Create the `ProductId` value object.** Right-click the project root → `Add` → `Class/Interface` → type `Procurement/Domain/Model/ValueObjects/ProductId`, **select `Record Struct`** → Enter. Write a `readonly record struct` wrapping a `Guid`, validated in its own `init` accessor (not `Guid.Empty`), plus a blocked parameterless constructor and a static factory `New()`.
 
    **Note:** the folder already exists from Feature 2; typing the full path again just reuses it.
@@ -1257,7 +1430,7 @@
    ```
    </details>
 
-   That's the version you type by hand. The committed file also carries full XML docs:
+   The same file with its XML docs, the version you keep:
 
    <details>
    <summary>ProductId.cs</summary>
@@ -1316,221 +1489,11 @@
    git add .
    git commit -m "feat(product-id): add product id value object."
    ```
-3. **Create the `Money` value object, complete.** Right-click the project root → `Add` → `Class/Interface` → type `Shared/Domain/Model/ValueObjects/Money` → Enter. Needed now for the first time, since an item's unit price is a `Money`. Write:
-   - `record` with `Amount` / `Currency`
-   - constructor validating `Currency` is a 3-letter code and `Amount` is not negative
-   - `ToString()`, `Add()`, `Multiply()`
 
-   **Note:** `Money` doesn't depend on anything else in the project, so unlike `PurchaseOrder` / `SupplierId` there's no unresolved type forcing you to split it across features.
-
-   **Note:** `Add()` / `Multiply()` aren't used yet (Features 3 and 4), but they belong to `Money` itself, not to whichever feature needs them first. `Add()` rejects a null argument and mismatched currencies: adding USD to EUR should never silently produce a USD-labeled result with the wrong amount.
+3. **Create the `Money` value object (minimal).** A `readonly record struct` wrapping `Amount` (`decimal`) and `Currency` (the value object from Feature 2), nothing else yet, same shape as every other value object here (ADR-0005). Right-click the project root → `Add` → `Class/Interface` → type `Shared/Domain/Model/ValueObjects/Money`, **select `Record Struct`** → Enter. Needed now for the first time, since an item's unit price is a `Money`.
 
    <details>
-   <summary>Money.cs (so far)</summary>
-
-   ```csharp
-   namespace Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
-
-   public record Money
-   {
-       public decimal Amount { get; init; }
-       public string Currency { get; init; }
-
-       public Money(decimal amount, string currency)
-       {
-           ArgumentOutOfRangeException.ThrowIfNegative(amount);
-           ArgumentException.ThrowIfNullOrWhiteSpace(currency);
-           if (currency.Length != 3)
-           {
-               throw new ArgumentException("Currency must be a valid 3-letter ISO code.", nameof(currency));
-           }
-           Amount = amount;
-           Currency = currency;
-       }
-
-       public override string ToString() => $"{Amount} {Currency}";
-
-       public Money Add(Money? other)
-       {
-           ArgumentNullException.ThrowIfNull(other);
-           if (Currency != other.Currency)
-           {
-               throw new ArgumentException("Cannot add different currencies.", nameof(other));
-           }
-           return new Money(Amount + other.Amount, Currency);
-       }
-
-       public Money Multiply(int factor) => Multiply((decimal)factor);
-
-       public Money Multiply(decimal factor)
-       {
-           ArgumentOutOfRangeException.ThrowIfNegative(factor);
-           return new Money(Amount * factor, Currency);
-       }
-   }
-   ```
-   </details>
-
-   No XML docs yet: `Money` gets refactored to a `readonly record struct` in a couple of steps, and again once `Currency` becomes its own value object, this still isn't its last commit.
-
-   ```
-   git add .
-   git commit -m "feat(money): add money value object."
-   ```
-4. **Create the `PurchaseOrderItem` entity.** Right-click the project root → `Add` → `Class/Interface` → type `Procurement/Domain/Model/Aggregates/PurchaseOrderItem` → Enter. Re-read US003's `Scenario: Invalid product ID` and `Scenario: Invalid quantity` first. Write:
-   - an **`internal`** constructor `(ProductId productId, int quantity, Money unitPrice)` with guards (product ID not default, `quantity > 0`, unit price not default)
-   - `ProductId` / `Quantity` / `UnitPrice` properties
-   - `Equals()` / `GetHashCode()` / `ToString()`, value-based on all three
-
-   **Tip:** try writing the two guards yourself first.
-
-   **Note:** this is an **entity**, not an aggregate root: it's managed by `PurchaseOrder`, never created or looked up on its own, so the constructor is `internal`.
-
-   **Note:** since `PurchaseOrder.Items` exposes it publicly (next step), it needs value equality so a caller can meaningfully compare or print one, unlike `Supplier` / `PurchaseOrder`, which compare by identity. `PurchaseOrderItem` has no identity type of its own.
-
-   <details>
-   <summary>PurchaseOrderItem.cs (validation)</summary>
-
-   ```csharp
-   if (productId == default)
-   {
-       throw new ArgumentException("Product ID is required.", nameof(productId));
-   }
-   ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
-   if (unitPrice == default)
-   {
-       throw new ArgumentException("Unit price is required.", nameof(unitPrice));
-   }
-   ```
-   </details>
-
-   Then the complete file, no docs yet (`PurchaseOrderItem.cs` gets revised twice more later, this isn't its last commit):
-
-   <details>
-   <summary>PurchaseOrderItem.cs (so far)</summary>
-
-   ```csharp
-   using Acme.OOProgramming.Procurement.Domain.Model.ValueObjects;
-   using Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
-
-   namespace Acme.OOProgramming.Procurement.Domain.Model.Aggregates;
-
-   public class PurchaseOrderItem
-   {
-       internal PurchaseOrderItem(ProductId productId, int quantity, Money unitPrice)
-       {
-           if (productId == default)
-           {
-               throw new ArgumentException("Product ID is required.", nameof(productId));
-           }
-           ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
-           if (unitPrice == default)
-           {
-               throw new ArgumentException("Unit price is required.", nameof(unitPrice));
-           }
-
-           ProductId = productId;
-           Quantity = quantity;
-           UnitPrice = unitPrice;
-       }
-
-       public ProductId ProductId { get; }
-       public int Quantity { get; }
-       public Money UnitPrice { get; }
-
-       public override bool Equals(object? obj)
-       {
-           return obj is PurchaseOrderItem other && ProductId == other.ProductId && Quantity == other.Quantity && UnitPrice == other.UnitPrice;
-       }
-
-       public override int GetHashCode() => HashCode.Combine(ProductId, Quantity, UnitPrice);
-
-       public override string ToString() => $"PurchaseOrderItem[ProductId={ProductId}, Quantity={Quantity}, UnitPrice={UnitPrice}]";
-   }
-   ```
-   </details>
-
-   ```
-   git add .
-   git commit -m "feat(purchase-order-item): add purchase order item entity."
-   ```
-5. **Add `PurchaseOrder.AddItem()`, the items collection, and the extended `ToString()`.** Re-read `Scenario: Invalid product ID`, `Scenario: Invalid quantity`, and `Scenario: Invalid unit price` from the aggregate's side. `AddItem(ProductId, int quantity, decimal unitPriceAmount)`:
-   - three guards, same shape as `PurchaseOrderItem`'s, but `unitPriceAmount` is a `decimal` this time
-   - build a `Money` using the order's own `Currency`, construct the item, append it
-   - add the items collection itself, exposed as `IReadOnlyList<PurchaseOrderItem>`
-
-   **Tip:** try writing the three guards yourself first.
-
-   **Note:** `AddItem()` re-validating what `PurchaseOrderItem`'s constructor already enforces is on purpose: an aggregate never trusts a caller to have validated correctly on its own. Validating `unitPriceAmount` as a `decimal` rejects a negative value before `Money` is even constructed.
-
-   **Note:** `IReadOnlyList<PurchaseOrderItem>` is the .NET read-only view: callers can enumerate it but never add/remove/replace an entry. `PurchaseOrderItem` didn't exist until this feature, so there was nothing to hold a list of until now.
-
-   **Note:** `ToString()` also changes here. **Replace** the one written in Feature 2 with the version below, don't paste this addition below it, or the class ends up with two `ToString()` methods and won't compile. The only difference is `Items={_items.Count}` added to the interpolated string.
-
-   <details>
-   <summary>PurchaseOrder.cs (addition: AddItem guards)</summary>
-
-   ```csharp
-   if (productId == default)
-       throw new ArgumentException("Product ID is required.", nameof(productId));
-   ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
-   ArgumentOutOfRangeException.ThrowIfNegative(unitPriceAmount);
-   ```
-   </details>
-
-   Then the full addition:
-
-   <details>
-   <summary>PurchaseOrder.cs (addition, replaces the Feature 2 ToString())</summary>
-
-   ```csharp
-   private readonly List<PurchaseOrderItem> _items = new();
-
-   public IReadOnlyList<PurchaseOrderItem> Items => _items.AsReadOnly();
-
-   public void AddItem(ProductId productId, int quantity, decimal unitPriceAmount)
-   {
-       if (productId == default)
-           throw new ArgumentException("Product ID is required.", nameof(productId));
-       ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
-       ArgumentOutOfRangeException.ThrowIfNegative(unitPriceAmount);
-
-       var unitPrice = new Money(unitPriceAmount, Currency);
-       var item = new PurchaseOrderItem(productId, quantity, unitPrice);
-       _items.Add(item);
-   }
-
-   public override string ToString() =>
-       $"PurchaseOrder[OrderNumber={OrderNumber}, SupplierId={SupplierId}, OrderDate={OrderDate}, Items={_items.Count}, Currency={Currency}]";
-   ```
-   </details>
-
-   ```
-   git add .
-   git commit -m "feat(purchase-order): add items collection and add item method."
-   ```
-6. **Add items in `Program.cs`.** Add two items to the order and print `Items.Count`.
-
-   <details>
-   <summary>Program.cs (addition)</summary>
-
-   ```csharp
-   purchaseOrder.AddItem(ProductId.New(), 10, 25.99m);
-   purchaseOrder.AddItem(ProductId.New(), 20, 19.99m);
-   Console.WriteLine($"Items added: {purchaseOrder.Items.Count}");
-   ```
-   </details>
-
-   ```
-   git add .
-   git commit -m "feat(main): illustrate adding items to purchase order."
-   ```
-7. **Convert `Money` to a `readonly record struct`.** Swap `Money.cs` for the version below (it also adds operator overloads for `+` and `*`).
-
-   **Note:** it was just written as a plain `record`, the right first draft, no reason to reach for value-type semantics before a real caller exists. Now one does: `PurchaseOrder.AddItem()`. Value objects with no identity of their own are natural `struct` candidates: no heap allocation, copied instead of referenced, still get structural equality for free from `record`. Same reasoning as `Address` / `SupplierId` (Features 1-2) and `ProductId` (earlier this feature).
-
-   <details>
-   <summary>Money.cs (readonly record struct, so far)</summary>
+   <summary>Money.cs (minimal)</summary>
 
    ```csharp
    namespace Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
@@ -1538,157 +1501,17 @@
    public readonly record struct Money
    {
        public decimal Amount { get; init; }
-       public string Currency { get; init; }
-
-       public Money(decimal amount, string currency)
-       {
-           ArgumentOutOfRangeException.ThrowIfNegative(amount);
-           ArgumentException.ThrowIfNullOrWhiteSpace(currency);
-           if (currency.Length != 3)
-           {
-               throw new ArgumentException("Currency must be a valid 3-letter ISO code.", nameof(currency));
-           }
-           Amount = amount;
-           Currency = currency;
-       }
-
-       public override string ToString() => $"{Amount} {Currency}";
-
-       public Money Add(Money? other)
-       {
-           ArgumentNullException.ThrowIfNull(other);
-           if (Currency != other.Value.Currency)
-           {
-               throw new ArgumentException("Cannot add different currencies.", nameof(other));
-           }
-           return new Money(Amount + other.Value.Amount, Currency);
-       }
-
-       public Money Multiply(int factor) => Multiply((decimal)factor);
-
-       public Money Multiply(decimal factor)
-       {
-           ArgumentOutOfRangeException.ThrowIfNegative(factor);
-           return new Money(Amount * factor, Currency);
-       }
-
-       public static Money operator +(Money left, Money right) => left.Add(right);
-       public static Money operator *(Money money, decimal factor) => money.Multiply(factor);
-       public static Money operator *(decimal factor, Money money) => money.Multiply(factor);
-       public static Money operator *(Money money, int factor) => money.Multiply(factor);
-       public static Money operator *(int factor, Money money) => money.Multiply(factor);
+       public Currency Currency { get; init; }
    }
    ```
    </details>
 
-   Still no XML docs: `Currency` becomes its own value object next, and `Money.Currency`'s type changes because of it, so this isn't `Money`'s last commit.
+   **Note:** `Money` depends only on `Currency`, which already exists, so unlike `PurchaseOrder` / `SupplierId` there's no unresolved type forcing you to split it across features. You still build it method by method, for practice.
 
-   ```
-   git add .
-   git commit -m "refactor(money): convert money to a readonly record struct."
-   ```
-
-   **Note:** `Add()`'s body now reads `other.Value.Currency` / `other.Value.Amount` instead of `other.Currency` / `other.Amount`. `Money?` on a struct means `Nullable<Money>`, not "maybe a reference" the way it did on a `record` class, so its members aren't reachable without unwrapping through `.Value` first, even after the null-check.
-
-   **Note:** two things in this version beyond the `struct` keyword:
-   - The currency check now leads with `ArgumentException.ThrowIfNullOrWhiteSpace(currency)`, the guard-clause style used in every constructor here.
-   - Five `operator` overloads (`+`, `*` in every operand order). They work the same on a `record` class; it's just a natural moment to add them. With them, arithmetic on `Money` reads like ordinary numeric code, `.Add()` / `.Multiply()` still there underneath.
-
-   **Note:** `PurchaseOrderItem`'s constructor needs no change here: its `unitPrice` guard already reads `if (unitPrice == default)` from Feature 3, not an `ArgumentNullException.ThrowIfNull`, so it already means the right thing on both sides of this conversion.
-
-   **Note:** this is a real trade-off, not a free win. A stray `default(Money)` (`Amount == 0`, `Currency == default`) is now silently constructible, where a stray `null` on the old `record` class version would have failed loudly. The guarantee from here on comes from disciplined `== default` guards at every point one of these structs crosses into an aggregate, plus a test for each. Keep this in mind for `## Testing`: every constructor that used to guard against `null` now guards against `default`.
-8. **Implement the `Currency` value object.** The design diagram already shows a dedicated `Currency`; build it now. Right-click the project root → `Add` → `Class/Interface` → type `Shared/Domain/Model/ValueObjects/Currency`, **select `Record Struct`** → Enter.
-
-   **Note:** `Money.Currency` and `PurchaseOrder.Currency` currently run the same 3-letter validation independently, two copies of a rule that could drift apart, and nothing stops a caller from comparing a currency code against any other 3-character string by mistake. That's the primitive-obsession gap `Currency` closes. Same reasoning as `SupplierId` and `ProductId`.
-
-   **Note:** `Currency` becomes a `readonly record struct`, small enough and exercised immediately enough (every `Money` / `PurchaseOrder` comparison touches it) to be as low-risk a struct candidate as `Money` itself.
+4. **Add `Money`'s validation and constructors.** Replace `Amount` and `Currency` with `init` accessors that validate, same as every other value object (ADR-0011): `Amount` rejects a negative value, `Currency` rejects `default`. Then add the blocked parameterless constructor (`new Money()` must fail loudly, like `Currency` and `SupplierId`), the canonical `(decimal, Currency)` constructor (just assignments), and a convenience overload taking the currency as a raw `string`, since a caller usually has `"USD"` on hand, not a `Currency` instance.
 
    <details>
-   <summary>Currency.cs (no docs)</summary>
-
-   ```csharp
-   namespace Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
-
-   public readonly record struct Currency
-   {
-       public string Code
-       {
-           get => field ?? string.Empty;
-           init
-           {
-               ArgumentException.ThrowIfNullOrWhiteSpace(value);
-               if (value.Length != 3 || !value.All(char.IsAsciiLetter))
-                   throw new ArgumentException("Currency must be a valid 3-letter ISO code.", nameof(Code));
-               field = value.ToUpperInvariant();
-           }
-       }
-
-       public Currency() => throw new InvalidOperationException("Currency must be initialized with a valid 3-letter code.");
-
-       public Currency(string code) => Code = code;
-
-       public override string ToString() => Code;
-   }
-   ```
-   </details>
-
-   That's the version you type by hand. The committed file also carries full XML docs:
-
-   <details>
-   <summary>Currency.cs</summary>
-
-   ```csharp
-   namespace Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
-
-   /// <summary>
-   /// Represents a currency value object.
-   /// </summary>
-   public readonly record struct Currency
-   {
-       /// <summary>
-       /// The currency code.
-       /// </summary>
-       /// <exception cref="ArgumentException">Thrown when the currency code is null, empty, or not a valid 3-letter ISO code.</exception>
-       public string Code
-       {
-           get => field ?? string.Empty;
-           init
-           {
-               ArgumentException.ThrowIfNullOrWhiteSpace(value);
-               if (value.Length != 3 || !value.All(char.IsAsciiLetter))
-                   throw new ArgumentException("Currency must be a valid 3-letter ISO code.", nameof(Code));
-               field = value.ToUpperInvariant();
-           }
-       }
-
-       /// <summary>
-       /// Prevents parameterless construction of <see cref="Currency"/>.
-       /// </summary>
-       /// <exception cref="InvalidOperationException">Always thrown because a currency code is required.</exception>
-       public Currency() => throw new InvalidOperationException("Currency must be initialized with a valid 3-letter code.");
-
-       /// <summary>
-       /// Creates a new instance of <see cref="Currency"/>.
-       /// </summary>
-       /// <param name="code">The currency code.</param>
-       /// <exception cref="ArgumentException">Thrown when the currency code is null, empty, or not a valid 3-letter ISO code.</exception>
-       public Currency(string code) => Code = code;
-
-       /// <summary>
-       /// Returns a string representation of the currency code.
-       /// </summary>
-       /// <returns>A string representation of the currency code.</returns>
-       public override string ToString() => Code;
-   }
-   ```
-   </details>
-
-   **Note:** `Currency`'s own `Code` property validates inside its `init` accessor, using the C# 14 `field` keyword, instead of the constructor body; its parameterless constructor is blocked the same way `Money`'s now is, `new Currency()` throws, closing part of the same `default`-bypass gap `Money` has.
-
-   Swap `Money.Currency` and `PurchaseOrder.Currency` from `string` to `Currency`, keeping a `string`-accepting overload on both constructors so every existing call site (`Program.cs`, the tests) keeps compiling unchanged:
-
-   <details>
-   <summary>Money.cs (Currency property and constructors)</summary>
+   <summary>Money.cs (Amount and Currency with validation, and the constructors)</summary>
 
    ```csharp
    public decimal Amount
@@ -1721,7 +1544,27 @@
    }
 
    public Money(decimal amount, string currencyCode) : this(amount, new Currency(currencyCode)) { }
+   ```
+   </details>
 
+   **Note:** a `readonly record struct` always has an implicit parameterless constructor the language won't let you remove, so `default(Money)` (with `Amount == 0`, `Currency == default`) is constructible without ever running these `init` accessors. Blocking `new Money()` makes the explicit call fail loudly; the `default(Money)` gap is closed one level up, by a `== default` guard everywhere a `Money` crosses into an aggregate (ADR-0005).
+
+5. **Add `Money`'s `ToString()`.** Prints the amount followed by the currency code.
+
+   <details>
+   <summary>Money.cs (addition: ToString)</summary>
+
+   ```csharp
+   public override string ToString() => $"{Amount} {Currency}";
+   ```
+   </details>
+
+6. **Add `Money`'s arithmetic.** `Add()` (same currency only) and `Multiply()` (non-negative factor), plus `+` / `*` operator overloads that forward to them, so callers write `a + b` and `price * quantity` instead of `.Add(...)` / `.Multiply(...)`. Both methods also guard against a `default(Money)` (`Currency == default`), which a struct makes constructible: arithmetic on an uninitialized `Money` should fail loudly, not compute a wrong total. Neither is used yet, Features 3 and 4 pull them in, but they belong to `Money` itself, not to whichever feature needs them first.
+
+   <details>
+   <summary>Money.cs (addition: Add, Multiply, and operators)</summary>
+
+   ```csharp
    public Money Add(Money other)
    {
        if (Currency == default || other.Currency == default)
@@ -1744,14 +1587,20 @@
        ArgumentOutOfRangeException.ThrowIfNegative(factor);
        return new Money(Amount * factor, Currency);
    }
+
+   public static Money operator +(Money left, Money right) => left.Add(right);
+
+   public static Money operator *(Money money, decimal factor) => money.Multiply(factor);
+
+   public static Money operator *(decimal factor, Money money) => money.Multiply(factor);
+
+   public static Money operator *(Money money, int factor) => money.Multiply(factor);
+
+   public static Money operator *(int factor, Money money) => money.Multiply(factor);
    ```
    </details>
 
-   `Amount`'s guard clause moves the same way, from the constructor body into its own `init` accessor. `Money.cs` doesn't change again after this: full file, with the XML docs that ship in the real repo:
-
-   **Note:** `Add()` / `Multiply()` get a real upgrade here, not just a type-signature change:
-   - The old `Money? other` parameter only caught a genuine `null`. A struct passed as `Money?` is never `null` unless the caller writes it explicitly, so `other.Add(default)` slipped past the null-check and failed later with a misleading "different currencies" message.
-   - Both methods now check `Currency == default` on every operand directly, no `Nullable<Money>` wrapping, and report the real issue with `InvalidOperationException`.
+   That completes `Money`. `Money.cs` doesn't change again, so the full file below carries its XML docs, the version you keep:
 
    <details>
    <summary>Money.cs</summary>
@@ -1871,254 +1720,196 @@
        /// <summary>
        /// Gets the result of adding two <see cref="Money"/> instances.
        /// </summary>
-       /// <param name="left">The first monetary operand.</param>
-       /// <param name="right">The second monetary operand.</param>
-       /// <returns>The sum of the two monetary values.</returns>
        public static Money operator +(Money left, Money right) => left.Add(right);
 
        /// <summary>
        /// Multiplies a <see cref="Money"/> value by a decimal factor.
        /// </summary>
-       /// <param name="money">The monetary value.</param>
-       /// <param name="factor">The multiplier factor.</param>
-       /// <returns>The multiplied monetary value.</returns>
        public static Money operator *(Money money, decimal factor) => money.Multiply(factor);
 
        /// <summary>
        /// Multiplies a <see cref="Money"/> value by a decimal factor.
        /// </summary>
-       /// <param name="factor">The multiplier factor.</param>
-       /// <param name="money">The monetary value.</param>
-       /// <returns>The multiplied monetary value.</returns>
        public static Money operator *(decimal factor, Money money) => money.Multiply(factor);
 
        /// <summary>
        /// Multiplies a <see cref="Money"/> value by an integer factor.
        /// </summary>
-       /// <param name="money">The monetary value.</param>
-       /// <param name="factor">The multiplier factor.</param>
-       /// <returns>The multiplied monetary value.</returns>
        public static Money operator *(Money money, int factor) => money.Multiply(factor);
 
        /// <summary>
        /// Multiplies a <see cref="Money"/> value by an integer factor.
        /// </summary>
-       /// <param name="factor">The multiplier factor.</param>
-       /// <param name="money">The monetary value.</param>
-       /// <returns>The multiplied monetary value.</returns>
        public static Money operator *(int factor, Money money) => money.Multiply(factor);
    }
    ```
    </details>
 
-   ```
-   git add .
-   git commit -m "refactor(shared): extract currency into its own value object."
-   ```
-9. **Publish and finish the feature.** Git Flow Helper widget → `Feature` → `Feature Publish`, then → `Feature Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked). Merges into `develop` and pushes it too, no extra `git push` needed after.
-
-## Calculate Purchase Order Item Subtotal ([US004](./user-stories.md))
-
-1. **Start the feature.** Feature description: `calculate-item-subtotal` → `OK`. Creates and switches you to `feature/calculate-item-subtotal`.
-2. **Add `PurchaseOrderItem.CalculateItemTotal()`.** Re-read `Scenario: Successfully calculate item subtotal`. It's `UnitPrice * Quantity`. `Money` is a `readonly record struct` since Feature 3, so this reads as ordinary numeric arithmetic, no `.Multiply()` call needed.
-
-   <details>
-   <summary>PurchaseOrderItem.cs (addition)</summary>
-
-   ```csharp
-   public Money CalculateItemTotal() => UnitPrice * Quantity;
-   ```
-   </details>
+   **Note:** `Add()` rejects mismatched currencies (adding USD to EUR should never silently produce a USD-labeled result) and a `default(Money)` on either side. `Multiply()` guards the same way.
 
    ```
    git add .
-   git commit -m "feat(purchase-order-item): add calculate item total method."
+   git commit -m "feat(money): add money value object."
    ```
-3. **Print each subtotal in `Program.cs`.**
+
+7. **Create the `PurchaseOrderItem` entity (properties only for now).** Re-read US003's `Scenario: Invalid product ID` and `Scenario: Invalid quantity` first. Right-click the project root → `Add` → `Class/Interface` → type `Procurement/Domain/Model/Aggregates/PurchaseOrderItem` → Enter.
+
+   Write only the properties:
+   - `ProductId` (`ProductId`), `Quantity` (`int`), `UnitPrice` (`Money`), all `get`-only
+
+   **Tip:** `ProductId` and `Money` resolve now, but Rider still needs the `using`s: `Option+Enter` (macOS) / `Alt+Enter` (Windows) on each red name → `using Acme.OOProgramming...;`.
 
    <details>
-   <summary>Program.cs (addition)</summary>
+   <summary>PurchaseOrderItem.cs (properties only)</summary>
 
    ```csharp
-   foreach (var item in purchaseOrder.Items)
+   using Acme.OOProgramming.Procurement.Domain.Model.ValueObjects;
+   using Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
+
+   namespace Acme.OOProgramming.Procurement.Domain.Model.Aggregates;
+
+   public class PurchaseOrderItem
    {
-       Console.WriteLine($"Order Item Total: {item.CalculateItemTotal()}");
+       public ProductId ProductId { get; }
+       public int Quantity { get; }
+       public Money UnitPrice { get; }
    }
    ```
    </details>
 
-   ```
-   git add .
-   git commit -m "feat(main): illustrate order item subtotal calculation."
-   ```
-4. **Publish and finish the feature.** Git Flow Helper widget → `Feature` → `Feature Publish`, then → `Feature Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked). Merges into `develop` and pushes it too, no extra `git push` needed after.
+   **Note:** this is an **entity**, not an aggregate root: it's managed by `PurchaseOrder`, never created or looked up on its own.
 
-## Calculate Purchase Order Total ([US005](./user-stories.md))
-
-1. **Start the feature.** Feature description: `calculate-order-total` → `OK`. Creates and switches you to `feature/calculate-order-total`.
-2. **Add `PurchaseOrder.CalculateTotal()`.** Re-read `Scenario: Successfully calculate total`. It's a LINQ `Sum` over the items' subtotals, wrapped back into a `Money` with the order's currency.
-
-   **Note:** this is the first LINQ / functional-style code in the track, worth breaking down:
-   - `_items.Sum(item => item.CalculateItemTotal().Amount)` calls the OOP method `CalculateItemTotal()` on every item (via the lambda `item => ...`), reads its `.Amount` (LINQ's `Sum` needs a plain `decimal`, not a `Money`), and adds all the `decimal`s together, no manual loop, no running-total variable.
-   - The result is wrapped back into a `Money` using the order's own `Currency`.
-
-   Nothing here is "new" functional logic: `CalculateItemTotal()` is the same OOP method already written in Feature 4. The functional style is just a different way of *composing* that existing method over a collection, instead of writing an explicit `foreach`.
+8. **Add `PurchaseOrderItem`'s constructor (happy path, no validation yet).** An `internal` constructor `(ProductId productId, int quantity, Money unitPrice)` that assigns the three properties directly.
 
    <details>
-   <summary>PurchaseOrder.cs (addition)</summary>
+   <summary>PurchaseOrderItem.cs (addition: constructor)</summary>
 
    ```csharp
-   public Money CalculateTotal()
+   internal PurchaseOrderItem(ProductId productId, int quantity, Money unitPrice)
    {
-       var total = _items.Sum(item => item.CalculateItemTotal().Amount);
-       return new Money(total, Currency);
+       ProductId = productId;
+       Quantity = quantity;
+       UnitPrice = unitPrice;
    }
    ```
    </details>
 
-   ```
-   git add .
-   git commit -m "feat(purchase-order): add calculate total method."
-   ```
-3. **Print the order total in `Program.cs`.**
+   **Note:** `internal` means only code in this assembly (in practice `PurchaseOrder`) can call it. A line item is created through its aggregate, never on its own.
+
+9. **Add `PurchaseOrderItem`'s validation guards.** Replace the constructor from step 8 with the version below: three guards above the assignments, product ID not default, quantity above zero, unit price not default.
+
+   **Tip:** try writing the guards yourself first.
 
    <details>
-   <summary>Program.cs (addition)</summary>
+   <summary>PurchaseOrderItem.cs (constructor, with guards)</summary>
 
    ```csharp
-   Console.WriteLine($"Order Total: {purchaseOrder.CalculateTotal()}");
+   internal PurchaseOrderItem(ProductId productId, int quantity, Money unitPrice)
+   {
+       if (productId == default)
+           throw new ArgumentException("Product ID is required.", nameof(productId));
+       ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
+       if (unitPrice == default)
+           throw new ArgumentException("Unit price is required.", nameof(unitPrice));
+
+       ProductId = productId;
+       Quantity = quantity;
+       UnitPrice = unitPrice;
+   }
    ```
    </details>
 
-   ```
-   git add .
-   git commit -m "feat(main): illustrate order total calculation."
-   ```
-4. **Publish and finish the feature.** Git Flow Helper widget → `Feature` → `Feature Publish`, then → `Feature Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked). Merges into `develop` and pushes it too, no extra `git push` needed after.
-
-## Wrap-Up
-
-**All of this happens on `develop`:** `Feature Finish` always leaves you there after merging, so no branch switch is needed to start.
-
-1. **Re-run `Program.cs` end to end** and confirm all output prints in order. Compare it against the diagram from `## Project Setup`: `Address`, `Supplier`, `SupplierId`, `PurchaseOrder`, `PurchaseOrderItem`, `ProductId`, and `Money` are all real code now, exactly as sketched. `Currency` and the `DateOnly` order date are still ahead.
-
-## Release
-
-**Still on `develop`, right where Wrap-Up left off.** A release is a *batch* of finished features, not one per feature. These 5 user stories together are one sprint's worth of work, exactly the kind of thing a real release bundles.
-
-1. **Start the release.** Git Flow Helper widget → `Release` → `Release Start` → **Version description** `1.0.0` → `OK`. Creates and switches you to `release/1.0.0`.
-
-   **Tip:** the `push local branch when finished` checkbox doesn't matter much either way here; step 4 below publishes the branch properly regardless.
-2. **Bump the version in `Acme.OOProgramming.csproj`.** Switch the Solution Explorer dropdown to **File System** view (Solution view hides the `.csproj`, and this whole section edits it and adds plain files). Change `<Version>0.1.0-preview</Version>` to `<Version>1.0.0</Version>`.
-   ```
-   git add .
-   git commit -m "chore(release): bump version to 1.0.0."
-   ```
-
-   **Note:** that one edit does two things. The `-preview` suffix comes off, since that's never what ships. And the version jumps straight to `1.0.0`, not `0.1.1` / `0.2.0`: this is the first release meant to be stable, exactly what reaching `1.0.0` signals.
-3. **Add `CHANGELOG.md`.** Still in **File System** view, right-click the project root → `Add` → `File` → type `CHANGELOG.md` → Enter:
+10. **Add `PurchaseOrderItem`'s identity methods.** Value-based `Equals()` / `GetHashCode()` / `ToString()`, on all three properties.
 
    <details>
-   <summary>CHANGELOG.md</summary>
+   <summary>PurchaseOrderItem.cs (addition: identity methods)</summary>
 
-   ```markdown
-   # Changelog
+   ```csharp
+   public override bool Equals(object? obj)
+   {
+       return obj is PurchaseOrderItem other && ProductId == other.ProductId && Quantity == other.Quantity && UnitPrice == other.UnitPrice;
+   }
 
-   ## 1.0.0
+   public override int GetHashCode() => HashCode.Combine(ProductId, Quantity, UnitPrice);
 
-   - US001: Register a Supplier
-   - US002: Create a Purchase Order
-   - US003: Add Items to a Purchase Order
-   - US004: Calculate Purchase Order Item Subtotal
-   - US005: Calculate Purchase Order Total
+   public override string ToString() => $"PurchaseOrderItem[ProductId={ProductId}, Quantity={Quantity}, UnitPrice={UnitPrice}]";
    ```
    </details>
 
-   ```
-   git add .
-   git commit -m "docs: add changelog for 1.0.0."
-   ```
-
-   **Note:** this commit matters beyond documentation, it's the reason `Release Finish` has something to merge into `develop`. A release branch with no commits of its own merges into `develop` as a no-op (no merge commit there) while still creating a real merge commit on `main`. That mismatch is what makes `develop` briefly show as "behind" `main` on GitHub. With a real commit here, both merges are real and `develop` / `main` land in sync on their own.
-4. **Publish the release branch.** Git Flow Helper widget → `Release` → `Release Publish`. Pushes `release/1.0.0` with both commits included. Do this every time after adding a commit to a release branch, right before finishing it, same as `Feature Publish`.
-
-   **Note:** `Release Finish` also tries to push the release branch as part of its own sequence, but that push is broken in this plugin (it pushes the tag name instead of the branch). `Release Publish` is what actually gets it there.
-5. **Finish the release.** Git Flow Helper widget → `Release` → `Release Finish`. No dialog, it runs immediately: merges `release/1.0.0` into `main` (tags it `1.0.0` there), merges it into `develop` too, pushes both, then deletes the release branch. A notification confirms: "Released finished and tag pushed successfully."
-
-   **Note:** skipping step 4 can leave the local branch delete failing with a "branch not fully merged" warning, since git compares against a stale remote-tracking ref. Afterward, GitHub may show `develop` as slightly "ahead" / "behind" `main`: that's expected (each branch gets its own separate merge commit) and not something to fix; the file content already matches.
-6. **Publish the GitHub Release.** On GitHub: **Releases** → **Draft a new release** → pick the existing tag `1.0.0` (created by `Release Finish`, don't create a new one). Title `1.0.0`, description below, **Publish release**.
-
-   **Note:** the branch selector on that screen only matters when creating a brand-new tag on the spot; since this tag already exists and points at a commit on `main`, it's ignored. The GitHub Release is a feature layered on top of the tag, separate from Git Flow itself, which only ever creates the tag.
+   That is every change Feature 3 makes to `PurchaseOrderItem`. It gains `CalculateItemTotal()` in US004 and a controlled quantity-mutation method in US006; the file so far, no docs yet:
 
    <details>
-   <summary>Release notes (1.0.0)</summary>
+   <summary>PurchaseOrderItem.cs (so far)</summary>
 
-   ```markdown
-   ## 🚀 Added
+   ```csharp
+   using Acme.OOProgramming.Procurement.Domain.Model.ValueObjects;
+   using Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
 
-   - **US001: Register a Supplier**: register a `Supplier` with an identifier, name, and address, in its own SupplyChain bounded context.
-   - **US002: Create a Purchase Order**: create a `PurchaseOrder` for a `Supplier`, with order number, date, and currency validation.
-   - **US003: Add Items to a Purchase Order** and **US004/US005: Calculate Purchase Order Item/Total Subtotal**: add `PurchaseOrderItem`s to a `PurchaseOrder`, with running total calculation.
-   - Value Objects `Address`, `Money`, `SupplierId`, `ProductId`, modeled as C# records.
-   - `CHANGELOG.md` to track version history going forward.
+   namespace Acme.OOProgramming.Procurement.Domain.Model.Aggregates;
+
+   public class PurchaseOrderItem
+   {
+       public ProductId ProductId { get; }
+       public int Quantity { get; }
+       public Money UnitPrice { get; }
+
+       internal PurchaseOrderItem(ProductId productId, int quantity, Money unitPrice)
+       {
+           if (productId == default)
+               throw new ArgumentException("Product ID is required.", nameof(productId));
+           ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
+           if (unitPrice == default)
+               throw new ArgumentException("Unit price is required.", nameof(unitPrice));
+
+           ProductId = productId;
+           Quantity = quantity;
+           UnitPrice = unitPrice;
+       }
+
+       public override bool Equals(object? obj)
+       {
+           return obj is PurchaseOrderItem other && ProductId == other.ProductId && Quantity == other.Quantity && UnitPrice == other.UnitPrice;
+       }
+
+       public override int GetHashCode() => HashCode.Combine(ProductId, Quantity, UnitPrice);
+
+       public override string ToString() => $"PurchaseOrderItem[ProductId={ProductId}, Quantity={Quantity}, UnitPrice={UnitPrice}]";
+   }
    ```
    </details>
 
-   **Tip:** the same thing works from the command line: `gh release create 1.0.0 --title "1.0.0" --notes-file CHANGELOG.md` (the [GitHub CLI](https://cli.github.com/), `gh`, authenticated once via `gh auth login`). `--notes-file` accepts any Markdown file; `CHANGELOG.md` works directly here since the tag already exists.
-7. **Back on `develop`, pick the `-preview` suffix back up.** Git Flow Helper switches you to `develop` automatically after `Release Finish`. Still in **File System** view, in `Acme.OOProgramming.csproj`: `<Version>1.0.0</Version>` → `<Version>1.1.0-preview</Version>`.
+   **Note:** `PurchaseOrder.Items` exposes items publicly a few steps from now, so a caller needs to compare or print one meaningfully. `PurchaseOrderItem` has no identity type of its own, unlike `Supplier` / `PurchaseOrder`, which compare by identity.
 
-   **Note:** skipping straight to `1.1.0-preview` (not `1.0.1-preview`) says out loud what's already planned: the sections below add real new capabilities (a value-type refactor, a new user story, and a full test suite), not just a bugfix, and semantic versioning reserves the middle number for that.
    ```
    git add .
-   git commit -m "chore(dev): set development version to 1.1.0-preview."
-   git push
+   git commit -m "feat(purchase-order-item): add purchase order item entity."
    ```
 
-
-## Merge Duplicate Items in a Purchase Order ([US006](./user-stories.md))
-
-**A real requirement change, arriving after `1.0.0` shipped.** Everything up to here (Features 1-5) matches US001-US005 exactly. This one is different: a realistic case of a real procurement team using the shipped product and reporting back a genuine usability problem. `docs/user-stories.md` isn't a frozen, one-time deliverable, it grows exactly like this. This is not optional exploration, it ships in the same `1.1.0` release as the documentation work below and the test suite; `## Testing` further down writes the tests for it alongside every other user story.
-
-1. **Start the feature.** Feature description: `merge-duplicate-items` → `OK`. Creates and switches you to `feature/merge-duplicate-items`.
-2. **Document US006 first, before any code.** Add it to `docs/user-stories.md`, right after US005.
+11. **Add `PurchaseOrder`'s items collection and `AddItem()` (happy path, no validation yet).** Re-read `Scenario: Successfully add an item to a purchase order`: build a `Money` from the order's own `Currency`, construct the item, append it.
 
    <details>
-   <summary>docs/user-stories.md (addition)</summary>
+   <summary>PurchaseOrder.cs (addition: items and AddItem)</summary>
 
-   ```markdown
-   ## US006: Merge Duplicate Items in a Purchase Order
-   As a procurement manager, I want adding a product that's already on the purchase order to combine into the existing line instead of creating a new one, so that my purchase order doesn't show confusing duplicate entries for the same product.
+   ```csharp
+   private readonly List<PurchaseOrderItem> _items = new();
 
-   ### Scenario: Successfully merge quantities for a repeated product
-   - **Given** a purchase order "PO001" with an item for product ID "X", quantity 10, unit price amount 15.99 in USD
-   - **When** the procurement manager adds another item for the same product ID "X", quantity 5, unit price amount 15.99
-   - **Then** the purchase order still has one item for product ID "X", now with quantity 15
+   public IReadOnlyList<PurchaseOrderItem> Items => _items.AsReadOnly();
 
-   ### Scenario: Merging keeps the original unit price
-   - **Given** a purchase order "PO001" with an item for product ID "X", quantity 10, unit price amount 15.99 in USD
-   - **When** the procurement manager adds another item for the same product ID "X", quantity 5, unit price amount 19.99
-   - **Then** the item for product ID "X" keeps its original unit price of 15.99 USD, unaffected by the newly provided amount
-
-   ### Scenario: Adding a different product still creates a new line
-   - **Given** a purchase order "PO001" with an item for product ID "X"
-   - **When** the procurement manager adds an item for a different product ID "Y"
-   - **Then** the purchase order has two separate items
+   public void AddItem(ProductId productId, int quantity, decimal unitPriceAmount)
+   {
+       var unitPrice = new Money(unitPriceAmount, Currency);
+       var item = new PurchaseOrderItem(productId, quantity, unitPrice);
+       _items.Add(item);
+   }
    ```
    </details>
 
-   ```
-   git add .
-   git commit -m "docs(user-stories): add US006, merge duplicate items in a purchase order."
-   ```
-3. **Decide which price wins on a re-add.** This is a genuinely ambiguous design decision, not just a bug fix: if the same product is re-added at a *different* price, which price wins? The choice here: **keep the line's original unit price**, discard the newly provided one.
+   **Note:** `IReadOnlyList<PurchaseOrderItem>` is the .NET read-only view: callers can enumerate it but never add, remove, or replace an entry. `PurchaseOrderItem` didn't exist until this feature, so there was nothing to hold a list of until now.
 
-   **Note:** a purchase order line represents a price agreed at a specific point in time; silently overwriting it on every re-add could misrepresent what was actually negotiated. Just implement it for now; the reasoning against the alternative (overwrite with the new price) is worth talking through.
-4. **Implement the merge in `PurchaseOrder.AddItem()`.** Search `_items` for a matching `ProductId`: if found, replace it with a new item combining the quantity and keeping the original `UnitPrice`; otherwise append a new line same as before. The three validation guards at the top don't change, this is purely about what happens after them.
-
-   **Tip:** try writing the lookup-and-merge logic yourself first.
+12. **Add `AddItem()`'s validation guards.** Replace the method from step 11 with the version below: three guards, same shape as `PurchaseOrderItem`'s, but `unitPriceAmount` is a `decimal` this time. Re-read `Scenario: Invalid product ID`, `Scenario: Invalid quantity`, and `Scenario: Invalid unit price` from the aggregate's side.
 
    <details>
-   <summary>PurchaseOrder.cs (addition, replaces AddItem())</summary>
+   <summary>PurchaseOrder.cs (AddItem, with guards)</summary>
 
    ```csharp
    public void AddItem(ProductId productId, int quantity, decimal unitPriceAmount)
@@ -2128,14 +1919,6 @@
        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
        ArgumentOutOfRangeException.ThrowIfNegative(unitPriceAmount);
 
-       var existingIndex = _items.FindIndex(item => item.ProductId == productId);
-       if (existingIndex >= 0)
-       {
-           var existing = _items[existingIndex];
-           _items[existingIndex] = new PurchaseOrderItem(productId, existing.Quantity + quantity, existing.UnitPrice);
-           return;
-       }
-
        var unitPrice = new Money(unitPriceAmount, Currency);
        var item = new PurchaseOrderItem(productId, quantity, unitPrice);
        _items.Add(item);
@@ -2143,31 +1926,20 @@
    ```
    </details>
 
+   **Note:** `AddItem()` re-validating what `PurchaseOrderItem`'s constructor already enforces is on purpose: an aggregate never trusts a caller to have validated correctly on its own. Validating `unitPriceAmount` as a `decimal` rejects a negative value before `Money` is even constructed.
+
+13. **Update `PurchaseOrder.ToString()` to show the item count.** Replace the `ToString()` from Feature 2, don't add a second one, the class won't compile with two. The only change is `Items={_items.Count}`.
+
+   <details>
+   <summary>PurchaseOrder.cs (replaces the Feature 2 ToString())</summary>
+
+   ```csharp
+   public override string ToString() =>
+       $"PurchaseOrder[OrderNumber={OrderNumber}, SupplierId={SupplierId}, OrderDate={OrderDate}, Items={_items.Count}, Currency={Currency}]";
    ```
-   git add .
-   git commit -m "feat(purchase-order): merge quantities when adding an existing product."
-   ```
-5. **Confirm it still compiles.** Run `dotnet build`.
+   </details>
 
-   **Note:** the three scenarios above don't get their own tests yet, they're written together with the rest of the suite in `## Testing` below.
-6. **Publish and finish the feature.** Git Flow Helper widget → `Feature` → `Feature Publish`, then → `Feature Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked). Merges into `develop` and pushes it too.
-
-## Document the Project
-
-**Still on `develop`, no Git Flow feature needed:** writing down decisions already made, including the one just made for US006 above and the `Money`/`Currency` refactor back in Feature 3. Same release, same reasoning: it ships in `1.1.0` too.
-
-1. **Generate the XML documentation that ships in every file's final version.** In **File System** view (Solution view hides the `.csproj`), add one property to `Acme.OOProgramming.csproj`, in the same `<PropertyGroup>` as `<Version>`:
-   ```xml
-   <GenerateDocumentationFile>true</GenerateDocumentationFile>
-   ```
-   Run `dotnet build`, then open `Acme.OOProgramming/bin/Debug/net10.0/Acme.OOProgramming.xml` in a text editor. Every `<summary>`/`<param>`/`<returns>`/`<exception>` comment written across all 5 features turns into a real, structured XML file, exactly what IntelliSense reads to show tooltips, and what tools like DocFX turn into a browsable static site.
-
-   **Note:** Expect a batch of `CS1591` warnings ("missing XML comment for publicly visible member") on properties/methods that never got their own explicit `<summary>`, only a class-level one: a real, honest gap this flag surfaces, not a sign anything is broken. A team with a strict docs policy would either add per-property comments or explicitly suppress `CS1591`; either is a legitimate call, just make it on purpose.
-2. **Close the last gap with the diagram: `PurchaseOrder.OrderDate` becomes a `DateOnly`.** Keep a `DateTime`-accepting constructor overload so `Program.cs` and the existing test suite keep compiling unchanged, only converting internally. Swap `PurchaseOrder.cs` for the version below: only the type of `OrderDate`/the constructor's parameter changed, and a new `DateTime`-accepting constructor was added.
-
-   **Note:** It's been a `DateTime` since Feature 2, a placeholder for the `DateOnly` the design already called for: an order date is a calendar business date, not an instantaneous timestamp, nothing in this domain ever needed the time-of-day or time-zone component `DateTime` carries.
-
-   **Note:** `AddItem()`/`CalculateTotal()`/`Equals()`/`GetHashCode()`/`ToString()` are unchanged from Feature 3/US006. Still no docs on this block either: `AddItem()` gets revised once more, later in this same section, so this still isn't `PurchaseOrder.cs`'s last commit.
+   That is every change Feature 3 makes to `PurchaseOrder`. It gains `CalculateTotal()` in US005, and `AddItem()` learns to merge duplicates and reject a conflicting price in US006; here is the file so far:
 
    <details>
    <summary>PurchaseOrder.cs (so far)</summary>
@@ -2181,14 +1953,13 @@
    public class PurchaseOrder
    {
        private readonly List<PurchaseOrderItem> _items = new();
-       private IReadOnlyList<PurchaseOrderItem>? _itemsView;
 
        public string OrderNumber { get; }
        public SupplierId SupplierId { get; }
        public DateOnly OrderDate { get; }
        public Currency Currency { get; }
 
-       public IReadOnlyList<PurchaseOrderItem> Items => _itemsView ??= _items.AsReadOnly();
+       public IReadOnlyList<PurchaseOrderItem> Items => _items.AsReadOnly();
 
        public PurchaseOrder(string orderNumber, SupplierId supplierId, DateOnly orderDate, Currency currency)
        {
@@ -2218,17 +1989,202 @@
            ArgumentOutOfRangeException.ThrowIfNegative(unitPriceAmount);
 
            var unitPrice = new Money(unitPriceAmount, Currency);
-           var existing = _items.Find(item => item.ProductId == productId);
-           if (existing is not null)
-           {
-               if (existing.UnitPrice != unitPrice)
-                   throw new InvalidOperationException(
-                       $"Cannot add product {productId} at {unitPrice}; the order already has it at {existing.UnitPrice}.");
-               existing.IncreaseQuantity(quantity);
-               return;
-           }
+           var item = new PurchaseOrderItem(productId, quantity, unitPrice);
+           _items.Add(item);
+       }
 
-           _items.Add(new PurchaseOrderItem(productId, quantity, unitPrice));
+       public override bool Equals(object? obj)
+       {
+           return obj is PurchaseOrder other && OrderNumber == other.OrderNumber;
+       }
+
+       public override int GetHashCode() => OrderNumber.GetHashCode();
+
+       public override string ToString() =>
+           $"PurchaseOrder[OrderNumber={OrderNumber}, SupplierId={SupplierId}, OrderDate={OrderDate}, Items={_items.Count}, Currency={Currency}]";
+   }
+   ```
+   </details>
+
+   ```
+   git add .
+   git commit -m "feat(purchase-order): add items collection and add item method."
+   ```
+
+14. **Add items in `Program.cs`.** Add two items to the order and print `Items.Count`.
+
+   <details>
+   <summary>Program.cs (addition)</summary>
+
+   ```csharp
+   purchaseOrder.AddItem(ProductId.New(), 10, 25.99m);
+   purchaseOrder.AddItem(ProductId.New(), 20, 19.99m);
+   Console.WriteLine($"Items added: {purchaseOrder.Items.Count}");
+   ```
+   </details>
+
+   ```
+   git add .
+   git commit -m "feat(main): illustrate adding items to purchase order."
+   ```
+
+15. **Publish and finish the feature.** Git Flow Helper widget → `Feature` → `Feature Publish`, then → `Feature Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked). Merges into `develop` and pushes it too, no extra `git push` needed after.
+
+## Calculate Purchase Order Item Subtotal ([US004](./user-stories.md))
+
+1. **Start the feature.** Feature description: `calculate-item-subtotal` → `OK`. Creates and switches you to `feature/calculate-item-subtotal`.
+
+2. **Add `PurchaseOrderItem.CalculateItemTotal()`.** Re-read `Scenario: Successfully calculate item subtotal`. It's `UnitPrice * Quantity`. `Money` is a `readonly record struct` since Feature 3, so this reads as ordinary numeric arithmetic, no `.Multiply()` call needed.
+
+   <details>
+   <summary>PurchaseOrderItem.cs (addition)</summary>
+
+   ```csharp
+   public Money CalculateItemTotal() => UnitPrice * Quantity;
+   ```
+   </details>
+
+   That is every change Feature 4 makes to `PurchaseOrderItem`. It changes once more in US006, where it gains a controlled way to mutate its own quantity; the file so far, still no docs:
+
+   <details>
+   <summary>PurchaseOrderItem.cs (so far)</summary>
+
+   ```csharp
+   using Acme.OOProgramming.Procurement.Domain.Model.ValueObjects;
+   using Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
+
+   namespace Acme.OOProgramming.Procurement.Domain.Model.Aggregates;
+
+   public class PurchaseOrderItem
+   {
+       public ProductId ProductId { get; }
+       public int Quantity { get; }
+       public Money UnitPrice { get; }
+
+       internal PurchaseOrderItem(ProductId productId, int quantity, Money unitPrice)
+       {
+           if (productId == default)
+               throw new ArgumentException("Product ID is required.", nameof(productId));
+           ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
+           if (unitPrice == default)
+               throw new ArgumentException("Unit price is required.", nameof(unitPrice));
+
+           ProductId = productId;
+           Quantity = quantity;
+           UnitPrice = unitPrice;
+       }
+
+       public Money CalculateItemTotal() => UnitPrice * Quantity;
+
+       public override bool Equals(object? obj)
+       {
+           return obj is PurchaseOrderItem other && ProductId == other.ProductId && Quantity == other.Quantity && UnitPrice == other.UnitPrice;
+       }
+
+       public override int GetHashCode() => HashCode.Combine(ProductId, Quantity, UnitPrice);
+
+       public override string ToString() => $"PurchaseOrderItem[ProductId={ProductId}, Quantity={Quantity}, UnitPrice={UnitPrice}]";
+   }
+   ```
+   </details>
+
+   ```
+   git add .
+   git commit -m "feat(purchase-order-item): add calculate item total method."
+   ```
+
+3. **Print each subtotal in `Program.cs`.**
+
+   <details>
+   <summary>Program.cs (addition)</summary>
+
+   ```csharp
+   foreach (var item in purchaseOrder.Items)
+   {
+       Console.WriteLine($"Order Item Total: {item.CalculateItemTotal()}");
+   }
+   ```
+   </details>
+
+   ```
+   git add .
+   git commit -m "feat(main): illustrate order item subtotal calculation."
+   ```
+
+4. **Publish and finish the feature.** Git Flow Helper widget → `Feature` → `Feature Publish`, then → `Feature Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked). Merges into `develop` and pushes it too, no extra `git push` needed after.
+
+## Calculate Purchase Order Total ([US005](./user-stories.md))
+
+1. **Start the feature.** Feature description: `calculate-order-total` → `OK`. Creates and switches you to `feature/calculate-order-total`.
+
+2. **Add `PurchaseOrder.CalculateTotal()`.** Re-read `Scenario: Successfully calculate total`. It's a LINQ `Sum` over the items' subtotals, wrapped back into a `Money` with the order's currency.
+
+   Nothing here is "new" functional logic: `CalculateItemTotal()` is the same OOP method already written in Feature 4. The functional style is just a different way of *composing* that existing method over a collection, instead of writing an explicit `foreach`.
+
+   <details>
+   <summary>PurchaseOrder.cs (addition: CalculateTotal)</summary>
+
+   ```csharp
+   public Money CalculateTotal()
+   {
+       var total = _items.Sum(item => item.CalculateItemTotal().Amount);
+       return new Money(total, Currency);
+   }
+   ```
+   </details>
+
+   That is every change Features 4 and 5 make to `PurchaseOrder`. `AddItem()` learns to merge duplicate items and reject a conflicting price in US006; here is the file so far:
+
+   <details>
+   <summary>PurchaseOrder.cs (so far)</summary>
+
+   ```csharp
+   using Acme.OOProgramming.Procurement.Domain.Model.ValueObjects;
+   using Acme.OOProgramming.Shared.Domain.Model.ValueObjects;
+
+   namespace Acme.OOProgramming.Procurement.Domain.Model.Aggregates;
+
+   public class PurchaseOrder
+   {
+       private readonly List<PurchaseOrderItem> _items = new();
+
+       public string OrderNumber { get; }
+       public SupplierId SupplierId { get; }
+       public DateOnly OrderDate { get; }
+       public Currency Currency { get; }
+
+       public IReadOnlyList<PurchaseOrderItem> Items => _items.AsReadOnly();
+
+       public PurchaseOrder(string orderNumber, SupplierId supplierId, DateOnly orderDate, Currency currency)
+       {
+           ArgumentException.ThrowIfNullOrWhiteSpace(orderNumber);
+           if (supplierId == default)
+               throw new ArgumentException("Supplier ID is required.", nameof(supplierId));
+           if (currency == default)
+               throw new ArgumentException("Currency is required.", nameof(currency));
+
+           OrderNumber = orderNumber;
+           SupplierId = supplierId;
+           OrderDate = orderDate;
+           Currency = currency;
+       }
+
+       public PurchaseOrder(string orderNumber, SupplierId supplierId, DateOnly orderDate, string currency)
+           : this(orderNumber, supplierId, orderDate, new Currency(currency)) { }
+
+       public PurchaseOrder(string orderNumber, SupplierId supplierId, DateTime orderDate, string currency)
+           : this(orderNumber, supplierId, DateOnly.FromDateTime(orderDate), new Currency(currency)) { }
+
+       public void AddItem(ProductId productId, int quantity, decimal unitPriceAmount)
+       {
+           if (productId == default)
+               throw new ArgumentException("Product ID is required.", nameof(productId));
+           ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
+           ArgumentOutOfRangeException.ThrowIfNegative(unitPriceAmount);
+
+           var unitPrice = new Money(unitPriceAmount, Currency);
+           var item = new PurchaseOrderItem(productId, quantity, unitPrice);
+           _items.Add(item);
        }
 
        public Money CalculateTotal()
@@ -2250,16 +2206,39 @@
    ```
    </details>
 
-   **Note:** The starter test suite's `Constructor_WithValidArguments_InitializesSuccessfully` (in `## Testing` below) switches its own `_orderDate` field from `new DateTime(2025, 3, 29)` to `new DateOnly(2025, 3, 29)` to match; every other test still passes a `DateTime.UtcNow` straight through the new compatibility constructor, unaffected.
+   **Note:** this is the first LINQ / functional-style code in the track, worth breaking down:
+   - `_items.Sum(item => item.CalculateItemTotal().Amount)` calls the OOP method `CalculateItemTotal()` on every item (via the lambda `item => ...`), reads its `.Amount` (LINQ's `Sum` needs a plain `decimal`, not a `Money`), and adds all the `decimal`s together, no manual loop, no running-total variable.
+   - The result is wrapped back into a `Money` using the order's own `Currency`.
+
    ```
    git add .
-   git commit -m "refactor(purchase-order): represent the order date as a DateOnly."
+   git commit -m "feat(purchase-order): add calculate total method."
    ```
-3. **Add a `Presentation` layer: console formatting kept out of the domain model.** C# 14 extension members, in their own `*.Presentation` namespaces, one per bounded context that needs one.
 
-   **Note:** `Program.cs` has been interpolating `PurchaseOrder`/`Money` directly into `Console.WriteLine` calls since Feature 2, duplicating the same formatting expression at every call site. Neither type gets a display-specific `ToString()`, that would mix a presentation concern into the domain model, the same coupling this codebase has stayed free of everywhere else.
+3. **Print the order total in `Program.cs`.**
 
-   Back in **Solution** view, right-click the project root → `Add` → `Class/Interface` → type `Shared/Presentation/ConsoleFormatting`, **select `Class`** → Enter:
+   <details>
+   <summary>Program.cs (addition)</summary>
+
+   ```csharp
+   Console.WriteLine($"Order Total: {purchaseOrder.CalculateTotal()}");
+   ```
+   </details>
+
+   ```
+   git add .
+   git commit -m "feat(main): illustrate order total calculation."
+   ```
+
+4. **Publish and finish the feature.** Git Flow Helper widget → `Feature` → `Feature Publish`, then → `Feature Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked). Merges into `develop` and pushes it too, no extra `git push` needed after.
+
+## Add a Console Presentation Layer
+
+**No user story behind this one:** it's the last piece of code before the first release. `Program.cs` has been interpolating domain objects straight into `Console.WriteLine` since Feature 2, repeating the same formatting expression at every call site. Before shipping, that formatting moves into its own presentation layer, kept out of the domain model, so `PurchaseOrder` and `Money` stay focused on the domain and never grow a display-specific `ToString()`.
+
+1. **Start the feature.** Feature description: `add-presentation-layer` → `OK`. Creates and switches you to `feature/add-presentation-layer`.
+
+2. **Add a `Presentation` layer for the shared kernel.** A C# 14 extension member in its own `Shared.Presentation` namespace, formatting a `Money` for the console. Right-click the project root → `Add` → `Class/Interface` → type `Shared/Presentation/ConsoleFormatting`, **select `Class`** → Enter.
 
    <details>
    <summary>ConsoleFormatting.cs (Shared/Presentation, no docs)</summary>
@@ -2279,7 +2258,7 @@
    ```
    </details>
 
-   That's the version you type by hand. The committed file also carries full XML docs:
+   The same file with its XML docs, the version you keep:
 
    <details>
    <summary>ConsoleFormatting.cs (Shared/Presentation)</summary>
@@ -2309,7 +2288,9 @@
    ```
    </details>
 
-   Same way, `Procurement/Presentation/ConsoleFormatting`:
+   **Note:** an `extension(T target) { ... }` block adds members that read like real properties on `T` (`money.Display`) without touching `T` itself. `internal` keeps the formatter out of this project's public surface, it's a console-app-only concern. Neither `Money` nor `PurchaseOrder` gets a display `ToString()`: that would mix a presentation concern into the domain model, the coupling this codebase has stayed free of everywhere else.
+
+3. **Add a `Presentation` layer for Procurement.** Same shape, this one formats a `PurchaseOrder`. Right-click the project root → `Add` → `Class/Interface` → type `Procurement/Presentation/ConsoleFormatting`, **select `Class`** → Enter.
 
    <details>
    <summary>ConsoleFormatting.cs (Procurement/Presentation, no docs)</summary>
@@ -2330,7 +2311,7 @@
    ```
    </details>
 
-   That's the version you type by hand. The committed file also carries full XML docs:
+   The same file with its XML docs, the version you keep:
 
    <details>
    <summary>ConsoleFormatting.cs (Procurement/Presentation)</summary>
@@ -2361,7 +2342,7 @@
    ```
    </details>
 
-   `internal` keeps both out of this project's public surface, they're a console-app-only concern. Update `Program.cs` to use them instead of ad hoc interpolation:
+4. **Update `Program.cs` to use the extension members.** Replace the file with the version below: `purchaseOrder.Summary` and `item.UnitPrice.Display` read like real properties on the domain types, even though neither type was touched, only two `using` directives were added.
 
    <details>
    <summary>Program.cs (revised)</summary>
@@ -2377,69 +2358,265 @@
 
    var supplierAddress = new Address("Supplier St", "123", "SupplierCity", null, "12345", "United States");
    var supplier = new Supplier(new SupplyChainSupplierId("SUP001"), "Supplier Inc.", supplierAddress);
-   var salesOfDay = new Money(0, "USD");
+
+   Console.WriteLine($"Registered Supplier {supplier.Id.Identifier}: {supplier}");
 
    // Procurement never uses SupplyChain's SupplierId directly: translate its raw identifier here
-   var purchaseOrder = new PurchaseOrder("PO001", new SupplierId(supplier.Id.Identifier), DateOnly.FromDateTime(DateTime.UtcNow), "USD");
-   var sharedProduct = ProductId.New();
-   purchaseOrder.AddItem(sharedProduct, 10, 25.99m);
-   purchaseOrder.AddItem(sharedProduct, 5, 25.99m);
+   var purchaseOrder = new PurchaseOrder("PO001", new SupplierId(supplier.Id.Identifier), DateTime.UtcNow, "USD");
+   purchaseOrder.AddItem(ProductId.New(), 10, 25.99m);
    purchaseOrder.AddItem(ProductId.New(), 20, 19.99m);
 
    Console.WriteLine(purchaseOrder.Summary);
    foreach (var item in purchaseOrder.Items)
    {
-       Console.Write($"Order Item: {item.ProductId} x {item.Quantity} at Unit Price of {item.UnitPrice.Display} ");
-       Console.WriteLine($"Results in Order Item Total: {item.CalculateItemTotal().Display}");
+       Console.WriteLine($"Order Item: {item.ProductId} x {item.Quantity} at {item.UnitPrice.Display} = {item.CalculateItemTotal().Display}");
    }
 
    Console.WriteLine($"Order Total: {purchaseOrder.CalculateTotal().Display}");
-
-   try
-   {
-       purchaseOrder.AddItem(sharedProduct, 1, 9.99m);
-   }
-   catch (InvalidOperationException ex)
-   {
-       Console.WriteLine($"Rejected conflicting unit price: {ex.Message}");
-   }
-
-   Console.WriteLine($"Sales for the day: {salesOfDay.Add(purchaseOrder.CalculateTotal()).Display}");
-
-   Console.WriteLine($"Supplier: {supplier.Name} is located at {supplier.Address}");
    ```
    </details>
 
-   Run it: `order.Summary` and `item.CalculateItemTotal().Display` read exactly like real properties on `PurchaseOrder`/`Money`, even though neither type was touched, only two new `using` directives were added.
+   Run it: `purchaseOrder.Summary` and `item.CalculateItemTotal().Display` read exactly like properties on `PurchaseOrder` / `Money`, without either type being touched.
 
-   **Note:** this step also folds in a few small additions to `Program.cs` (all behavior already covered by tests, just not visible when the program runs):
-   - add `sharedProduct` twice to show the US006 merge in action (`10` then `5`, watch `Quantity` come out as `15`)
-   - a `try`/`catch` around a third add at a conflicting price, to see `AddItem()`'s rejection actually fire
-   - a running `salesOfDay` total accumulated with `Money`'s own `+` operator across orders
-   - a final line printing the `Supplier`'s own `ToString()`
    ```
    git add .
    git commit -m "feat(presentation): add console formatting via extension members."
    ```
-4. **Revisit the US006 decision one more time.** `AddItem()` currently discards a conflicting new price in silence, keeping the existing line's price. The revised decision: reject the call instead. Update the scenario in `docs/user-stories.md`:
 
-   **Note:** On review, that is a real API surprise for anyone calling it: a caller who explicitly passes a different price gets no signal that it was ignored.
+5. **Publish and finish the feature.** Git Flow Helper widget → `Feature` → `Feature Publish`, then → `Feature Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked). Merges into `develop` and pushes it too, no extra `git push` needed after.
+
+## Prepare the First Release
+
+**All of this happens on `develop`:** `Feature Finish` always leaves you there after merging, so no branch switch is needed. These are the last steps before tagging `1.0.0`: one end-to-end check, then the files a repo needs before anyone else looks at it.
+
+1. **Re-run `Program.cs` end to end** and confirm all output prints in order. Compare it against the diagram from `## Project Setup`: `Address`, `Supplier`, `SupplierId`, `PurchaseOrder`, `PurchaseOrderItem`, `ProductId`, `Money`, and `Currency` are all real code now, exactly as sketched, and the console output goes through the `Presentation` layer.
+
+2. **Add `LICENSE.md`.** In **File System** view, right-click the project root → `Add` → `File` → type `LICENSE.md` → Enter. The README's badge links to it, so it goes in first.
 
    <details>
-   <summary>docs/user-stories.md (US006, replaces "Merging keeps the original unit price")</summary>
+   <summary>LICENSE.md</summary>
 
    ```markdown
-   ### Scenario: Merging at a different price is rejected
-   - **Given** a purchase order "PO001" with an item for product ID "X", quantity 10, unit price amount 15.99 in USD
-   - **When** the procurement manager adds another item for the same product ID "X", quantity 5, unit price amount 19.99
-   - **Then** the purchase order rejects the call, the item for product ID "X" keeps its original quantity of 10 and unit price of 15.99 USD
+   # License
+
+   Copyright © 2026 ACME Studio. All rights reserved.
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL ACME STUDIO OR THE WEB APPLICATIONS DEVELOPER TEAM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+   **Author**: Web Applications Developer Team  
+   **Contact**: For inquiries, please contact the Web Applications Developer Team at ACME Studio.
    ```
    </details>
 
-   `PurchaseOrderItem` also changes: it is an entity, not a value object (the class summary already says so), so instead of `PurchaseOrder.AddItem()` rebuilding a new instance on every merge, `PurchaseOrderItem` grows its own intention-revealing method to change its own state:
+3. **Add `README.md`.** Same way, right-click the project root → `Add` → `File` → type `README.md` → Enter. It describes what the project has right now: the five user stories, the domain model, the class diagram, how to build and run.
 
    <details>
-   <summary>PurchaseOrderItem.cs (Quantity setter and new method)</summary>
+   <summary>README.md</summary>
+
+   ````markdown
+   # OOP Sample
+
+   [![.NET](https://img.shields.io/badge/.NET-10-purple.svg)](https://dotnet.microsoft.com/)
+   [![C#](https://img.shields.io/badge/C%23-14-blue.svg)](https://learn.microsoft.com/dotnet/csharp/)
+   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md)
+
+   ## Overview
+
+   This project is a sample C# console application illustrating Object-Oriented Programming (OOP) and Domain-Driven Design (DDD) principles in a supply chain domain. It features two bounded contexts: SupplyChain (for supplier management) and Procurement (for purchase order management).
+
+   ### Bounded Contexts & Domain Model
+
+   **`Acme.OOProgramming.SupplyChain`** (Supply Chain Management)
+   - `Supplier` (Aggregate Root): a vendor with identity and location.
+   - `SupplierId` (Value Object): strongly-typed identifier, owned by SupplyChain.
+
+   **`Acme.OOProgramming.Procurement`** (Procurement)
+   - `PurchaseOrder` (Aggregate Root): purchase order invariants, currency consistency, and item lifecycle; `OrderDate` is a `DateOnly`, a calendar date with no time-of-day or time zone component.
+   - `PurchaseOrderItem` (Entity): managed exclusively by `PurchaseOrder`, its constructor is `internal`.
+   - `ProductId` (Value Object): time-ordered identifier generated with UUIDv7 (`Guid.CreateVersion7()`).
+   - `SupplierId` (Value Object): Procurement's own copy of the concept, deliberately decoupled from SupplyChain's.
+   - `Presentation.ConsoleFormatting` (`order.Summary`): console-only formatting kept out of the aggregate itself, via a C# 14 extension member.
+
+   **`Acme.OOProgramming.Shared`** (Shared Kernel)
+   - `Money` (Value Object): `decimal` amount + a validated `Currency`, `readonly record struct`.
+   - `Currency` (Value Object): validated 3-letter ISO code, `readonly record struct`.
+   - `Address` (Value Object): international postal address, `readonly record struct`.
+   - `Presentation.ConsoleFormatting` (`money.Display`): console-only formatting kept out of `Money` itself, via a C# 14 extension member.
+
+   ### Key Domain Rules
+   - **Aggregate invariant encapsulation**: `PurchaseOrder` strictly controls the creation and lifecycle of `PurchaseOrderItem`.
+   - **Single-currency rule**: every item in a `PurchaseOrder` is priced in the order's own currency.
+   - **Currency-safe arithmetic**: `Money` rejects cross-currency operations and negative amounts.
+   - **Cross-context references**: each bounded context owns its own copy of any identifier it references from another context, rather than sharing one type.
+   - **Presentation decoupling**: display formatting (`order.Summary`, `money.Display`) lives in dedicated `*.Presentation` namespaces, never on the domain models themselves.
+
+   ## Class Diagram
+   See [`docs/class-diagram.puml`](docs/class-diagram.puml). Open it with a PlantUML plugin/viewer to render it.
+
+   ## Prerequisites
+   - .NET 10 SDK
+
+   ## Build and Run
+   ```bash
+   dotnet build
+   dotnet run --project Acme.OOProgramming
+   ```
+
+   ## Docs
+   - [`docs/user-stories.md`](docs/user-stories.md): acceptance criteria.
+   - [`CHANGELOG.md`](CHANGELOG.md): version history.
+
+   ## License
+   MIT, see [`LICENSE.md`](LICENSE.md).
+   ````
+   </details>
+
+   ```
+   git add .
+   git commit -m "docs: add license and readme."
+   ```
+
+## Release
+
+**Still on `develop`, right where *Prepare the First Release* left off.** A release is a *batch* of finished features, not one per feature. The first five user stories plus the presentation layer together are one sprint's worth of work, exactly the kind of thing a real release bundles.
+
+1. **Start the release.** Git Flow Helper widget → `Release` → `Release Start` → **Version description** `v1.0.0` → `OK`. Creates and switches you to `release/v1.0.0`.
+
+   **Note:** the release name carries a `v` prefix (`v1.0.0`), matching the git tag it becomes on finish. The `.csproj` `<Version>` stays plain (`1.0.0`), and so does the `CHANGELOG.md` heading (`## [1.0.0]`): NuGet and Keep a Changelog conventions don't use the prefix.
+
+   **Tip:** the `push local branch when finished` checkbox doesn't matter much either way here; step 4 below publishes the branch properly regardless.
+
+2. **Bump the version in `Acme.OOProgramming.csproj`.** Switch the Solution Explorer dropdown to **File System** view (Solution view hides the `.csproj`, and this whole section edits it and adds plain files). Change `<Version>0.1.0-preview</Version>` to `<Version>1.0.0</Version>`.
+   ```
+   git add .
+   git commit -m "chore(release): bump version to 1.0.0."
+   ```
+
+   **Note:** that one edit does two things. The `-preview` suffix comes off, since that's never what ships. And the version becomes `1.0.0`: the first release meant to stay stable, which is what reaching `1.0.0` signals.
+
+3. **Add `CHANGELOG.md`.** Still in **File System** view, right-click the project root → `Add` → `File` → type `CHANGELOG.md` → Enter:
+
+   <details>
+   <summary>CHANGELOG.md</summary>
+
+   ```markdown
+   # Changelog
+
+   All notable changes to this project will be documented in this file.
+
+   The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+   and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+   ## [1.0.0] - 2026-08-27
+
+   ### Added
+   - US001: Register a Supplier: register a `Supplier` with an identifier, name, and address, in its own SupplyChain bounded context.
+   - US002: Create a Purchase Order: create a `PurchaseOrder` for a `Supplier`, with order number, `DateOnly` order date, and currency validation.
+   - US003: Add Items to a Purchase Order, US004: Calculate Purchase Order Item Subtotal, US005: Calculate Purchase Order Total: add `PurchaseOrderItem`s to a `PurchaseOrder`, with running total calculation.
+   - Shared kernel value objects `Address`, `Money`, and `Currency`; identity value objects `SupplierId` and `ProductId`, modeled as C# records.
+   - `Presentation` layer (`order.Summary`, `money.Display`) via C# 14 extension members, keeping console formatting out of the domain models.
+   - Console demo in `Program.cs` showing domain validation and invariants.
+   - Project `README.md` and MIT `LICENSE.md`.
+   ```
+   </details>
+
+   **Note:** the `## [version] - date` line uses the date you finish the release, in `YYYY-MM-DD` format. The intro block (`Keep a Changelog` + `Semantic Versioning`) stays at the top; every later release adds its own section directly under it, newest first.
+
+   ```
+   git add .
+   git commit -m "docs: add changelog for 1.0.0."
+   ```
+
+   **Note:** this commit matters beyond documentation, it's the reason `Release Finish` has something to merge into `develop`. A release branch with no commits of its own merges into `develop` as a no-op (no merge commit there) while still creating a real merge commit on `main`. That mismatch is what makes `develop` briefly show as "behind" `main` on GitHub. With a real commit here, both merges are real and `develop` / `main` land in sync on their own.
+
+4. **Publish the release branch.** Git Flow Helper widget → `Release` → `Release Publish`. Pushes `release/v1.0.0` with both commits included. Do this every time after adding a commit to a release branch, right before finishing it, same as `Feature Publish`.
+
+   **Note:** `Release Finish` also tries to push the release branch as part of its own sequence, but that push is broken in this plugin (it pushes the tag name instead of the branch). `Release Publish` is what actually gets it there.
+
+5. **Finish the release.** Git Flow Helper widget → `Release` → `Release Finish`. No dialog, it runs immediately: merges `release/v1.0.0` into `main` (tags it `v1.0.0` there), merges it into `develop` too, pushes both, then deletes the release branch. A notification confirms: "Released finished and tag pushed successfully."
+
+   **Note:** skipping step 4 can leave the local branch delete failing with a "branch not fully merged" warning, since git compares against a stale remote-tracking ref. Afterward, GitHub may show `develop` as slightly "ahead" / "behind" `main`: that's expected (each branch gets its own separate merge commit) and not something to fix; the file content already matches.
+
+6. **Publish the GitHub Release.** On GitHub: **Releases** → **Draft a new release** → pick the existing tag `v1.0.0` (created by `Release Finish`, don't create a new one). Set the release title to `Version 1.0.0` (the title spells it out; the tag keeps the `v` prefix), description below, **Publish release**.
+
+   <details>
+   <summary>Release notes (1.0.0)</summary>
+
+   ```markdown
+   ## 🚀 Added
+
+   - **US001: Register a Supplier**: register a `Supplier` with an identifier, name, and address, in its own SupplyChain bounded context.
+   - **US002: Create a Purchase Order**: create a `PurchaseOrder` for a `Supplier`, with order number, date, and currency validation.
+   - **US003: Add Items to a Purchase Order** and **US004/US005: Calculate Purchase Order Item/Total Subtotal**: add `PurchaseOrderItem`s to a `PurchaseOrder`, with running total calculation.
+   - Value Objects `Address`, `Money`, `Currency`, `SupplierId`, `ProductId`, modeled as C# records.
+   - `Presentation` layer (`order.Summary`, `money.Display`) via C# 14 extension members.
+   - Project `README.md` and MIT license; `CHANGELOG.md` to track version history going forward.
+   ```
+   </details>
+
+   **Note:** the branch selector on that screen only matters when creating a brand-new tag on the spot; since this tag already exists and points at a commit on `main`, it's ignored. The GitHub Release is a feature layered on top of the tag, separate from Git Flow itself, which only ever creates the tag.
+
+   **Tip:** the same thing works from the command line: `gh release create v1.0.0 --title "Version 1.0.0" --notes-file CHANGELOG.md` (the [GitHub CLI](https://cli.github.com/), `gh`, authenticated once via `gh auth login`). `--notes-file` accepts any Markdown file; `CHANGELOG.md` works directly here since the tag already exists.
+
+7. **Back on `develop`, pick the `-preview` suffix back up.** Git Flow Helper switches you to `develop` automatically after `Release Finish`. Still in **File System** view, in `Acme.OOProgramming.csproj`: `<Version>1.0.0</Version>` → `<Version>1.1.0-preview</Version>`.
+
+   **Note:** skipping straight to `1.1.0-preview` (not `1.0.1-preview`) says out loud what's already planned: the sections below add a real new user story (US006) and the documentation work around it, not just a bugfix, and semantic versioning reserves the middle number for that.
+   ```
+   git add .
+   git commit -m "chore(dev): set development version to 1.1.0-preview."
+   git push
+   ```
+
+
+## Merge Duplicate Items in a Purchase Order ([US006](./user-stories.md))
+
+**A real requirement change, arriving after `1.0.0` shipped.** Everything up to here (Features 1-5 plus the presentation layer) matches US001-US005. This one is different: a real procurement team using the shipped product reported back a genuine usability problem. `docs/user-stories.md` isn't a frozen, one-time deliverable, it grows exactly like this. It ships in `1.1.0`, alongside the documentation work below; `## Testing` further down writes its tests alongside every other user story.
+
+1. **Start the feature.** Feature description: `merge-duplicate-items` → `OK`. Creates and switches you to `feature/merge-duplicate-items`.
+
+2. **Document US006 first, before any code.** Add it to `docs/user-stories.md`, right after US005.
+
+   <details>
+   <summary>docs/user-stories.md (addition)</summary>
+
+   ```markdown
+   ## US006: Merge Duplicate Items in a Purchase Order
+   As a procurement manager, I want adding a product that's already on the purchase order to combine into the existing line instead of creating a new one, so that my purchase order doesn't show confusing duplicate entries for the same product.
+
+   ### Scenario: Merge quantities for a repeated product at the same price
+   - **Given** a purchase order "PO001" with an item for product ID "X", quantity 10, unit price amount 15.99 in USD
+   - **When** the procurement manager adds another item for the same product ID "X", quantity 5, unit price amount 15.99
+   - **Then** the purchase order still has one item for product ID "X", now with quantity 15
+
+   ### Scenario: Re-adding a product at a conflicting price is rejected
+   - **Given** a purchase order "PO001" with an item for product ID "X", quantity 10, unit price amount 15.99 in USD
+   - **When** the procurement manager adds another item for the same product ID "X", quantity 5, unit price amount 19.99
+   - **Then** the purchase order rejects the call; the item for product ID "X" keeps its original quantity of 10 and unit price of 15.99 USD
+
+   ### Scenario: Adding a different product still creates a new line
+   - **Given** a purchase order "PO001" with an item for product ID "X"
+   - **When** the procurement manager adds an item for a different product ID "Y"
+   - **Then** the purchase order has two separate items
+   ```
+   </details>
+
+   ```
+   git add .
+   git commit -m "docs(user-stories): add US006, merge duplicate items in a purchase order."
+   ```
+
+3. **Decide what happens when the price conflicts.** Re-read the three scenarios. If the same product is re-added at a *different* unit price (the supplier's price changed, or the caller made a typo), the merge can't pick one silently: keeping the original hides a real price change, overwriting hides a possible typo, and either way a caller who passed an explicit price gets no signal it was ignored. The choice here: **combine quantities only when the price matches; reject the call otherwise**, so the conflict surfaces instead of being resolved behind the caller's back.
+
+   **Note:** an aggregate should fail loudly when an operation conflicts with state it already committed, not quietly choose a winner. That is the same reasoning behind every guard clause in the domain model.
+
+4. **Give `PurchaseOrderItem` a controlled way to change its own quantity.** A merge increases an existing line's quantity. `PurchaseOrderItem` is an entity, not a value object, so it changes its own state through an intention-revealing method rather than `PurchaseOrder` rebuilding it from outside. Replace `Quantity` with a version that has a `private set`, and add an `internal void IncreaseQuantity(int)` method that writes through it.
+
+   <details>
+   <summary>PurchaseOrderItem.cs (Quantity with a private setter, and IncreaseQuantity)</summary>
 
    ```csharp
    public int Quantity
@@ -2460,7 +2637,9 @@
    ```
    </details>
 
-   `PurchaseOrderItem.cs` doesn't change again after this: full file, with the XML docs that ship in the real repo:
+   **Note:** "tell, don't ask": the aggregate tells the item to increase its own quantity, it doesn't read the item's state and reconstruct it from outside. `internal` keeps the method callable only from inside this assembly, in practice `PurchaseOrder`.
+
+   That completes `PurchaseOrderItem`. The full file, with its XML docs:
 
    <details>
    <summary>PurchaseOrderItem.cs</summary>
@@ -2486,14 +2665,10 @@
        internal PurchaseOrderItem(ProductId productId, int quantity, Money unitPrice)
        {
            if (productId == default)
-           {
                throw new ArgumentException("Product ID is required.", nameof(productId));
-           }
            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
            if (unitPrice == default)
-           {
                throw new ArgumentException("Unit price is required.", nameof(unitPrice));
-           }
 
            ProductId = productId;
            Quantity = quantity;
@@ -2571,10 +2746,17 @@
    ```
    </details>
 
-   And `PurchaseOrder.AddItem()` calls it instead of rebuilding the list entry, throwing when the price conflicts:
+   ```
+   git add .
+   git commit -m "feat(purchase-order-item): let an item increase its own quantity."
+   ```
+
+5. **Implement merge-or-reject in `PurchaseOrder.AddItem()`.** Replace `AddItem()` from Feature 3 with the version below: look for an existing line with the same `ProductId`; if one exists and the new price differs, throw `InvalidOperationException`; if it matches, call `IncreaseQuantity()`; if no line exists, append a new one. The three validation guards at the top don't change.
+
+   **Tip:** try writing the lookup logic yourself first.
 
    <details>
-   <summary>PurchaseOrder.cs (AddItem, revised)</summary>
+   <summary>PurchaseOrder.cs (AddItem, with the merge-or-reject branch)</summary>
 
    ```csharp
    public void AddItem(ProductId productId, int quantity, decimal unitPriceAmount)
@@ -2600,9 +2782,9 @@
    ```
    </details>
 
-   `PurchaseOrder.cs` doesn't change again after this: full file, with the XML docs that ship in the real repo.
-
-   **Note:** One more small tightening lands silently in this step: `CalculateTotal()` drops the Feature 5 `_items.Sum(item => item.CalculateItemTotal().Amount)` round trip (compute every subtotal, unwrap each to a bare `decimal`, sum those, then re-wrap the sum in a new `Money`) for a plain `foreach` that accumulates directly into a running `Money` total via the `+` operator introduced back when `Money` became a struct. Same result, one less unwrap-then-rewrap step.
+   `PurchaseOrder.cs` doesn't change again after this. Two small tightenings land in the full file below:
+   - `Items` caches its read-only wrapper in an `_itemsView` field (`_itemsView ??= _items.AsReadOnly()`) instead of allocating a fresh `ReadOnlyCollection` on every call; the list it wraps is the same one, so the cached view stays correct as items are added.
+   - `CalculateTotal()` accumulates into a running `Money` with the `+` operator, instead of the Feature 5 `Sum` over unwrapped `decimal`s followed by a re-wrap.
 
    <details>
    <summary>PurchaseOrder.cs</summary>
@@ -2755,12 +2937,65 @@
    ```
    </details>
 
-   Run `dotnet build` to confirm everything still compiles; `## Testing` below rewrites the one test that asserted the old silent-preserve behavior.
+   Add a block to `Program.cs` to watch both paths, right after the `Order Total` line:
+
+   <details>
+   <summary>Program.cs (addition)</summary>
+
+   ```csharp
+   var sharedProduct = ProductId.New();
+   purchaseOrder.AddItem(sharedProduct, 10, 12.50m);
+   purchaseOrder.AddItem(sharedProduct, 5, 12.50m);
+   Console.WriteLine($"Merged line quantity: {purchaseOrder.Items.Single(i => i.ProductId == sharedProduct).Quantity}");
+
+   try
+   {
+       purchaseOrder.AddItem(sharedProduct, 1, 9.99m);
+   }
+   catch (InvalidOperationException ex)
+   {
+       Console.WriteLine($"Rejected conflicting unit price: {ex.Message}");
+   }
    ```
+   </details>
+
+   Confirm it compiles, then commit:
+   ```
+   dotnet build
    git add .
-   git commit -m "refactor(purchase-order): reject a duplicate product at a conflicting unit price."
+   git commit -m "feat(purchase-order): merge a duplicate product and reject a conflicting unit price."
    ```
-5. **Add these eleven Architecture Decision Records (ADRs) to a single `docs/adrs.md` file** (in **File System** view: right-click the `docs` folder → `Add` → `File` → `adrs.md`), documenting every decision made so far, from Features 1-5 (including the `Money`/`Currency` refactor in Feature 3) through the four just-made refinements above, in one sitting rather than scattered one per feature: why value objects are `record`s (including identity types like `ProductId`, instead of a raw `Guid`), why each bounded context owns its own `SupplierId` instead of sharing one, why aggregates compare by identity and hide their internal collections, why `Money` is `decimal` + a validated currency code, never `double`, why `Money` alone, of the original value objects, became a `readonly record struct`, why merging a duplicate line originally kept its original price, why `Currency` was extracted into its own value object, why `PurchaseOrderItem` grew a controlled mutation method, why a conflicting price is now rejected instead of silently discarded, why `OrderDate` became a `DateOnly`, and why console formatting moved out to its own `Presentation` layer.
+
+6. **Publish and finish the feature.** Git Flow Helper widget → `Feature` → `Feature Publish`, then → `Feature Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked). Merges into `develop` and pushes it too.
+
+## Document the Project
+
+**Still on `develop`, no Git Flow feature needed:** writing down decisions already made across every feature so far, and shipping the record of them. It goes out in `1.1.0`, the same release as US006.
+
+1. **Generate the XML documentation from the comments already in your code.** In **File System** view (Solution view hides the `.csproj`), add one property to `Acme.OOProgramming.csproj`, in the same `<PropertyGroup>` as `<Version>`:
+   ```xml
+   <GenerateDocumentationFile>true</GenerateDocumentationFile>
+   ```
+   Then:
+   ```
+   dotnet build
+   ```
+   Open `Acme.OOProgramming/bin/Debug/net10.0/Acme.OOProgramming.xml` in a text editor. Every `<summary>`/`<param>`/`<returns>`/`<exception>` comment written across all six user stories and the presentation layer turns into a real, structured XML file, exactly what IntelliSense reads to show tooltips, and what tools like DocFX turn into a browsable static site.
+
+   **Note:** Expect a batch of `CS1591` warnings ("missing XML comment for publicly visible member") on properties/methods that never got their own explicit `<summary>`, only a class-level one: a real, honest gap this flag surfaces, not a sign anything is broken. A team with a strict docs policy would either add per-property comments or explicitly suppress `CS1591`; either is a legitimate call, just make it on purpose.
+
+9. **Add these eleven Architecture Decision Records (ADRs) to a single `docs/adrs.md` file.** In **File System** view: right-click the `docs` folder → `Add` → `File` → `adrs.md`. They document every decision made so far, across all six user stories and the presentation layer, in one sitting rather than scattered one per feature:
+   - why value objects are `record`s, including identity types like `ProductId`, instead of a raw `Guid`
+   - why each bounded context owns its own `SupplierId` instead of sharing one
+   - why aggregates compare by identity and hide their internal collections
+   - why `Money.Amount` is a `decimal`, never `double`
+   - why every value object is a `readonly record struct`, and how the `default(struct)` gap is closed
+   - why `Currency` is a value object, not a bare 3-letter `string`
+   - why `PurchaseOrderItem` changes its own quantity through a controlled mutation method
+   - why re-adding a duplicate product merges only at a matching price and is rejected otherwise
+   - why `OrderDate` is a `DateOnly`, not a `DateTime`
+   - why console formatting moved out to its own `Presentation` layer
+   - why value objects validate in their `init` accessor but aggregate roots validate in their constructor
 
    **Note:** the standard ADR format is **Status**, **Context**, **Decision Drivers**, **Considered Options**, **Decision**, **Consequences**. Look it up if it's unfamiliar.
 
@@ -2773,7 +3008,7 @@
    # ADR-0001: Value Objects as C# Records
 
    **Status:** Accepted
-   **Note:** Refined by [ADR-0005](#adr-0005-uniform-readonly-record-struct-adoption-for-value-objects), which settles every value object here on `readonly record struct` specifically, once `Money`'s own migration (Feature 3) showed the risk that shape carries can be closed with discipline instead of avoided by staying a class.
+   **Note:** [ADR-0005](#adr-0005-value-objects-as-readonly-record-struct) settles every value object here on `readonly record struct` specifically, and covers the `default(struct)` risk that shape carries.
 
    ## Context
 
@@ -2794,7 +3029,7 @@
 
    ## Decision
 
-   All value objects, including aggregate identity types, are `record`s. Each property validates itself the moment it's assigned, inside its own `init` accessor, rather than the constructor body checking every field up front before assigning any of them. Wrapping an aggregate's identity in its own record (`SupplierId`, `ProductId`) closes the primitive-obsession gap for free, without hand-writing `Equals()`/`GetHashCode()` for it. Whether a given record ends up a reference type or, per ADR-0005, a `readonly record struct` is a separate question this ADR doesn't settle on its own.
+   All value objects, including aggregate identity types, are `record`s. Each property validates itself the moment it's assigned, inside its own `init` accessor: a value object's rules are single-field checks in isolation, so the accessor is the right home for them (aggregate roots are different, see [ADR-0011](#adr-0011-where-domain-validation-lives)). Wrapping an aggregate's identity in its own record (`SupplierId`, `ProductId`) closes the primitive-obsession gap for free, without hand-writing `Equals()`/`GetHashCode()` for it. Whether a given record ends up a reference type or, per ADR-0005, a `readonly record struct` is a separate question this ADR doesn't settle on its own.
 
    ```csharp
    public readonly record struct ProductId
@@ -2873,7 +3108,7 @@
    # ADR-0003: Aggregate Roots Enforce Identity-Based Equality and Full Encapsulation
 
    **Status:** Accepted
-   **Note:** Partially superseded by [ADR-0008](#adr-0008-purchaseorderitem-grows-an-intention-revealing-mutation-method), which allows PurchaseOrderItem to grow a controlled, intention-revealing mutation method.
+   **Note:** Partially superseded by [ADR-0007](#adr-0007-purchaseorderitem-grows-an-intention-revealing-mutation-method), which lets PurchaseOrderItem change its own quantity through a controlled, intention-revealing method.
 
    ## Context
 
@@ -2893,6 +3128,8 @@
 
    ## Decision
 
+   Where an aggregate root validates its creation preconditions, in the constructor rather than per-property, is settled by [ADR-0011](#adr-0011-where-domain-validation-lives). This ADR covers identity equality and collection encapsulation.
+
    `Supplier` and `PurchaseOrder` both override `Equals()`/`GetHashCode()` to compare only identity: `Supplier` by `Id` (its `SupplierId`), `PurchaseOrder` by `OrderNumber` (its natural business key, rather than a generated surrogate identity). `PurchaseOrder`'s backing `_items` field is `private`; the aggregate exposes it only through `Items => _items.AsReadOnly()`, an `IReadOnlyList<PurchaseOrderItem>` that supports enumeration but has no `Add`/`Remove`/indexer setter, so no caller can mutate the collection from outside. This is exposed from the same step the collection itself is introduced (Feature 3), since `US003`'s own acceptance criteria already require verifying that an added item is really there. `PurchaseOrderItem` goes a step further than being read-only from outside: its properties have no setters at all (`{ get; }` only), so once `PurchaseOrder.AddItem()` constructs one, nothing (including `PurchaseOrder` itself) can change it afterward; a new item is created for each addition instead. Since `PurchaseOrderItem` instances are reachable from outside the aggregate (via `Items`), it also gets `Equals()`/`GetHashCode()`/`ToString()`, comparing by value (`ProductId`, `Quantity`, `UnitPrice`): it has no identity type of its own, so value equality is what lets a caller meaningfully compare or print one.
 
    ```csharp
@@ -2909,243 +3146,163 @@
    - No caller can ever put an aggregate into an invalid state by reaching past its public methods.
 
    **Negative / Trade-offs:**
-   - `IReadOnlyList<T>.AsReadOnly()` is only a shallow, view-based guard: it blocks structural changes to the list itself, but doesn't prevent mutating an already-retrieved `PurchaseOrderItem` if that type ever grew a setter of its own (it doesn't, and shouldn't; the guard is defense in depth, not the only reason `PurchaseOrderItem` stays immutable).
+   - `IReadOnlyList<T>.AsReadOnly()` is only a shallow, view-based guard: it blocks structural changes to the list itself, but doesn't prevent mutating an already-retrieved `PurchaseOrderItem`. At this point (Feature 3) `PurchaseOrderItem` has no setters at all, so the point is moot; US006 later gives it a `private` setter behind `IncreaseQuantity()` (see [ADR-0007](#adr-0007-purchaseorderitem-grows-an-intention-revealing-mutation-method)), still with no way for an outside caller to mutate a retrieved item.
    - `PurchaseOrder`'s identity is a plain `string` (`OrderNumber`), not a wrapped identity `record` like `SupplierId`/`ProductId` (see ADR-0001): it's a genuine business key supplied by the caller, not a generated surrogate, so wrapping it wouldn't add the same primitive-obsession protection ADR-0001 argues for elsewhere.
 
    ---
 
-   # ADR-0004: Monetary Amounts as decimal + Currency Code
+   # ADR-0004: Monetary Amounts as `decimal`, Never `double`
 
    **Status:** Accepted
 
    ## Context
 
-   Money throughout the system needs to support fractional amounts, must never silently mix currencies, and must represent decimals exactly. Unlike Java, C# has a built-in `decimal` type designed specifically for financial and monetary calculations: base-10, fixed-point, no binary floating-point rounding error the way `double`/`float` have. The type itself isn't the whole problem, though: nothing about `decimal` alone stops two different currencies from being added together.
+   Money throughout the system needs to support fractional amounts and represent them exactly. Unlike Java, C# has a built-in `decimal` type designed specifically for financial and monetary calculations: base-10, fixed-point, no binary floating-point rounding error the way `double`/`float` have.
 
    ## Decision Drivers
 
-   - Eliminate floating-point rounding error in monetary calculations (solved by choosing `decimal`, not `double`/`float`, in the first place).
-   - Prevent operations that mix two different currencies (not solved by the type alone, needs explicit validation).
-   - Keep the currency representation simple: a validated 3-letter ISO code (`string`), not a heavier `CultureInfo`/`RegionInfo` dependency this project doesn't otherwise need.
+   - Eliminate floating-point rounding error in monetary calculations.
+   - Use the correct built-in type rather than a manual cents-as-integer scheme.
 
    ## Considered Options
 
-   1. Immutable `Money` record backed by `decimal` + a validated 3-letter currency code *(Chosen)*
-   2. `double`/`float` plus a separate currency code string
+   1. `Money.Amount` as `decimal` *(Chosen)*
+   2. `double`/`float`
    3. Integer/long cents representation
 
    ## Decision
 
-   `Money(decimal amount, string currency)` validates a non-null, non-blank, exactly-3-character currency code; `decimal` is used for `Amount` from the start, since C# already provides it as the correct built-in type for this, no reason to reach for `double`. `Add()` rejects a null argument and mismatched currencies; `Multiply()` scales the amount by an integer factor, always staying in the same currency.
-
-   ```csharp
-   public Money Add(Money? other)
-   {
-       ArgumentNullException.ThrowIfNull(other);
-       if (Currency != other.Value.Currency)
-       {
-           throw new ArgumentException("Cannot add different currencies.", nameof(other));
-       }
-       return new Money(Amount + other.Value.Amount, Currency);
-   }
-   ```
+   `Money.Amount` is a `decimal` from the start, and `Money`'s guards reject a negative amount. Callers pass `decimal` literals with the `m` suffix (`25.99m`). The currency is a `Currency` value object, not a bare `string` (see [ADR-0006](#adr-0006-currency-as-a-dedicated-value-object)).
 
    ## Consequences
 
    **Positive:**
    - No floating-point rounding surprises anywhere money is calculated: `decimal` is exact for base-10 fractions like currency amounts, unlike `double`/`float`.
-   - Cross-currency bugs (adding USD to EUR) are caught immediately, not silently wrong.
 
    **Negative / Trade-offs:**
-   - The currency code is a plain, validated `string`, not a dedicated `CultureInfo`-backed currency type; correct for this project's scope (a validated ISO code is all four user stories need), but wouldn't scale to formatting/locale-aware display without a real currency type layered on top later.
    - Every caller must remember to use `decimal` literals (e.g. `25.99m`, with the `m` suffix), not `double`; nothing in the type system prevents passing a converted `double` value that already lost precision before it ever reached `Money`.
 
    ---
 
-   # ADR-0005: Uniform readonly record struct Adoption for Value Objects
+   # ADR-0005: Value Objects as readonly record struct
 
    **Status:** Accepted
-   **Note:** Started as a `Money`-only decision (see the original reasoning below, kept for the mechanics it teaches); extended to every value object once the risk it originally hedged against turned out to be closable by discipline, not avoidable only by staying a class.
 
    ## Context
 
-   `Money` is a small, two-field value object (`decimal Amount`, `Currency Currency`) used constantly in arithmetic (`Add()`, `Multiply()`) throughout the Procurement bounded context. As a `record` (reference type), every `Money` instance, including every per-item subtotal `PurchaseOrderItem.CalculateItemTotal()` produces, is heap-allocated. C# offers `readonly record struct` as a value-type alternative: same generated structural equality, but stack-allocated (or inlined into the containing type) instead of heap-allocated.
+   Every value object here (`Money`, `Currency`, `Address`, `SupplierId`, `ProductId`) has no identity of its own and is compared by state. C# offers two shapes for an immutable record: a `record` (reference type, heap-allocated) or a `readonly record struct` (value type, stack-allocated or inlined into its container). Both give generated structural equality for free. `Money` in particular is constructed constantly, once per line item, once per per-item subtotal `PurchaseOrderItem.CalculateItemTotal()` produces, once per running total, so allocation pressure is real.
 
-   Not every value object in this codebase looked like an equally good candidate at first. C# structs (including `readonly record struct`) always have an implicit parameterless constructor the language does not allow removing: `default(Money)` is legal anywhere a `Money` is expected, and it never runs the type's own validating constructor. A value with `Amount == 0` and `Currency == default` can exist without ever passing through `Money(decimal, Currency)`. The open question this ADR originally left unresolved: is that risk specific to `Money`, or does it apply just as much to `Address`/`SupplierId`/`ProductId`?
+   A `readonly record struct` comes with one catch: C# structs always have an implicit parameterless constructor the language does not allow removing. `default(Money)` (with `Amount == 0`, `Currency == default`) is legal anywhere a `Money` is expected, and it never runs the type's `init` accessors or any constructor. The same is true of `default(Address)`, `default(SupplierId)`, `default(ProductId)`.
 
    ## Decision Drivers
 
-   - Reduce heap allocations for types constructed constantly: once per item on every `PurchaseOrder`, every time a total is calculated; once per `Supplier`/`PurchaseOrder` for their identity and address.
+   - Reduce heap allocation for types constructed constantly.
    - Value semantics (copy, not reference) fit "an amount of money", "a supplier's address", and "an identifier" more naturally than reference semantics.
-   - Preserve the "always valid" guarantee value objects are supposed to have, as much as the type system allows: a struct default silently substituting for a validated instance would be a real regression, unless something else closes that gap.
-   - Consistency: treating every value object the same way, once the risk is understood and closed, avoids an arbitrary split where some are structs and others stay classes for no principled reason.
+   - Preserve the "always valid" guarantee value objects are supposed to have, as far as the type system allows.
+   - One shape for every value object, no arbitrary split where some are structs and others classes.
 
    ## Considered Options
 
-   1. Convert `Money` to `readonly record struct` first, then extend the same treatment to `Address`/`SupplierId`/`ProductId` once the risk is understood *(Chosen)*
-   2. Convert `Money` only, leave `Address`/`SupplierId`/`ProductId` as `record` (class) permanently
-   3. Leave every value object as `record` (class)
+   1. Every value object is a `readonly record struct` from the outset *(Chosen)*
+   2. Only `Money` a struct (it is the allocation-heavy one), the rest `record` class
+   3. Every value object a `record` class
 
    ## Decision
 
-   Every value object without an identity type of its own (`Money`, `Currency`, `Address`, `SupplierId`, `ProductId`) is a `readonly record struct`. `Money` went first, in Feature 3, and two properties specific to it made it the lowest-risk starting point:
+   Every value object without an identity of its own is a `readonly record struct` from the moment it is created. They are stack-allocated or inlined, and `==` is structural and free. The `default(T)` gap is closed the same way for all of them, two mitigations applied uniformly:
 
-   - **It's exercised immediately after construction.** Both `Add()` and `Multiply()` return their result through `new Money(...)`, which re-runs the full constructor validation, including the currency check, every single time. A stray `default(Money)` (`Currency == default`) fails loudly the moment it's used in either operation, including inside `CalculateItemTotal()` (`UnitPrice * Quantity` calls `Multiply()` internally), not silently downstream in `CalculateTotal()`.
-   - **It's small.** Two fields, both cheap to copy. The .NET struct design guidance is to avoid structs larger than roughly 16 bytes, since copying a large struct on every assignment or parameter pass can cost more than the heap allocation it was meant to avoid.
-
-   `Address`/`SupplierId`/`ProductId` don't share that first property on their own: nothing about constructing an `Address` re-validates it the way `Money.Add()` does. What closes the gap instead is the same pattern already used for `Currency`/`Money` themselves: every place one of these values gets handed to an aggregate, that aggregate re-validates it explicitly with `== default`, and every one of those guards has a test asserting it. `Supplier`'s constructor checks `Address == default`; `PurchaseOrder`'s constructor checks `SupplierId == default`; `PurchaseOrder.AddItem()` and `PurchaseOrderItem`'s own constructor both check `ProductId == default`. None of these types is exercised by a self-checking operation the way `Money.Add()` is, so the guarantee comes from discipline at every consumption point plus the tests that hold that discipline in place, not from the type itself:
+   - **Each blocks its parameterless constructor** (`public T() => throw ...`), so `new T()` fails loudly. Only `default(T)` still slips through, and that is a deliberate, visible choice at the call site, not an accident.
+   - **Every aggregate boundary that receives one guards it with `== default`.** `Supplier`'s and `PurchaseOrder`'s constructors, `PurchaseOrder.AddItem()`, and `PurchaseOrderItem`'s own constructor all do this. `Money.Add()` / `Multiply()` additionally check `Currency == default`, since a `default(Money)` would otherwise compute a silently wrong total. Every one of those guards has a test.
 
    ```csharp
-   public Address Address
+   public Supplier(SupplierId id, string name, Address address)
    {
-       get;
-       init
-       {
-           if (value == default)
-               throw new ArgumentException("Supplier address must be provided.", nameof(value));
-           field = value;
-       }
+       if (id == default)
+           throw new ArgumentException("Supplier ID is required.", nameof(id));
+       ArgumentException.ThrowIfNullOrWhiteSpace(name);
+       if (address == default)
+           throw new ArgumentException("Supplier address is required.", nameof(address));
+
+       Id = id;
+       Name = name;
+       Address = address;
    }
    ```
 
    ## Consequences
 
    **Positive:**
-   - No heap allocation for any of these value objects: every `Money`/`Address`/`SupplierId`/`ProductId` instance is stack-allocated (or inlined into its containing type) instead of a separate heap object.
-   - Value semantics read naturally throughout: `PurchaseOrderItem.CalculateItemTotal()` reads `UnitPrice * Quantity`, ordinary numeric syntax, no `.Multiply()` method call needed; identity and address comparisons use plain `==`.
-   - One consistent rule across the whole domain model instead of a split between "the struct" and "the classes", easier to teach and easier to extend correctly later: a new value object just follows the same pattern.
+   - No heap allocation for any value object: every `Money`/`Address`/`SupplierId`/`ProductId`/`Currency` instance is stack-allocated or inlined into its container.
+   - Value semantics read naturally: `PurchaseOrderItem.CalculateItemTotal()` reads `UnitPrice * Quantity`, ordinary numeric syntax; identity and address comparisons use plain `==`.
+   - One rule across the whole domain model, easy to teach and to extend: a new value object just follows the same pattern.
 
    **Negative / Trade-offs:**
-   - `default(Money)`/`default(Address)`/`default(SupplierId)`/`default(ProductId)` are all constructible without validation; nothing in any of these types itself prevents this. The guarantee shifts entirely to the aggregate boundary: every constructor and every `AddItem()`-style method that accepts one of these values must remember to guard it explicitly, and forgetting one is a real, silent bug the type system won't catch. This project holds that guarantee through discipline plus a test for every guard, not through the type system alone, a materially weaker guarantee than "the type itself refuses to exist invalid" and a real trade-off, not a free win.
-   - None of `PurchaseOrderItem`'s constructor guards can be an `ArgumentNullException` check any more, since a non-nullable struct parameter can never be `null` in the first place, the compiler statically proves it. `== default` is the only check the type system leaves available. This is a stronger guarantee than a runtime null-check would have been, but it also means a unit test asserting rejection of a `null` argument would never compile; the test suite asserts rejection of the `default` value instead.
-   - Every place one of these five types crosses into an aggregate needs its own `== default` guard, by hand, at every call site; there is no way to express "this parameter cannot be the struct's own default" in the type system itself the way non-nullability expresses "this parameter cannot be null" for a reference type.
+   - `default(Money)`/`default(Address)`/`default(SupplierId)`/`default(ProductId)` are all constructible without validation; nothing in the type itself prevents this. The guarantee shifts to the aggregate boundary: every constructor and every `AddItem()`-style method that accepts one must remember to guard it, and forgetting one is a real, silent bug. Held through discipline plus a test for every guard, a materially weaker guarantee than "the type itself refuses to exist invalid".
+   - None of these guards can be an `ArgumentNullException` check, since a non-nullable struct parameter can never be `null`, the compiler proves it. `== default` is the only check available, and a unit test asserting rejection of a `null` argument would not compile; the suite asserts rejection of the `default` value instead.
+   - There is no way to express "this parameter cannot be the struct's own default" in the type system the way non-nullability expresses "cannot be null" for a reference type.
 
    ---
 
-   # ADR-0006: Merging Duplicate Product Lines Preserves the Original Unit Price
-
-   **Status:** Accepted
-   **Note:** Superseded by [ADR-0009](#adr-0009-additem-rejects-a-duplicate-product-at-a-conflicting-unit-price), which rejects a duplicate product at a conflicting unit price instead of silently preserving the original price.
-
-   ## Context
-
-   US006 arrived after 1.0.0 shipped, well before 1.1.0 does, right after Features 1-5 were built: procurement managers reported that adding the same product twice to a purchase order created two separate, confusing line items instead of one combined quantity. `AddItem()`'s original behavior always appended a new `PurchaseOrderItem`, this was never wrong, just incomplete, US003's original acceptance criteria only ever described adding a single item, it never said anything about what should happen on a repeat.
-
-   A second, related question surfaces once merging is on the table: if the product is re-added at a different unit price than the existing line (the supplier's price changed since the order was started, or the caller simply made a typo), which price should the merged line carry?
-
-   ## Decision Drivers
-
-   - Real procurement feedback: duplicate lines for the same product on one order are a genuine usability problem, not a hypothetical one.
-   - A purchase order line represents a price agreed at a specific point in time; silently overwriting it on every re-add could misrepresent what was actually negotiated.
-   - Whatever gets decided has to be traceable to an explicit acceptance criterion in `docs/user-stories.md`, not inferred from reading the code, the exact gap this feature exists to close.
-
-   ## Considered Options
-
-   1. Merge quantities into the existing line, keep the line's original unit price *(Chosen)*
-   2. Merge quantities into the existing line, overwrite with the newly provided unit price
-   3. Keep creating a separate line item per `AddItem()` call, regardless of repeats (the original Feature 2-3 behavior)
-
-   ## Decision
-
-   `AddItem()` now looks for an existing `PurchaseOrderItem` with the same `ProductId` before appending anything. If found, it's replaced with a new `PurchaseOrderItem` (immutable, so a new instance is required either way) carrying the combined quantity and the **original** unit price; the `unitPriceAmount` argument passed to that particular call is still validated (must be non-negative), but otherwise discarded, it does not override the existing line's price. If no matching item exists, behavior is unchanged from Features 1-2: a new line item is appended using the price provided.
-
-   ```csharp
-   var existingIndex = _items.FindIndex(item => item.ProductId == productId);
-   if (existingIndex >= 0)
-   {
-       var existing = _items[existingIndex];
-       _items[existingIndex] = new PurchaseOrderItem(productId, existing.Quantity + quantity, existing.UnitPrice);
-       return;
-   }
-   ```
-
-   ## Consequences
-
-   **Positive:**
-   - Matches the real usability complaint US006 was written for: no more duplicate lines for the same product.
-   - The price a line was first agreed at can never be silently changed by a later, unrelated `AddItem()` call, protecting against accidentally recording the wrong price for goods already committed to at the original price.
-
-   **Negative / Trade-offs:**
-   - If a supplier genuinely changes their price mid-order and the procurement manager re-adds the product expecting the new price to apply, it silently doesn't, nothing in `AddItem()` surfaces this. A future revision might need an explicit `UpdateItemPrice()` method for that case, rather than overloading `AddItem()` to do it implicitly.
-   - `unitPriceAmount` is validated but discarded on merge; a caller could reasonably expect it to always apply. This is a real API surprise, called out prominently in the XML doc comment on `AddItem()` for exactly that reason.
-
-   ---
-
-   # ADR-0007: Currency as a Dedicated Value Object
+   # ADR-0006: Currency as a Dedicated Value Object
 
    **Status:** Accepted
 
    ## Context
 
-   ADR-0004 chose a plain, validated 3-letter `string` for `Money.Currency`, explicitly flagging that choice wouldn't scale to a "real currency type layered on top later" without giving up the project's original simplicity. Nothing about that trade-off has changed on its own, but a shared kernel is exactly the place such a type belongs once the currency comparison logic (`Currency != other.Currency`) is duplicated wherever `Money` methods run, and once `PurchaseOrder.Currency` also became a bare `string` doing the exact same 3-letter validation independently. A raw string also lets any string be silently compared to `Currency` with no compiler help distinguishing "a currency code" from "any other 3-character string" (e.g. a product SKU).
+   Both `Money` and `PurchaseOrder` carry a currency. A bare 3-letter `string` would put the same validation rule in two places (free to drift apart), and would let any string be compared to a currency code with no compiler help distinguishing "a currency code" from "any other 3-character string" (a product SKU, say). This is the same primitive-obsession gap ADR-0001 closes for `SupplierId` and `ProductId`.
 
    ## Decision Drivers
 
-   - Eliminate the duplicated 3-letter validation logic that existed separately in both `Money` and `PurchaseOrder`.
-   - Close the same primitive-obsession gap ADR-0001 already closed for `SupplierId`/`ProductId`, now for currency codes too.
-   - Keep `Money`'s existing `readonly record struct` shape (ADR-0005) and its "always valid" story: swapping in a validated value object should not reopen that gap.
+   - One validated definition of "what a currency code is", shared by every type that holds one.
+   - Compiler help distinguishing a currency code from any other short string.
+   - Consistency with the identity value objects: `SupplierId` and `ProductId` are already `readonly record struct`s (ADR-0005).
 
    ## Considered Options
 
    1. `Currency` as its own `readonly record struct`, used by both `Money` and `PurchaseOrder` *(Chosen)*
-   2. Keep a raw `string`, deduplicate validation into a static helper method
+   2. A raw `string` with validation deduplicated into a static helper method
    3. `Currency` as a `record` (class)
 
    ## Decision
 
-   `Currency` becomes a `readonly record struct` (matching `Money`, `Address`, `SupplierId`, and `ProductId`, all `readonly record struct`s per ADR-0005): it's small (one field), and like `Money`, gets exercised immediately by comparisons and `ToString()` calls that would surface a stray `default` quickly. Its `Code` property validates inside its own `init` accessor (using the C# 14 `field` keyword) instead of the constructor body, and its own parameterless constructor is blocked (`public Currency() => throw ...`), the same defensive pattern `Money` already uses. `Money.Currency` and `PurchaseOrder.Currency` both become `Currency` instead of `string`; both types keep a `string`-accepting constructor overload (`Money(decimal, string)`, `PurchaseOrder(..., string)`) that just wraps the string in a `new Currency(...)`, so every existing call site in `Program.cs` and the tests keeps compiling unchanged.
+   `Currency` is a `readonly record struct` in the shared kernel, created in Feature 2 alongside `PurchaseOrder` and used by `Money` in Feature 3. Its `Code` property validates inside its own `init` accessor (C# 14 `field` keyword): not null or blank, exactly `CodeLength` (a named `const`, not a literal `3`) ASCII letters, stored upper-cased. Its parameterless constructor is blocked (`public Currency() => throw ...`), the same defensive pattern every value object here uses. `Money` and `PurchaseOrder` each keep a `string`-accepting constructor overload that wraps the code in `new Currency(...)`, so call sites that only have a raw `"USD"` on hand stay simple.
 
    ```csharp
+   private const int CodeLength = 3;
+
    public string Code
    {
        get => field ?? string.Empty;
        init
        {
            ArgumentException.ThrowIfNullOrWhiteSpace(value);
-           if (value.Length != 3 || !value.All(char.IsAsciiLetter))
-               throw new ArgumentException("Currency must be a valid 3-letter ISO code.", nameof(Code));
+           if (value.Length != CodeLength || !value.All(char.IsAsciiLetter))
+               throw new ArgumentException($"Currency must be a valid {CodeLength}-letter ISO code.", nameof(Code));
            field = value.ToUpperInvariant();
        }
-   }
-   ```
-
-   With `Currency` now carrying a checkable `default` state of its own, `Money.Add()`/`Multiply()` are refined at the same time to check `Currency == default` directly on non-nullable `Money` operands, replacing the `Money? other` parameter ADR-0005 introduced:
-
-   ```csharp
-   public Money Add(Money other)
-   {
-       if (Currency == default || other.Currency == default)
-           throw new InvalidOperationException("Cannot perform arithmetic on uninitialized Money instances.");
-
-       if (Currency != other.Currency)
-           throw new InvalidOperationException(
-               $"Cannot add money with different currencies: '{Currency}' and '{other.Currency}'.");
-
-       return new Money(Amount + other.Amount, Currency);
    }
    ```
 
    ## Consequences
 
    **Positive:**
-   - One validated definition of "what a currency code is", instead of two copies that could silently drift apart.
-   - `Money` also gets the same "block `new Money()`" guard `Currency` now has, directly answering part of ADR-0005's own documented negative trade-off ("nothing in `Money` itself prevents [a stray `default`]").
-   - The `Code` property now also normalizes to uppercase and rejects non-letter characters, stricter than the length-only check `Money`/`PurchaseOrder` each used to run separately.
-   - `Money.Add()`/`Multiply()` drop the `Money? other` parameter and its `.Value` unwrapping, ADR-0005's other documented readability cost: now that `Currency` carries a checkable `default` state, both methods check `Currency == default` directly on non-nullable `Money` operands instead, and, unlike the old null-check, this also catches a caller passing an uninitialized `default(Money)`, something `ArgumentNullException.ThrowIfNull(other)` never actually did on a struct parameter.
+   - One validated definition of "what a currency code is", instead of a rule copied into every type that holds a currency.
+   - The `Code` property normalizes to uppercase and rejects non-letter characters, stricter than a length-only check.
+   - `Money.Add()` / `Multiply()` compare `Currency` values directly, and their `Currency == default` guard (ADR-0005) also catches a caller passing an uninitialized `default(Money)`.
 
    **Negative / Trade-offs:**
-   - Same `readonly record struct` caveat ADR-0005 already documents for `Money`: `default(Currency)` is still constructible without validation, `new Currency()` throws but `default(Currency)`/uninitialized fields do not; `Money`'s own `Currency` property `init` accessor guards against a `default` value being assigned, closing that gap one level up.
-   - One more type to import wherever a currency code crosses an API boundary; call sites that only ever dealt with a `string` before now see a `Currency` in `Money`/`PurchaseOrder`'s public surface, even though the convenience `string` constructors keep simple call sites unchanged.
+   - Same `readonly record struct` caveat ADR-0005 documents: `default(Currency)` is constructible without validation (`new Currency()` throws, but `default(Currency)` does not); `Money`'s and `PurchaseOrder`'s own `init` / constructor guards reject a `default` currency one level up.
+   - One more type to import wherever a currency code crosses an API boundary, though the convenience `string` constructors keep simple call sites unchanged.
 
    ---
 
-   # ADR-0008: PurchaseOrderItem Grows an Intention-Revealing Mutation Method
+   # ADR-0007: PurchaseOrderItem Grows an Intention-Revealing Mutation Method
 
    **Status:** Accepted (supersedes part of ADR-0003)
 
    ## Context
 
-   ADR-0003 originally decided `PurchaseOrderItem` should have no setters at all, reasoning that if it "ever grew a setter of its own... it doesn't, and shouldn't." Revisiting that stance: `PurchaseOrderItem` is explicitly documented, in its own class summary, as an entity managed by the `PurchaseOrder` aggregate, not a value object. Value objects earn immutability by having no identity of their own; entities are defined by the opposite, a life cycle and mutable state, tracked by something other than their current values. Under the original "no setters" rule, `PurchaseOrder.AddItem()` had to reconstruct the entity from outside on every merge (reading `existing.Quantity`/`existing.UnitPrice`, then building a brand-new `PurchaseOrderItem` to replace it in the list), which asks the aggregate to know how to rebuild one of its own entities instead of asking the entity to change itself, the opposite of "tell, don't ask."
+   ADR-0003 decided, back in Feature 3, that `PurchaseOrderItem` should have no setters at all. US006's merge feature revisits that: `PurchaseOrderItem` is explicitly documented, in its own class summary, as an entity managed by the `PurchaseOrder` aggregate, not a value object. Value objects earn immutability by having no identity of their own; entities are defined by the opposite, a life cycle and mutable state, tracked by something other than their current values. Keeping `PurchaseOrderItem` fully immutable would force `PurchaseOrder.AddItem()` to reconstruct the entity from outside on every merge (reading `existing.Quantity`/`existing.UnitPrice`, then building a brand-new `PurchaseOrderItem` to replace it in the list), which asks the aggregate to know how to rebuild one of its own entities instead of asking the entity to change itself, the opposite of "tell, don't ask."
 
    ## Decision Drivers
 
@@ -3156,12 +3313,12 @@
    ## Considered Options
 
    1. Add an `internal void IncreaseQuantity(int)` method, backed by a `private set` on `Quantity` *(Chosen)*
-   2. Keep `PurchaseOrder.AddItem()` rebuilding a new `PurchaseOrderItem` on every merge, as before
+   2. Keep `PurchaseOrderItem` fully immutable, and have `PurchaseOrder.AddItem()` rebuild a replacement instance on every merge
    3. Make `Quantity`'s setter `public`, let any caller change it directly
 
    ## Decision
 
-   `Quantity` keeps a `get`, but its `set` is now `private`, validated the same way the constructor already validates it (`ArgumentOutOfRangeException.ThrowIfNegativeOrZero`, via the C# 14 `field` keyword). A new `internal void IncreaseQuantity(int additionalQuantity)` method is the only thing that can invoke that setter from outside the property itself; `PurchaseOrder.AddItem()` calls `existing.IncreaseQuantity(quantity)` on a price match instead of rebuilding the item. This satisfies ADR-0003's actual Decision Driver (no *public* setter, every change goes through a named method) more directly than the original "no setters at all" implementation did.
+   `Quantity` keeps a `get`, but its `set` is now `private`, validated the same way the constructor already validates it (`ArgumentOutOfRangeException.ThrowIfNegativeOrZero`, via the C# 14 `field` keyword). A new `internal void IncreaseQuantity(int additionalQuantity)` method is the only thing that can invoke that setter from outside the property itself; `PurchaseOrder.AddItem()` calls `existing.IncreaseQuantity(quantity)` on a price match instead of rebuilding the item. This satisfies ADR-0003's actual Decision Driver (no *public* setter, every change goes through a named method) more directly than a fully-immutable `PurchaseOrderItem` would.
 
    ```csharp
    public int Quantity
@@ -3194,29 +3351,33 @@
 
    ---
 
-   # ADR-0009: AddItem Rejects a Duplicate Product at a Conflicting Unit Price
+   # ADR-0008: AddItem Merges a Duplicate Product, Rejecting a Conflicting Unit Price
 
-   **Status:** Accepted (supersedes ADR-0006)
+   **Status:** Accepted
 
    ## Context
 
-   ADR-0006 decided that re-adding an existing product at a different unit price should silently keep the original line's price, discarding the new amount. That ADR's own Consequences section already flagged the cost candidly: "`unitPriceAmount` is validated but discarded on merge; a caller could reasonably expect it to always apply. This is a real API surprise." Silently discarding a value the caller explicitly passed is exactly the kind of behavior DDD invariant protection argues against: an aggregate should fail loudly when an operation would conflict with an existing, already-committed piece of state, not quietly pick a winner on the caller's behalf.
+   US006 arrived after 1.0.0 shipped: a real procurement team using the shipped product reported that adding the same product twice to a purchase order created two separate, confusing line items instead of one combined quantity. `AddItem()`'s Feature 3 behavior always appended a new `PurchaseOrderItem`, this was never wrong, just incomplete: US003's acceptance criteria only ever described adding a single item, never a repeat.
+
+   Once merging is on the table, a second question follows: if the product is re-added at a *different* unit price than the existing line (the supplier's price changed since the order was started, or the caller made a typo), what should happen? Silently keeping the original price hides a real price change; silently overwriting it hides a possible typo; and either way, a caller who passed an explicit price gets no signal it was ignored. Silently resolving a conflict the caller didn't know they created is exactly what DDD invariant protection argues against: an aggregate should fail loudly when an operation conflicts with state it already committed.
 
    ## Decision Drivers
 
-   - A purchase order line's price, once committed, represents a real agreement; silently overwriting or silently ignoring a conflicting price both hide a potential real-world discrepancy (a genuine supplier price change, or a caller's typo) from whoever is looking at the result.
-   - ADR-0006 already named the concrete alternative in its own Negative/Trade-offs section (an explicit way to signal a price conflict), rather than requiring this ADR to invent one from nothing.
+   - Real procurement feedback: duplicate lines for the same product on one order are a genuine usability problem, not a hypothetical one.
+   - A purchase order line's price, once committed, represents a real agreement; silently overwriting *or* silently ignoring a conflicting price both hide a potential real-world discrepancy from whoever reads the result.
    - Failing fast on an ambiguous instruction is safer for financial data than resolving the ambiguity silently, in either direction.
+   - Whatever gets decided has to be traceable to an explicit acceptance criterion in `docs/user-stories.md`, not inferred from the code.
 
    ## Considered Options
 
-   1. Throw `InvalidOperationException` when the existing line's price differs from the newly provided one; merge quantities only when the price matches *(Chosen)*
-   2. Keep ADR-0006's behavior: merge quantities, always keep the original price, discard the new one silently
+   1. Merge quantities when the re-added price matches the existing line; throw `InvalidOperationException` when it conflicts *(Chosen)*
+   2. Merge quantities, always keep the existing line's original price, silently discard the newly provided one
    3. Merge quantities, always overwrite with the newly provided price
+   4. Keep appending a separate line item per `AddItem()` call, regardless of repeats (the Feature 3 behavior)
 
    ## Decision
 
-   `AddItem()` still looks for an existing `PurchaseOrderItem` with the same `ProductId`. If one exists and the newly computed `Money` matches its `UnitPrice`, the quantities merge via `IncreaseQuantity()` (see ADR-0008). If the price differs, `AddItem()` throws `InvalidOperationException` naming both the conflicting price and the existing one, and the order's state is left unchanged (the exception is thrown before any mutation happens). If no matching item exists, behavior is unchanged: a new line is appended.
+   `AddItem()` looks for an existing `PurchaseOrderItem` with the same `ProductId` before appending anything. If one exists and the newly computed `Money` matches its `UnitPrice`, the quantities merge via `existing.IncreaseQuantity(quantity)` (see [ADR-0007](#adr-0007-purchaseorderitem-grows-an-intention-revealing-mutation-method)). If the price differs, `AddItem()` throws `InvalidOperationException` naming both the conflicting price and the existing one, and the order's state is left unchanged (the exception is thrown before any mutation). If no matching item exists, behavior is unchanged: a new line is appended using the price provided.
 
    ```csharp
    var existing = _items.Find(item => item.ProductId == productId);
@@ -3233,38 +3394,39 @@
    ## Consequences
 
    **Positive:**
-   - No more silent data loss: a caller who passes a conflicting price for an existing line finds out immediately, instead of the system quietly keeping a different value than what was requested.
-   - Directly resolves the "real API surprise" ADR-0006 already flagged as a known cost of its own decision, without needing a separate `UpdateItemPrice()` method (the future revision ADR-0006 anticipated needing).
+   - Matches the real usability complaint US006 was written for: no more duplicate lines for the same product.
+   - No silent data loss: a caller who passes a conflicting price for an existing line finds out immediately, instead of the system quietly keeping a value different from what was requested.
+   - The order's state is never left half-changed: the price check runs before `IncreaseQuantity()`, so a rejected call is a no-op.
 
    **Negative / Trade-offs:**
-   - This is a real, breaking behavior change from ADR-0006: any caller relying on "the second price is silently ignored" now gets an exception instead. `PurchaseOrderTests`'s merge test was rewritten to `AddItem_WithDuplicateProductAndConflictingPrice_ThrowsInvalidOperationException`, asserting the new behavior.
-   - A legitimate price change from the supplier mid-order now requires the caller to handle the exception explicitly (e.g. by choosing a different `ProductId`, or by a future explicit `UpdateItemPrice()` method); there is still no built-in way to intentionally update an existing line's price.
+   - A legitimate supplier price change mid-order now requires the caller to handle the exception explicitly (choose a different `ProductId`, or wait for a future explicit `UpdateItemPrice()` method); there is no built-in way to intentionally change an existing line's price.
+   - `AddItem()` does two related but distinct things (append, or merge-or-reject) behind one method name; a reader has to follow the branch to see that a repeat `ProductId` is handled specially. The XML doc comment calls this out.
 
    ---
 
-   # ADR-0010: DateOnly for Purchase Order Dates
+   # ADR-0009: DateOnly for Purchase Order Dates
 
    **Status:** Accepted
 
    ## Context
 
-   `PurchaseOrder.OrderDate` has been a `DateTime` since Feature 2. A purchase order date is a calendar business date, not an instantaneous timestamp: nothing in this domain ever needs the time-of-day or time-zone component `DateTime` carries, and every constructor so far has accepted whatever time-of-day the caller happened to pass (`DateTime.UtcNow`, an arbitrary `new DateTime(2025, 3, 29)`), including a meaningless `00:00:00` component whenever a caller only cared about the date.
+   A purchase order date is a calendar business date, not an instantaneous timestamp: nothing in this domain ever needs the time-of-day or time-zone component a `DateTime` carries. Modeling it as a `DateTime` would mean every construction carries a meaningless `00:00:00` (or worse, an arbitrary time-of-day from `DateTime.UtcNow`), and two orders created on the same calendar date at different times would compare as having different dates.
 
    ## Decision Drivers
 
    - Represent domain intent precisely: an order date is a date, not a timestamp.
-   - Eliminate a whole category of bugs this domain never needed to worry about: time-zone conversion, Daylight Saving Time edge cases, and two `DateTime` values differing only by time-of-day comparing as different order dates.
-   - Keep every existing call site compiling: `Program.cs` and the test suite both construct `PurchaseOrder` with a `DateTime` today.
+   - Eliminate a whole category of bugs this domain never needed to worry about: time-zone conversion, Daylight Saving Time edge cases, and two dates differing only by time-of-day.
+   - Keep the common "I have a `DateTime.UtcNow`, I want today's date" call site simple.
 
    ## Considered Options
 
-   1. Convert `OrderDate` to `DateOnly`, keep a `DateTime`-accepting constructor overload that converts internally *(Chosen)*
-   2. Convert `OrderDate` to `DateOnly`, remove the `DateTime` overload, force every call site to convert explicitly
-   3. Leave `OrderDate` as `DateTime`
+   1. Model `OrderDate` as a `DateOnly`, with a `DateTime`-accepting convenience constructor that converts internally *(Chosen)*
+   2. Model `OrderDate` as a `DateOnly`, with no `DateTime` overload, forcing every caller to convert explicitly
+   3. Model `OrderDate` as a `DateTime`
 
    ## Decision
 
-   `PurchaseOrder`'s main constructor now takes a `DateOnly orderDate`. A second convenience constructor still accepts a `DateTime`, converting it via `DateOnly.FromDateTime(orderDate)` before delegating to the main one, so every existing caller (`Program.cs`'s `DateTime.UtcNow`, the test suite's `new DateTime(...)`) keeps compiling unchanged; only the discarded time-of-day component changes behavior, and it was never meaningful to begin with.
+   `PurchaseOrder.OrderDate` is a `DateOnly` from Feature 2, and the canonical constructor takes a `DateOnly orderDate`. A convenience constructor also accepts a `DateTime`, converting it via `DateOnly.FromDateTime(orderDate)` before delegating, so a caller holding a `DateTime.UtcNow` (like `Program.cs`) stays simple; only the discarded time-of-day component differs, and it was never meaningful.
 
    ```csharp
    public PurchaseOrder(string orderNumber, SupplierId supplierId, DateTime orderDate, string currency)
@@ -3274,17 +3436,17 @@
    ## Consequences
 
    **Positive:**
-   - `OrderDate` now says exactly what it means: a calendar date, nothing more.
-   - Two `PurchaseOrder`s created on the same calendar date but at different times of day now correctly compare as having the same `OrderDate`; that was a bug under `DateTime`, not a feature.
-   - No time-zone conversion code was ever needed to fix this, `DateOnly` sidesteps the whole category of bugs by construction.
+   - `OrderDate` says exactly what it means: a calendar date, nothing more.
+   - Two `PurchaseOrder`s created on the same calendar date but at different times of day correctly compare as having the same `OrderDate`.
+   - No time-zone conversion code is needed anywhere: `DateOnly` sidesteps the whole category of bugs by construction.
 
    **Negative / Trade-offs:**
-   - A third constructor overload adds a small amount of surface area; a reader has to notice `DateOnly` is now the primary representation and `DateTime` is only a compatibility path.
+   - Three constructor overloads (`DateOnly`+`Currency`, `DateOnly`+`string`, `DateTime`+`string`) add a small amount of surface area; a reader has to notice `DateOnly`+`Currency` is the canonical one and the rest are conveniences.
    - Any future code that genuinely needs a time-of-day for something purchase-order-related (an audit timestamp, for instance) would need its own separate property, not `OrderDate`.
 
    ---
 
-   # ADR-0011: Presentation Formatting via C# 14 Extension Members
+   # ADR-0010: Presentation Formatting via C# 14 Extension Members
 
    **Status:** Accepted
 
@@ -3325,6 +3487,79 @@
    **Negative / Trade-offs:**
    - Extension members are a C# 14 language feature; a reader unfamiliar with it might mistake `order.Summary` for a real property on `PurchaseOrder` until they notice the `using Acme.OOProgramming.Procurement.Presentation;` import it actually requires.
    - The presentation namespace must be imported wherever its extension members are used, one more `using` to remember, easy to miss without an IDE's auto-import quick-fix.
+
+   ---
+
+   # ADR-0011: Where Domain Validation Lives
+
+   **Status:** Accepted
+
+   ## Context
+
+   Every type in the domain model rejects invalid input somewhere. C# offers two natural places: inside a property's own `init` / `set` accessor (checked on every assignment path, the moment the value lands), or in the constructor body (checked once, when the object is assembled). Early on the codebase was inconsistent: value objects and `Supplier`'s `Name` / `Address` validated in accessors, `PurchaseOrder` validated in its constructor, and `Supplier`'s own `Id` had no guard at all. That split was inherited, never decided.
+
+   ## Decision Drivers
+
+   - An object should be impossible to observe in an invalid state.
+   - A rule that compares two or more fields can only run where all of them are visible at once.
+   - Validating field by field can leave an object half-mutated: the earlier fields already changed, then a later one throws.
+   - One rule a student can state in a sentence, applied the same way to every type of the same kind.
+   - `with` expressions and object initializers reach a property's accessor without going through the constructor.
+
+   ## Considered Options
+
+   1. Value objects validate per-property in their `init` accessor; aggregate roots and entities validate in the constructor and in the methods that change state *(Chosen)*
+   2. Everything, value objects and aggregates alike, validates per-property in `init` accessors
+   3. Everything validates in the constructor; properties carry no validation
+
+   ## Decision
+
+   - **Value objects** (`Currency`, `Money`, `Address`, `SupplierId`, `ProductId`) validate **in each property's own `init` accessor** (ADR-0001). Every rule is a single-field check in isolation (`Amount` non-negative, a three-letter code, a non-empty string), so an accessor is enough, and the rule sits next to the property and its `<exception>` doc.
+   - **Aggregate roots** (`Supplier`, `PurchaseOrder`) validate **in the constructor**, before assigning anything; properties stay `{ get; }`. The constructor is the aggregate's single entry point and the only place a rule spanning more than one field could go, and guarding there keeps a rejected construction atomic, nothing is assigned until every guard passes. Each value-object parameter still gets its `== default` guard here (ADR-0005), on top of the value object's own validation.
+   - **Entities** (`PurchaseOrderItem`) validate in their constructor and in the methods that mutate them (`IncreaseQuantity`, the `private set` on `Quantity`), for the same reasons as an aggregate root.
+
+   This matches the mainstream .NET DDD guidance: Microsoft's own domain-model-validation guidance puts entity validation "in domain entity constructors or in methods that can update the entity", and shows how field-by-field validation can leave an object invalid partway through.
+
+   ```csharp
+   // value object: in the property's init accessor
+   public string Code
+   {
+       get => field ?? string.Empty;
+       init
+       {
+           ArgumentException.ThrowIfNullOrWhiteSpace(value);
+           if (value.Length != CodeLength || !value.All(char.IsAsciiLetter))
+               throw new ArgumentException($"Currency must be a valid {CodeLength}-letter ISO code.", nameof(Code));
+           field = value.ToUpperInvariant();
+       }
+   }
+
+   // aggregate root: in the constructor
+   public Supplier(SupplierId id, string name, Address address)
+   {
+       if (id == default)
+           throw new ArgumentException("Supplier ID is required.", nameof(id));
+       ArgumentException.ThrowIfNullOrWhiteSpace(name);
+       if (address == default)
+           throw new ArgumentException("Supplier address is required.", nameof(address));
+
+       Id = id;
+       Name = name;
+       Address = address;
+   }
+   ```
+
+   ## Consequences
+
+   **Positive:**
+   - One rule, stated in a sentence: a value validates where it lands (its property), an aggregate validates where it is assembled (its constructor).
+   - An aggregate that later grows a cross-field invariant already has the right place for it, no restructuring.
+   - A rejected aggregate construction assigns nothing until every guard has passed.
+
+   **Negative / Trade-offs:**
+   - A value object and an aggregate root are validated in different places, so a reader has to know which kind of type they are looking at.
+   - An aggregate root's `<exception>` documentation lives on the constructor, away from the individual properties.
+   - A value object's `init`-accessor guard can still be reached by a `with` expression or object initializer; acceptable here because each such guard is complete on its own, there is no multi-field rule for `with` to violate.
    ````
    </details>
 
@@ -3333,7 +3568,8 @@
    git commit -m "docs(adr): document value object, context mapping, encapsulation, money, struct, currency, entity mutation, merge, date, and presentation decisions."
    git push
    ```
-6. **Add a Requirements Traceability Matrix to the top of `docs/user-stories.md`**, right after the title, before the individual user stories: one row per story, mapping it to the bounded context, the aggregate/entity it lives on, and the method that implements it. No Test Suite column yet, there's no test suite yet, `## Testing` below adds one to this same table if you get to it.
+
+10. **Add a Requirements Traceability Matrix to the top of `docs/user-stories.md`**, right after the title, before the individual user stories: one row per story, mapping it to the bounded context, the aggregate/entity it lives on, and the method that implements it. No Test Suite column yet, there's no test suite yet, `## Testing` below adds one to this same table if you get to it.
 
    <details>
    <summary>docs/user-stories.md (addition, insert before "## US001")</summary>
@@ -3348,7 +3584,7 @@
    | **US003** | Add Items to a Purchase Order | Procurement Context | [`PurchaseOrder`](../Acme.OOProgramming/Procurement/Domain/Model/Aggregates/PurchaseOrder.cs), [`PurchaseOrderItem`](../Acme.OOProgramming/Procurement/Domain/Model/Aggregates/PurchaseOrderItem.cs) | `AddItem(productId, quantity, unitPriceAmount)` |
    | **US004** | Calculate Purchase Order Item Subtotal | Procurement Context | [`PurchaseOrderItem`](../Acme.OOProgramming/Procurement/Domain/Model/Aggregates/PurchaseOrderItem.cs) | `CalculateItemTotal()` |
    | **US005** | Calculate Purchase Order Total | Procurement Context | [`PurchaseOrder`](../Acme.OOProgramming/Procurement/Domain/Model/Aggregates/PurchaseOrder.cs) | `CalculateTotal()` |
-   | **US006** | Merge Duplicate Items in a Purchase Order | Procurement Context | [`PurchaseOrder`](../Acme.OOProgramming/Procurement/Domain/Model/Aggregates/PurchaseOrder.cs), [`PurchaseOrderItem`](../Acme.OOProgramming/Procurement/Domain/Model/Aggregates/PurchaseOrderItem.cs) | `AddItem(productId, quantity, unitPriceAmount)` (merge branch) |
+   | **US006** | Merge Duplicate Items in a Purchase Order | Procurement Context | [`PurchaseOrder`](../Acme.OOProgramming/Procurement/Domain/Model/Aggregates/PurchaseOrder.cs), [`PurchaseOrderItem`](../Acme.OOProgramming/Procurement/Domain/Model/Aggregates/PurchaseOrderItem.cs) | `AddItem(productId, quantity, unitPriceAmount)` (merge-or-reject branch) |
 
    ---
    ```
@@ -3359,30 +3595,8 @@
    git commit -m "docs(user-stories): add requirements traceability matrix."
    git push
    ```
-7. **Add `LICENSE.md` and `README.md`.** In **File System** view, right-click the project root → `Add` → `File` → type `LICENSE.md` → Enter (the README's badge links to it, so it needs to exist first).
 
-   **Note:** a real public repo ships both, but neither belonged at Project Setup: back then there was no code, no test suite, no ADRs, nothing to describe yet.
-
-   <details>
-   <summary>LICENSE.md</summary>
-
-   ```markdown
-   # License
-
-   Copyright © 2026 ACME Studio. All rights reserved.
-
-   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-   The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL ACME STUDIO OR THE WEB APPLICATIONS DEVELOPER TEAM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-   **Author**: Web Applications Developer Team  
-   **Contact**: For inquiries, please contact the Web Applications Developer Team at ACME Studio.
-   ```
-   </details>
-
-   Same way, right-click the project root → `Add` → `File` → type `README.md` → Enter:
+11. **Update `README.md`** now that the ADRs exist. Replace the file from `## Prepare the First Release` with the version below: the domain model is unchanged since `1.0.0`, this adds `see ADR-NNNN` links throughout and a `docs/adrs.md` entry under `## Docs`.
 
    <details>
    <summary>README.md</summary>
@@ -3393,7 +3607,6 @@
    [![.NET](https://img.shields.io/badge/.NET-10-purple.svg)](https://dotnet.microsoft.com/)
    [![C#](https://img.shields.io/badge/C%23-14-blue.svg)](https://learn.microsoft.com/dotnet/csharp/)
    [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md)
-   [![Tests](https://img.shields.io/badge/Tests-passing-brightgreen.svg)](Acme.OOProgramming.Tests)
 
    ## Overview
 
@@ -3406,26 +3619,26 @@
    - `SupplierId` (Value Object): strongly-typed identifier, owned by SupplyChain.
 
    **`Acme.OOProgramming.Procurement`** (Procurement)
-   - `PurchaseOrder` (Aggregate Root): purchase order invariants, currency consistency, and item lifecycle; `OrderDate` is a `DateOnly`, a calendar date with no time-of-day or time zone component (see [ADR-0010](docs/adrs.md#adr-0010-dateonly-for-purchase-order-dates)).
+   - `PurchaseOrder` (Aggregate Root): purchase order invariants, currency consistency, and item lifecycle; `OrderDate` is a `DateOnly`, a calendar date with no time-of-day or time zone component (see [ADR-0009](docs/adrs.md#adr-0009-dateonly-for-purchase-order-dates)).
    - `PurchaseOrderItem` (Entity): managed exclusively by `PurchaseOrder`, its constructor is `internal`.
    - `ProductId` (Value Object): time-ordered identifier generated with UUIDv7 (`Guid.CreateVersion7()`).
    - `SupplierId` (Value Object): Procurement's own copy of the concept, deliberately decoupled from SupplyChain's (see [ADR-0002](docs/adrs.md#adr-0002-each-bounded-context-owns-its-own-reference-types)).
-   - `Presentation.ConsoleFormatting` (`order.Summary`): console-only formatting kept out of the aggregate itself, via a C# 14 extension member (see [ADR-0011](docs/adrs.md#adr-0011-presentation-formatting-via-c-14-extension-members)).
+   - `Presentation.ConsoleFormatting` (`order.Summary`): console-only formatting kept out of the aggregate itself, via a C# 14 extension member (see [ADR-0010](docs/adrs.md#adr-0010-presentation-formatting-via-c-14-extension-members)).
 
    **`Acme.OOProgramming.Shared`** (Shared Kernel)
    - `Money` (Value Object): `decimal` amount + validated `Currency`, `readonly record struct` for value semantics and zero heap allocation.
-   - `Currency` (Value Object): validated 3-letter ISO code, `readonly record struct` (see [ADR-0007](docs/adrs.md#adr-0007-currency-as-a-dedicated-value-object)).
+   - `Currency` (Value Object): validated 3-letter ISO code, `readonly record struct` (see [ADR-0006](docs/adrs.md#adr-0006-currency-as-a-dedicated-value-object)).
    - `Address` (Value Object): international postal address, `readonly record struct`.
-   - `Presentation.ConsoleFormatting` (`money.Display`): console-only formatting kept out of `Money` itself, via a C# 14 extension member (see [ADR-0011](docs/adrs.md#adr-0011-presentation-formatting-via-c-14-extension-members)).
+   - `Presentation.ConsoleFormatting` (`money.Display`): console-only formatting kept out of `Money` itself, via a C# 14 extension member (see [ADR-0010](docs/adrs.md#adr-0010-presentation-formatting-via-c-14-extension-members)).
 
    ### Key Domain Rules
    - **Aggregate invariant encapsulation**: `PurchaseOrder` strictly controls the creation and lifecycle of `PurchaseOrderItem`.
    - **Single-currency rule**: every item in a `PurchaseOrder` is priced in the order's own currency.
    - **Currency-safe arithmetic**: `Money` rejects cross-currency operations and negative amounts; its `+`/`*` operators call the same validated methods underneath.
-   - **Duplicate line item handling**: `PurchaseOrder.AddItem` merges quantities when an existing `ProductId` is re-added at the same unit price; re-adding it at a different price throws instead of silently picking one (see [ADR-0009](docs/adrs.md#adr-0009-additem-rejects-a-duplicate-product-at-a-conflicting-unit-price)).
-   - **Uniform value-type adoption**: `Money`, `Currency`, `Address`, `SupplierId`, and `ProductId` are all `readonly record struct`s, each `default`-guarded at every aggregate boundary that consumes one (see [ADR-0005](docs/adrs.md#adr-0005-uniform-readonly-record-struct-adoption-for-value-objects) and [ADR-0007](docs/adrs.md#adr-0007-currency-as-a-dedicated-value-object)).
+   - **Duplicate line item handling**: `PurchaseOrder.AddItem` merges quantities when an existing `ProductId` is re-added at the same unit price; re-adding it at a different price throws instead of silently picking one (see [ADR-0008](docs/adrs.md#adr-0008-additem-merges-a-duplicate-product-rejecting-a-conflicting-unit-price)).
+   - **Uniform value-type adoption**: `Money`, `Currency`, `Address`, `SupplierId`, and `ProductId` are all `readonly record struct`s, each `default`-guarded at every aggregate boundary that consumes one (see [ADR-0005](docs/adrs.md#adr-0005-value-objects-as-readonly-record-struct) and [ADR-0006](docs/adrs.md#adr-0006-currency-as-a-dedicated-value-object)).
    - **Cross-context references**: each bounded context owns its own copy of any identifier it references from another context, rather than sharing one type.
-   - **Presentation decoupling**: display formatting (`order.Summary`, `money.Display`) lives in dedicated `*.Presentation` namespaces, never on the domain models themselves (see [ADR-0011](docs/adrs.md#adr-0011-presentation-formatting-via-c-14-extension-members)).
+   - **Presentation decoupling**: display formatting (`order.Summary`, `money.Display`) lives in dedicated `*.Presentation` namespaces, never on the domain models themselves (see [ADR-0010](docs/adrs.md#adr-0010-presentation-formatting-via-c-14-extension-members)).
 
    ## Class Diagram
    See [`docs/class-diagram.puml`](docs/class-diagram.puml). Open it with a PlantUML plugin/viewer to render it.
@@ -3437,7 +3650,6 @@
    ```bash
    dotnet build
    dotnet run --project Acme.OOProgramming
-   dotnet test
    ```
 
    ## Docs
@@ -3452,36 +3664,34 @@
 
    ```
    git add .
-   git commit -m "docs: add license and readme."
+   git commit -m "docs(readme): document the currency, presentation, and date-only work."
    git push
    ```
-8. **Ship `1.1.0`,** the same way as the `## Release` section above. `develop` is now ahead of `main` again, carrying everything built since `1.0.0`: US006 (including its later revision), the `Money` / `Currency` refactor, `OrderDate` as a `DateOnly`, the new `Presentation` layer, all eleven ADRs, the traceability matrix, and the license/README.
-   - `Release Start` → `1.1.0`
-   - drop the `-preview` suffix in `Acme.OOProgramming.csproj` (`1.1.0-preview` → `1.1.0`), commit `chore(release): bump version to 1.1.0.`
-   - add a `## 1.1.0` entry to `CHANGELOG.md`, above the existing `## 1.0.0` one, and commit it too
-   - `Release Publish`, then `Release Finish`
 
-   **Note:** a release branch still needs at least one commit of its own (the changelog entry), or the merge into `develop` is a no-op, same reasoning as the `## Release` section.
+12. **Ship `v1.1.0`,** the same way as the `## Release` section above. `develop` is now ahead of `main` again, carrying everything built since `v1.0.0`: US006, all eleven ADRs, the requirements traceability matrix, and the `README.md` update.
+   - `Release Start` → `v1.1.0` (branch `release/v1.1.0`)
+   - drop the `-preview` suffix in `Acme.OOProgramming.csproj` (`1.1.0-preview` → `1.1.0`), commit `chore(release): bump version to 1.1.0.`
+   - add a `## [1.1.0] - <date>` section to `CHANGELOG.md`, directly under the intro block and above `## [1.0.0]`, and commit it too
+   - `Release Publish`, then `Release Finish`
 
    <details>
    <summary>CHANGELOG.md (addition)</summary>
 
    ```markdown
-   ## 1.1.0
+   ## [1.1.0] - 2026-08-29
 
-   - US006: Merge Duplicate Items in a Purchase Order
-   - Convert `Money` to a `readonly record struct` with `+`/`*` operators
-   - Extract `Currency` into its own `readonly record struct` value object
-   - Represent `PurchaseOrder.OrderDate` as a `DateOnly`
-   - Add a `Presentation` layer via C# 14 extension members (`order.Summary`, `money.Display`)
-   - Modernize guard clauses across value objects and aggregates
-   - Add Architecture Decision Records (ADR-0001 through ADR-0011) to a single `docs/adrs.md`
-   - Add requirements traceability matrix to `docs/user-stories.md`
-   - Add `LICENSE.md` and `README.md`
+   ### Added
+   - US006: Merge Duplicate Items in a Purchase Order: re-adding a product on the order merges quantities at a matching price, and is rejected at a conflicting one.
+   - `PurchaseOrderItem.IncreaseQuantity()`, a controlled mutation method behind a `private` setter.
+   - Architecture Decision Records (ADR-0001 through ADR-0011) in `docs/adrs.md`.
+   - Requirements traceability matrix in `docs/user-stories.md`.
+
+   ### Changed
+   - `README.md` updated with `see ADR-NNNN` links throughout and a `docs/adrs.md` entry.
    ```
    </details>
 
-   Publish the GitHub Release the same way as `1.0.0`: **Releases** → **Draft a new release** → pick `1.1.0`, title `1.1.0`, description below, **Publish release** (or from the command line: `gh release create 1.1.0 --title "1.1.0" --notes-file <path to a file with the notes below>`).
+   Publish the GitHub Release the same way as `v1.0.0`: **Releases** → **Draft a new release** → pick the tag `v1.1.0`, title `Version 1.1.0`, description below, **Publish release** (or from the command line: `gh release create v1.1.0 --title "Version 1.1.0" --notes-file <path to a file with the notes below>`).
 
    <details>
    <summary>Release notes (1.1.0)</summary>
@@ -3489,31 +3699,29 @@
    ```markdown
    ## 🚀 Added
 
-   - **US006: Merge Duplicate Items in a Purchase Order**: adding a product already on the order now merges into the existing line instead of creating a duplicate, as long as the unit price matches; re-adding it at a different price is rejected instead of silently picking one (see ADR-0009, which supersedes the original ADR-0006 decision).
-   - `Currency` value object, extracted out of `Money`/`PurchaseOrder`'s duplicated 3-letter validation logic (see ADR-0007).
-   - `Presentation` layer (`order.Summary`, `money.Display`), via C# 14 extension members, keeping console formatting out of the domain models (see ADR-0011).
+   - **US006: Merge Duplicate Items in a Purchase Order**: adding a product already on the order merges into the existing line instead of creating a duplicate, as long as the unit price matches; re-adding it at a different price is rejected instead of silently picking one (see ADR-0008).
+   - `PurchaseOrderItem.IncreaseQuantity()`: the entity changes its own quantity through an intention-revealing method behind a `private` setter, instead of `PurchaseOrder` rebuilding it from outside (see ADR-0007).
 
    ## 🔧 Changed
 
-   - `Money` is now a `readonly record struct` (see ADR-0005): stack-allocated, with `+`/`*` operator overloads.
-   - `PurchaseOrderItem.Quantity` gained a controlled, intention-revealing way to change: a private setter behind a new `IncreaseQuantity()` method, instead of `PurchaseOrder` rebuilding the entity from outside on every merge (see ADR-0008).
-   - `PurchaseOrder.OrderDate` is now a `DateOnly` instead of a `DateTime`; a `DateTime`-accepting constructor overload is kept for compatibility (see ADR-0010).
-   - Guard clauses across `Address`, `Money`, `Currency`, `SupplierId`, and `PurchaseOrder` modernized to .NET's argument-validation throw helpers.
-   - Architecture Decision Records consolidated into a single `docs/adrs.md`, covering value objects, bounded-context ownership, aggregate encapsulation, `Money`'s representation, the struct conversion, the `Currency` extraction, the `PurchaseOrderItem` mutation method, the merge decision and its later revision, the `DateOnly` conversion, and the presentation layer (ADR-0001 through ADR-0011).
+   - Architecture Decision Records consolidated into a single `docs/adrs.md`, covering value objects, bounded-context ownership, aggregate encapsulation, `Money`'s representation, the `readonly record struct` adoption, the `Currency` value object, the `PurchaseOrderItem` mutation method, the merge-or-reject decision, the `DateOnly` order date, the presentation layer, and where domain validation lives (ADR-0001 through ADR-0011).
+   - `README.md` gained `see ADR-NNNN` links throughout and a `docs/adrs.md` entry.
 
    ## 📝 Documentation
 
    - Added a Requirements Traceability Matrix to `docs/user-stories.md`, mapping each user story to its bounded context, aggregate, and implementation.
-   - Added `LICENSE.md` and `README.md`.
    ```
    </details>
-9. **Back on `develop`, pick the `-preview` suffix back up.** In `Acme.OOProgramming.csproj`: `<Version>1.1.0</Version>` → `<Version>1.1.1-preview</Version>`, commit `chore(dev): set development version to 1.1.1-preview.`, push.
+
+   **Note:** a release branch still needs at least one commit of its own (the changelog entry), or the merge into `develop` is a no-op, same reasoning as the `## Release` section.
+
+13. **Back on `develop`, pick the `-preview` suffix back up.** In `Acme.OOProgramming.csproj`: `<Version>1.1.0</Version>` → `<Version>1.1.1-preview</Version>`, commit `chore(dev): set development version to 1.1.1-preview.`, push.
 
    **Note:** `## Testing` below is optional, self-study only, so `develop` shouldn't sit on an already-tagged version while there's still unreleased optional work.
 
 ## Testing (optional, explore on your own)
 
-Everything up to here (Features 1-5, US006, and the architecture/modernization work above) already shipped as real releases, `1.0.0` and `1.1.0`. This section doesn't gate any of that: it's optional. Testing well is a real skill, but it isn't this course's objective, and nothing later in this guide depends on finishing it.
+Everything up to here (Features 1-5, the presentation layer, US006, and the documentation work above) already shipped as real releases, `1.0.0` and `1.1.0`. This section doesn't gate any of that: it's optional. Testing well is a real skill, but it isn't this course's objective, and nothing later in this guide depends on finishing it.
 
 The idea: add a test project with xUnit and FluentAssertions, paste in the starter test suite (one file per class already built, covering every user story's acceptance criteria, US001 through US006), run it, then use it as a jumping-off point:
 - add a scenario it doesn't cover yet
@@ -3526,9 +3734,8 @@ The idea: add a test project with xUnit and FluentAssertions, paste in the start
    - delete the template's `UnitTest1.cs`
 
    **Note:** `FluentAssertions` 8+ requires a paid license for commercial use above a revenue threshold; it stays free for individual developers, students, non-profits, and open source, which covers this course. Check the current terms before reusing this pattern in a paid company project.
-2. **Make the internal constructor visible to the tests** without making it `public`. Add one file:
 
-   **Note:** `PurchaseOrderItem`'s constructor is `internal`: only code inside the `Acme.OOProgramming` assembly can call it directly, and a test project is a separate assembly. Making it `public` instead would let any caller construct one, defeating the whole point of Feature 3's encapsulation decision.
+2. **Make the internal constructor visible to the tests** without making it `public`. Add one file:
 
    <details>
    <summary>AssemblyInfo.cs (in Acme.OOProgramming, not Acme.OOProgramming.Tests)</summary>
@@ -3540,10 +3747,13 @@ The idea: add a test project with xUnit and FluentAssertions, paste in the start
    ```
    </details>
 
+   **Note:** `PurchaseOrderItem`'s constructor is `internal`: only code inside the `Acme.OOProgramming` assembly can call it directly, and a test project is a separate assembly. Making it `public` instead would let any caller construct one, defeating the whole point of Feature 3's encapsulation decision.
+
    ```
    git add .
    git commit -m "chore(tests): allow test assembly to access internal members."
    ```
+
 3. **Create each test file below under `Acme.OOProgramming.Tests`,** mirroring the production namespace it tests. Right-click the matching folder (create it the same way as any other folder if it doesn't exist yet) → `Add` → `Class` → paste the whole file over the generated skeleton.
 
    <details>
@@ -4121,6 +4331,14 @@ The idea: add a test project with xUnit and FluentAssertions, paste in the start
        }
 
        [Fact]
+       public void Constructor_WithDefaultSupplierId_ThrowsArgumentException()
+       {
+           var act = () => new Supplier(default(SupplierId), "Supplier Inc.", _address);
+
+           act.Should().Throw<ArgumentException>();
+       }
+
+       [Fact]
        public void Constructor_WithDefaultAddress_ThrowsArgumentException()
        {
            var act = () => new Supplier(new SupplierId("SUP001"), "Supplier Inc.", default);
@@ -4688,6 +4906,7 @@ The idea: add a test project with xUnit and FluentAssertions, paste in the start
    ```
    dotnet test
    ```
+
 5. **Commit it, straight on `develop`.**
    ```
    git add .
@@ -4696,6 +4915,7 @@ The idea: add a test project with xUnit and FluentAssertions, paste in the start
    ```
 
    **Note:** no user story behind this, so no Git Flow feature branch, same as the class diagram in Project Setup.
+
 6. **Add the `Test Suite` column to the Requirements Traceability Matrix.** Go back to the matrix in `## Document the Project` above and add it now that real tests exist: one cell per row, linking to the test class (or specific method) that verifies that user story.
 
    <details>
@@ -4709,7 +4929,7 @@ The idea: add a test project with xUnit and FluentAssertions, paste in the start
    | **US003** | Add Items to a Purchase Order | Procurement Context | [`PurchaseOrder`](../Acme.OOProgramming/Procurement/Domain/Model/Aggregates/PurchaseOrder.cs), [`PurchaseOrderItem`](../Acme.OOProgramming/Procurement/Domain/Model/Aggregates/PurchaseOrderItem.cs) | `AddItem(productId, quantity, unitPriceAmount)` | [`PurchaseOrderTests.AddItem_WithValidArguments_AddsItemToOrder`](../Acme.OOProgramming.Tests/Procurement/Domain/Model/Aggregates/PurchaseOrderTests.cs) |
    | **US004** | Calculate Purchase Order Item Subtotal | Procurement Context | [`PurchaseOrderItem`](../Acme.OOProgramming/Procurement/Domain/Model/Aggregates/PurchaseOrderItem.cs) | `CalculateItemTotal()` | [`PurchaseOrderItemTests.CalculateItemTotal_ReturnsQuantityMultipliedByUnitPrice`](../Acme.OOProgramming.Tests/Procurement/Domain/Model/Aggregates/PurchaseOrderItemTests.cs) |
    | **US005** | Calculate Purchase Order Total | Procurement Context | [`PurchaseOrder`](../Acme.OOProgramming/Procurement/Domain/Model/Aggregates/PurchaseOrder.cs) | `CalculateTotal()` | [`PurchaseOrderTests.CalculateTotal_WithMultipleItems_CalculatesAccurateTotal`](../Acme.OOProgramming.Tests/Procurement/Domain/Model/Aggregates/PurchaseOrderTests.cs) |
-   | **US006** | Merge Duplicate Items in a Purchase Order | Procurement Context | [`PurchaseOrder`](../Acme.OOProgramming/Procurement/Domain/Model/Aggregates/PurchaseOrder.cs), [`PurchaseOrderItem`](../Acme.OOProgramming/Procurement/Domain/Model/Aggregates/PurchaseOrderItem.cs) | `AddItem(productId, quantity, unitPriceAmount)` (merge branch) | [`PurchaseOrderTests`](../Acme.OOProgramming.Tests/Procurement/Domain/Model/Aggregates/PurchaseOrderTests.cs): `AddItem_WithDuplicateProductAndMatchingPrice_MergesQuantity`, `AddItem_WithDuplicateProductAndConflictingPrice_ThrowsInvalidOperationException`, `AddItem_WithDifferentProduct_CreatesSeparateLine` |
+   | **US006** | Merge Duplicate Items in a Purchase Order | Procurement Context | [`PurchaseOrder`](../Acme.OOProgramming/Procurement/Domain/Model/Aggregates/PurchaseOrder.cs), [`PurchaseOrderItem`](../Acme.OOProgramming/Procurement/Domain/Model/Aggregates/PurchaseOrderItem.cs) | `AddItem(productId, quantity, unitPriceAmount)` (merge-or-reject branch) | [`PurchaseOrderTests`](../Acme.OOProgramming.Tests/Procurement/Domain/Model/Aggregates/PurchaseOrderTests.cs): `AddItem_WithDuplicateProductAndMatchingPrice_MergesQuantity`, `AddItem_WithDuplicateProductAndConflictingPrice_ThrowsInvalidOperationException`, `AddItem_WithDifferentProduct_CreatesSeparateLine` |
    ```
    </details>
 
@@ -4718,26 +4938,26 @@ The idea: add a test project with xUnit and FluentAssertions, paste in the start
    git commit -m "docs(user-stories): add test suite column to the traceability matrix."
    git push
    ```
-7. **Ship `1.1.1`,** one more time through the release cycle. `develop` is ahead of `main` again, and there's no more work planned after this.
-   - `Release Start` → `1.1.1`
-   - drop the `-preview` suffix in `Acme.OOProgramming.csproj` (`1.1.1-preview` → `1.1.1`), commit `chore(release): bump version to 1.1.1.`
-   - add a `## 1.1.1` entry to `CHANGELOG.md` above the existing `## 1.1.0` one, and commit it too
-   - `Release Publish`, then `Release Finish`
 
-   **Note:** `1.1.1` is another patch bump, still no new capability, just tests and documentation.
+7. **Ship `v1.1.1`,** one more time through the release cycle. `develop` is ahead of `main` again, and there's no more work planned after this.
+   - `Release Start` → `v1.1.1` (branch `release/v1.1.1`)
+   - drop the `-preview` suffix in `Acme.OOProgramming.csproj` (`1.1.1-preview` → `1.1.1`), commit `chore(release): bump version to 1.1.1.`
+   - add a `## [1.1.1] - <date>` section to `CHANGELOG.md`, directly under the intro block and above `## [1.1.0]`, and commit it too
+   - `Release Publish`, then `Release Finish`
 
    <details>
    <summary>CHANGELOG.md (addition)</summary>
 
    ```markdown
-   ## 1.1.1
+   ## [1.1.1] - 2026-08-30
 
-   - Add unit test suite covering US001 through US006 and the presentation layer
-   - Complete the requirements traceability matrix with test coverage
+   ### Added
+   - Automated unit test suite (xUnit) covering domain aggregates, value objects, and presentation extensions across the `Shared`, `SupplyChain`, and `Procurement` bounded contexts.
+   - Test suite column in the requirements traceability matrix (`docs/user-stories.md`).
    ```
    </details>
 
-   Publish the GitHub Release the same way as every release so far: **Releases** → **Draft a new release** → pick `1.1.1`, title `1.1.1`, description below, **Publish release**.
+   Publish the GitHub Release the same way as every release so far: **Releases** → **Draft a new release** → pick the tag `v1.1.1`, title `Version 1.1.1`, description below, **Publish release**.
 
    <details>
    <summary>Release notes (1.1.1)</summary>
@@ -4752,6 +4972,9 @@ The idea: add a test project with xUnit and FluentAssertions, paste in the start
    - All tests pass against the full domain model (`dotnet test`).
    ```
    </details>
+
+   **Note:** `1.1.1` is another patch bump, still no new capability, just tests and documentation.
+
 8. **From here, it's on you.** Add a test for a scenario not covered yet, break a validation rule on purpose and confirm the test catches it, or look up something in the xUnit or FluentAssertions docs this suite doesn't use yet.
 
 ## Appendix
@@ -4762,20 +4985,45 @@ Reference notes for situations that come up now and then. Skip past this on a no
 
 Once you've pushed your work it's on GitHub, so you can carry on from any machine.
 
-1. Sign in and clone:
-   ```
-   gh auth login
-   gh repo clone <org>/oop-sample
-   cd oop-sample
-   ```
-2. If you were partway through a feature, switch to its branch and pull the latest:
-   ```
-   git checkout feature/<name>
-   git pull
-   ```
-3. Open the folder in Rider (`File` → `Open`, pick `oop-sample`). It reads the solution from the `.sln` on its own.
-4. Reinstall the plugins. They belong to the IDE, not the repo, so a fresh machine won't have them: the `plantuml4idea` plugin (Project Setup step 4) and Git Flow Helper (Project Setup step 8).
-5. Run Git Flow `Init` again from the widget (Project Setup step 9). The Git Flow settings live in the repo's local git config, which a clone doesn't copy. `Init` sees that `main` and `develop` already exist, so it doesn't recreate anything; it just registers the branch names on this machine. Accept the defaults. When Rider prompts to log in, run `gh auth token`, choose `Log In with Token`, and paste; if no prompt appears, add the account first from `Settings` → `Version Control` → `GitHub` → `+` → `Log In with Token...`.
+1. **Sign in, then clone.**
+   - **Sign in** once, so both git and the IDE can reach the private repo:
+     ```
+     gh auth login
+     ```
+     This also registers `gh` as git's credential helper for `github.com`, so neither the terminal nor Rider asks again.
+   - **Clone in the terminal:** `cd` into the folder where you keep your projects, then (`<org>` is your organization's name, no angle brackets, same as when you first pushed):
+     ```
+     gh repo clone <org>/oop-sample
+     ```
+     Open the `oop-sample` folder in Rider afterward (`File` → `Open`); it picks up the solution from the `.sln` on its own.
+   - **Or clone from the IDE:** on the JetBrains Welcome screen (close any open solution first), click `Clone Repository`, paste `https://github.com/<org>/oop-sample.git`, pick a target folder, and click `Clone`. The solution opens when the clone finishes.
+
+2. **Reinstate Git Flow.**
+   - Install `plantuml4idea` (Project Setup step 4) and Git Flow Helper (Project Setup step 8) if this machine doesn't already have them. Plugins live in the IDE, not the repo.
+   - Check out `develop` before anything else. A fresh clone only has `main` as a local branch; this turns `develop` into a real local branch tracking `origin/develop`. Do it before `Init`, so Git Flow Helper registers against the existing `develop` instead of creating a new one off `main`. Either way:
+     - **Terminal:**
+       ```
+       git checkout develop
+       ```
+     - **From the branch widget:** click the widget in the status bar (bottom-right), find `origin/develop` under **Remote Branches**, and pick `Checkout`.
+   - Register your GitHub account in the IDE, same as Project Setup step 9: get your token with
+     ```
+     gh auth token
+     ```
+     then in `Settings` → `Version Control` → `GitHub`, remove any account already listed (`−`), then `+` → `Log In with Token...` → paste the token → `Add Account`.
+   - Run Git Flow `Init` from the widget (Project Setup step 9). The Git Flow settings live in the repo's local git config, which a clone doesn't copy; `Init` re-registers the branch names on this machine. Accept the defaults. If a login popup appears during the push, click `Log In with Token` and paste the same token.
+
+3. **Get onto your feature branch**, only if you stopped partway through a feature. Checking out `develop` above didn't bring the feature branch; get it now:
+   - **Terminal:**
+     ```
+     git checkout feature/<name>
+     git pull
+     ```
+   - **From the branch widget:** click the widget in the status bar (bottom-right), find `origin/feature/<name>` under **Remote Branches**, and pick `Checkout` from the actions that appear.
+
+   Either way, checking out a branch with no local copy creates it from `origin/feature/<name>` and starts tracking it.
+
+   **Note:** seeing only `main` locally right after a clone is normal, not a sync problem. Every remote branch was still downloaded; the `develop` and feature checkouts are what turn them into local branches.
 
 ### Signing in to GitHub with a token
 
@@ -4812,8 +5060,52 @@ Commits stay on your machine until you push them. If you have to stop before a f
 
 `Feature Finish` with `Integrate Immediately` merges your branch straight into `develop`. A real team does this through a pull request instead: open one from your feature branch into `develop` (`Feature Publish` already put the branch on GitHub), wait for the build and a reviewer, then merge it. The git steps are the same; `Integrate Immediately` just skips the review, which you can't do on your own anyway.
 
+### Removing a stray .git folder
+
+If `git init` ran from a subfolder instead of the solution root, a `.git` folder is now sitting in that subfolder. Delete it, then re-run `git init` from the solution root.
+
+`.git` is a hidden folder, so reveal it first:
+
+- **macOS (Finder):** press `Cmd+Shift+.`
+- **Windows (File Explorer):** turn on `View` → `Show` → `Hidden items`
+
+Then delete the `.git` folder like any other folder.
+
+Or, from a terminal opened in that subfolder, run the line for your shell:
+
+```
+rm -rf .git                        # macOS / Linux / Git Bash
+Remove-Item -Recurse -Force .git   # Windows PowerShell
+rmdir /s /q .git                   # Windows Command Prompt
+```
+
+### Creating the repo without the GitHub CLI
+
+No `gh`? Do the whole thing through the GitHub website plus plain `git`.
+
+1. Authenticate git first, since `gh auth login` isn't available: follow [Signing in to GitHub with a token](#signing-in-to-github-with-a-token).
+2. On GitHub, create an empty **private** repo named `oop-sample` in your organization, with no README, license, or `.gitignore` (this repo already has all three).
+3. On the repo's "Quick setup" page, copy the **HTTPS** clone URL, the one that ends in `.git` (e.g. `https://github.com/<org>/oop-sample.git`, where `<org>` is your organization's name), not the address-bar URL.
+4. From the solution root, add the remote and push:
+   ```
+   git remote add origin https://github.com/<org>/oop-sample.git
+   git push -u origin main
+   ```
+   `-u` (short for `--set-upstream`) links your local `main` to `origin`'s `main`, so later `git push` / `git pull` need no arguments.
+5. On the repo page, click the gear next to **About** and paste the same description text the `gh repo create` command in Project Setup uses.
+
 ### If the class diagram doesn't render
 
-The `plantuml4idea` plugin needs Graphviz for some diagrams. If `docs/class-diagram.puml` shows an error instead of a rendered diagram:
-- macOS: `brew install graphviz`, then restart the IDE
-- Windows: install it from [graphviz.org](https://graphviz.org/download/) and restart
+The `plantuml4idea` plugin needs Graphviz for some diagrams. If `docs/class-diagram.puml` shows an error instead of a rendered diagram, install Graphviz and restart the IDE.
+
+On macOS:
+
+```
+brew install graphviz
+```
+
+On Windows, download and run the installer from [graphviz.org](https://graphviz.org/download/).
+
+### Free JetBrains license for students
+
+Rider, like every other JetBrains IDE, is free while you're a student. Apply with your university email at [jetbrains.com/shop/eform/v2/students](https://www.jetbrains.com/shop/eform/v2/students). The license covers the whole JetBrains suite and renews each year you're enrolled.
