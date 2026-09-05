@@ -7,6 +7,7 @@ Bookmark this repo once. A new guide lands here as each project is covered, in c
 ## Guides
 
 - [OOP Sample](oop-sample-guide.md): Object-Oriented Programming and Domain-Driven Design in C#, across two bounded contexts (SupplyChain, Procurement) and a shared kernel.
+- [Hello ASP.NET Developer](hello-asp-net-developer-guide.md): Object-Oriented Programming and Domain-Driven Design in an ASP.NET Core Minimal API, a single bounded context (`Profiles`) behind a personalized-or-anonymous greeting endpoint.
 
 ## How to use a guide
 

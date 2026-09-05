@@ -2418,60 +2418,116 @@
    <summary>README.md</summary>
 
    ````markdown
-   # OOP Sample
+   # OOP Sample (`oop-sample`)
 
    [![.NET](https://img.shields.io/badge/.NET-10-purple.svg)](https://dotnet.microsoft.com/)
    [![C#](https://img.shields.io/badge/C%23-14-blue.svg)](https://learn.microsoft.com/dotnet/csharp/)
    [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md)
 
-   ## Overview
+   `oop-sample` is a sample C# console application demonstrating **Object-Oriented Programming (OOP)** and **Domain-Driven Design (DDD)** principles across two bounded contexts, SupplyChain and Procurement, and a shared kernel.
 
-   This project is a sample C# console application illustrating Object-Oriented Programming (OOP) and Domain-Driven Design (DDD) principles in a supply chain domain. It features two bounded contexts: SupplyChain (for supplier management) and Procurement (for purchase order management).
+   **Author**: Web Applications Developer Team  
+   **License**: See [LICENSE.md](LICENSE.md) for details.
 
-   ### Bounded Contexts & Domain Model
+   ---
 
-   **`Acme.OOProgramming.SupplyChain`** (Supply Chain Management)
-   - `Supplier` (Aggregate Root): a vendor with identity and location.
-   - `SupplierId` (Value Object): strongly-typed identifier, owned by SupplyChain.
+   ## Technical Stack & Modern Features
 
-   **`Acme.OOProgramming.Procurement`** (Procurement)
-   - `PurchaseOrder` (Aggregate Root): purchase order invariants, currency consistency, and item lifecycle; `OrderDate` is a `DateOnly`, a calendar date with no time-of-day or time zone component.
-   - `PurchaseOrderItem` (Entity): managed exclusively by `PurchaseOrder`, its constructor is `internal`.
-   - `ProductId` (Value Object): time-ordered identifier generated with UUIDv7 (`Guid.CreateVersion7()`).
-   - `SupplierId` (Value Object): Procurement's own copy of the concept, deliberately decoupled from SupplyChain's.
-   - `Presentation.ConsoleFormatting` (`order.Summary`): console-only formatting kept out of the aggregate itself, via a C# 14 extension member.
+   - **Runtime & Framework**: .NET 10.0 (C# 14.0)
+   - **C# 14 & .NET 10 Features**:
+     - **Extension Members (`extension(T)`)**: presentation formatting (`order.Summary`, `money.Display`) decoupled from the domain models.
+     - **`field` Keyword**: property validation and null-safe fallback without an explicit private backing field.
+     - **Struct Parameterless Constructor Safety**: every `readonly record struct` value object throws `InvalidOperationException` from `new X()`, and falls back safely on `default`.
+     - **UUIDv7 Identifiers**: time-ordered identifiers via `Guid.CreateVersion7()` (`ProductId`).
+     - **`DateOnly` Temporal Modeling**: a purchase order's date has no time-of-day or time zone.
+     - **Modern Throw Helpers**: `ArgumentException.ThrowIfNullOrWhiteSpace` and friends, not hand-written null checks.
 
-   **`Acme.OOProgramming.Shared`** (Shared Kernel)
-   - `Money` (Value Object): `decimal` amount + a validated `Currency`, `readonly record struct`.
-   - `Currency` (Value Object): validated 3-letter ISO code, `readonly record struct`.
-   - `Address` (Value Object): international postal address, `readonly record struct`.
-   - `Presentation.ConsoleFormatting` (`money.Display`): console-only formatting kept out of `Money` itself, via a C# 14 extension member.
+   ---
 
-   ### Key Domain Rules
+   ## Solution Structure
+
+   ```text
+   oop-sample/
+   ├── Acme.OOProgramming/                     # Main domain & console application project
+   │   ├── Procurement/                        # Procurement Bounded Context
+   │   │   ├── Domain/Model/
+   │   │   │   ├── Aggregates/                 # PurchaseOrder (AR), PurchaseOrderItem (Entity)
+   │   │   │   └── ValueObjects/               # ProductId (UUIDv7), SupplierId
+   │   │   └── Presentation/                   # ConsoleFormatting (C# 14 extension members)
+   │   ├── SupplyChain/                        # Supply Chain Bounded Context
+   │   │   └── Domain/Model/
+   │   │       ├── Aggregates/                 # Supplier (AR)
+   │   │       └── ValueObjects/               # SupplierId
+   │   ├── Shared/                             # Shared Kernel
+   │   │   ├── Domain/Model/ValueObjects/      # Currency (ISO 4217), Money, Address
+   │   │   └── Presentation/                   # ConsoleFormatting (C# 14 extension members)
+   │   └── Program.cs                          # Application entry point & demo scenarios
+   ├── docs/                                   # Architecture & requirements documentation
+   │   ├── class-diagram.puml                  # PlantUML domain model class diagram
+   │   └── user-stories.md                     # User stories (US001-US005) & acceptance criteria
+   ├── CHANGELOG.md                            # Project release notes & version history
+   ├── LICENSE.md                              # Project license
+   └── README.md                               # Project overview & guide
+   ```
+
+   ---
+
+   ## Bounded Contexts & Domain Model
+
+   ### 1. `Acme.OOProgramming.SupplyChain` (Supply Chain Management)
+   - **`Supplier`** (*Aggregate Root*): a vendor with identity and location.
+   - **`SupplierId`** (*Value Object*): strongly-typed identifier, owned by SupplyChain.
+
+   ### 2. `Acme.OOProgramming.Procurement` (Procurement)
+   - **`PurchaseOrder`** (*Aggregate Root*): purchase order invariants, currency consistency, and item lifecycle; `OrderDate` is a `DateOnly`, a calendar date with no time-of-day or time zone component.
+   - **`PurchaseOrderItem`** (*Entity*): managed exclusively by `PurchaseOrder`, its constructor is `internal`.
+   - **`ProductId`** (*Value Object*): time-ordered identifier generated with UUIDv7 (`Guid.CreateVersion7()`).
+   - **`SupplierId`** (*Value Object*): Procurement's own copy of the concept, deliberately decoupled from SupplyChain's.
+   - **`Presentation.ConsoleFormatting`** (`order.Summary`): console-only formatting kept out of the aggregate itself, via a C# 14 extension member.
+
+   ### 3. `Acme.OOProgramming.Shared` (Shared Kernel)
+   - **`Money`** (*Value Object*): `decimal` amount + a validated `Currency`, `readonly record struct`.
+   - **`Currency`** (*Value Object*): validated 3-letter ISO code, `readonly record struct`.
+   - **`Address`** (*Value Object*): international postal address, `readonly record struct`.
+   - **`Presentation.ConsoleFormatting`** (`money.Display`): console-only formatting kept out of `Money` itself, via a C# 14 extension member.
+
+   ---
+
+   ## Key Domain Rules & Design Invariants
+
    - **Aggregate invariant encapsulation**: `PurchaseOrder` strictly controls the creation and lifecycle of `PurchaseOrderItem`.
    - **Single-currency rule**: every item in a `PurchaseOrder` is priced in the order's own currency.
    - **Currency-safe arithmetic**: `Money` rejects cross-currency operations and negative amounts.
    - **Cross-context references**: each bounded context owns its own copy of any identifier it references from another context, rather than sharing one type.
    - **Presentation decoupling**: display formatting (`order.Summary`, `money.Display`) lives in dedicated `*.Presentation` namespaces, never on the domain models themselves.
 
-   ## Class Diagram
-   See [`docs/class-diagram.puml`](docs/class-diagram.puml). Open it with a PlantUML plugin/viewer to render it.
+   ---
 
-   ## Prerequisites
-   - .NET 10 SDK
+   ## Project Documentation
 
-   ## Build and Run
+   | Document | Description |
+   | :--- | :--- |
+   | [**User Stories**](docs/user-stories.md) | User stories (US001-US005) and acceptance criteria. |
+   | [**Class Diagram**](docs/class-diagram.puml) | PlantUML class diagram of bounded contexts, aggregates, entities, and value objects. |
+   | [**Changelog**](CHANGELOG.md) | Version history and release notes. |
+   | [**License**](LICENSE.md) | Project licensing information (MIT). |
+
+   ---
+
+   ## Getting Started
+
+   ### Prerequisites
+   - [.NET 10 SDK](https://dotnet.microsoft.com/download) (or later)
+
+   ### Build the Solution
    ```bash
    dotnet build
-   dotnet run --project Acme.OOProgramming
    ```
 
-   ## Docs
-   - [`docs/user-stories.md`](docs/user-stories.md): acceptance criteria.
-   - [`CHANGELOG.md`](CHANGELOG.md): version history.
-
-   ## License
-   MIT, see [`LICENSE.md`](LICENSE.md).
+   ### Run the Application
+   ```bash
+   dotnet run --project Acme.OOProgramming
+   ```
    ````
    </details>
 
@@ -3596,42 +3652,90 @@
    git push
    ```
 
-11. **Update `README.md`** now that the ADRs exist. Replace the file from `## Prepare the First Release` with the version below: the domain model is unchanged since `1.0.0`, this adds `see ADR-NNNN` links throughout and a `docs/adrs.md` entry under `## Docs`.
+11. **Update `README.md`** now that the ADRs exist. Replace the file from `## Prepare the First Release` with the version below: the domain model is unchanged since `1.0.0`, this adds `see ADR-NNNN` links throughout, the two new US006 rules, and a `docs/adrs.md` row in `## Project Documentation`.
 
    <details>
    <summary>README.md</summary>
 
    ````markdown
-   # OOP Sample
+   # OOP Sample (`oop-sample`)
 
    [![.NET](https://img.shields.io/badge/.NET-10-purple.svg)](https://dotnet.microsoft.com/)
    [![C#](https://img.shields.io/badge/C%23-14-blue.svg)](https://learn.microsoft.com/dotnet/csharp/)
    [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md)
 
-   ## Overview
+   `oop-sample` is a sample C# console application demonstrating **Object-Oriented Programming (OOP)** and **Domain-Driven Design (DDD)** principles across two bounded contexts, SupplyChain and Procurement, and a shared kernel.
 
-   This project is a sample C# console application illustrating Object-Oriented Programming (OOP) and Domain-Driven Design (DDD) principles in a supply chain domain. It features two bounded contexts: SupplyChain (for supplier management) and Procurement (for purchase order management).
+   **Author**: Web Applications Developer Team  
+   **License**: See [LICENSE.md](LICENSE.md) for details.
 
-   ### Bounded Contexts & Domain Model
+   ---
 
-   **`Acme.OOProgramming.SupplyChain`** (Supply Chain Management)
-   - `Supplier` (Aggregate Root): a vendor with identity and location.
-   - `SupplierId` (Value Object): strongly-typed identifier, owned by SupplyChain.
+   ## Technical Stack & Modern Features
 
-   **`Acme.OOProgramming.Procurement`** (Procurement)
-   - `PurchaseOrder` (Aggregate Root): purchase order invariants, currency consistency, and item lifecycle; `OrderDate` is a `DateOnly`, a calendar date with no time-of-day or time zone component (see [ADR-0009](docs/adrs.md#adr-0009-dateonly-for-purchase-order-dates)).
-   - `PurchaseOrderItem` (Entity): managed exclusively by `PurchaseOrder`, its constructor is `internal`.
-   - `ProductId` (Value Object): time-ordered identifier generated with UUIDv7 (`Guid.CreateVersion7()`).
-   - `SupplierId` (Value Object): Procurement's own copy of the concept, deliberately decoupled from SupplyChain's (see [ADR-0002](docs/adrs.md#adr-0002-each-bounded-context-owns-its-own-reference-types)).
-   - `Presentation.ConsoleFormatting` (`order.Summary`): console-only formatting kept out of the aggregate itself, via a C# 14 extension member (see [ADR-0010](docs/adrs.md#adr-0010-presentation-formatting-via-c-14-extension-members)).
+   - **Runtime & Framework**: .NET 10.0 (C# 14.0)
+   - **C# 14 & .NET 10 Features**:
+     - **Extension Members (`extension(T)`)**: presentation formatting (`order.Summary`, `money.Display`) decoupled from the domain models.
+     - **`field` Keyword**: property validation and null-safe fallback without an explicit private backing field.
+     - **Struct Parameterless Constructor Safety**: every `readonly record struct` value object throws `InvalidOperationException` from `new X()`, and falls back safely on `default`.
+     - **UUIDv7 Identifiers**: time-ordered identifiers via `Guid.CreateVersion7()` (`ProductId`).
+     - **`DateOnly` Temporal Modeling**: a purchase order's date has no time-of-day or time zone.
+     - **Modern Throw Helpers**: `ArgumentException.ThrowIfNullOrWhiteSpace` and friends, not hand-written null checks.
 
-   **`Acme.OOProgramming.Shared`** (Shared Kernel)
-   - `Money` (Value Object): `decimal` amount + validated `Currency`, `readonly record struct` for value semantics and zero heap allocation.
-   - `Currency` (Value Object): validated 3-letter ISO code, `readonly record struct` (see [ADR-0006](docs/adrs.md#adr-0006-currency-as-a-dedicated-value-object)).
-   - `Address` (Value Object): international postal address, `readonly record struct`.
-   - `Presentation.ConsoleFormatting` (`money.Display`): console-only formatting kept out of `Money` itself, via a C# 14 extension member (see [ADR-0010](docs/adrs.md#adr-0010-presentation-formatting-via-c-14-extension-members)).
+   ---
 
-   ### Key Domain Rules
+   ## Solution Structure
+
+   ```text
+   oop-sample/
+   ├── Acme.OOProgramming/                     # Main domain & console application project
+   │   ├── Procurement/                        # Procurement Bounded Context
+   │   │   ├── Domain/Model/
+   │   │   │   ├── Aggregates/                 # PurchaseOrder (AR), PurchaseOrderItem (Entity)
+   │   │   │   └── ValueObjects/               # ProductId (UUIDv7), SupplierId
+   │   │   └── Presentation/                   # ConsoleFormatting (C# 14 extension members)
+   │   ├── SupplyChain/                        # Supply Chain Bounded Context
+   │   │   └── Domain/Model/
+   │   │       ├── Aggregates/                 # Supplier (AR)
+   │   │       └── ValueObjects/               # SupplierId
+   │   ├── Shared/                             # Shared Kernel
+   │   │   ├── Domain/Model/ValueObjects/      # Currency (ISO 4217), Money, Address
+   │   │   └── Presentation/                   # ConsoleFormatting (C# 14 extension members)
+   │   └── Program.cs                          # Application entry point & demo scenarios
+   ├── docs/                                   # Architecture & requirements documentation
+   │   ├── adrs.md                             # Architecture Decision Records (ADR-0001 through ADR-0011)
+   │   ├── class-diagram.puml                  # PlantUML domain model class diagram
+   │   └── user-stories.md                     # User stories (US001-US006) & Requirements Traceability Matrix
+   ├── CHANGELOG.md                            # Project release notes & version history
+   ├── LICENSE.md                              # Project license
+   └── README.md                               # Project overview & guide
+   ```
+
+   ---
+
+   ## Bounded Contexts & Domain Model
+
+   ### 1. `Acme.OOProgramming.SupplyChain` (Supply Chain Management)
+   - **`Supplier`** (*Aggregate Root*): a vendor with identity and location.
+   - **`SupplierId`** (*Value Object*): strongly-typed identifier, owned by SupplyChain.
+
+   ### 2. `Acme.OOProgramming.Procurement` (Procurement)
+   - **`PurchaseOrder`** (*Aggregate Root*): purchase order invariants, currency consistency, and item lifecycle; `OrderDate` is a `DateOnly`, a calendar date with no time-of-day or time zone component (see [ADR-0009](docs/adrs.md#adr-0009-dateonly-for-purchase-order-dates)).
+   - **`PurchaseOrderItem`** (*Entity*): managed exclusively by `PurchaseOrder`, its constructor is `internal`.
+   - **`ProductId`** (*Value Object*): time-ordered identifier generated with UUIDv7 (`Guid.CreateVersion7()`).
+   - **`SupplierId`** (*Value Object*): Procurement's own copy of the concept, deliberately decoupled from SupplyChain's (see [ADR-0002](docs/adrs.md#adr-0002-each-bounded-context-owns-its-own-reference-types)).
+   - **`Presentation.ConsoleFormatting`** (`order.Summary`): console-only formatting kept out of the aggregate itself, via a C# 14 extension member (see [ADR-0010](docs/adrs.md#adr-0010-presentation-formatting-via-c-14-extension-members)).
+
+   ### 3. `Acme.OOProgramming.Shared` (Shared Kernel)
+   - **`Money`** (*Value Object*): `decimal` amount + validated `Currency`, `readonly record struct` for value semantics and zero heap allocation.
+   - **`Currency`** (*Value Object*): validated 3-letter ISO code, `readonly record struct` (see [ADR-0006](docs/adrs.md#adr-0006-currency-as-a-dedicated-value-object)).
+   - **`Address`** (*Value Object*): international postal address, `readonly record struct`.
+   - **`Presentation.ConsoleFormatting`** (`money.Display`): console-only formatting kept out of `Money` itself, via a C# 14 extension member (see [ADR-0010](docs/adrs.md#adr-0010-presentation-formatting-via-c-14-extension-members)).
+
+   ---
+
+   ## Key Domain Rules & Design Invariants
+
    - **Aggregate invariant encapsulation**: `PurchaseOrder` strictly controls the creation and lifecycle of `PurchaseOrderItem`.
    - **Single-currency rule**: every item in a `PurchaseOrder` is priced in the order's own currency.
    - **Currency-safe arithmetic**: `Money` rejects cross-currency operations and negative amounts; its `+`/`*` operators call the same validated methods underneath.
@@ -3640,25 +3744,34 @@
    - **Cross-context references**: each bounded context owns its own copy of any identifier it references from another context, rather than sharing one type.
    - **Presentation decoupling**: display formatting (`order.Summary`, `money.Display`) lives in dedicated `*.Presentation` namespaces, never on the domain models themselves (see [ADR-0010](docs/adrs.md#adr-0010-presentation-formatting-via-c-14-extension-members)).
 
-   ## Class Diagram
-   See [`docs/class-diagram.puml`](docs/class-diagram.puml). Open it with a PlantUML plugin/viewer to render it.
+   ---
 
-   ## Prerequisites
-   - .NET 10 SDK
+   ## Project Documentation
 
-   ## Build and Run
+   | Document | Description |
+   | :--- | :--- |
+   | [**Architecture Decision Records (ADRs)**](docs/adrs.md) | Eleven architectural decisions (ADR-0001 through ADR-0011). |
+   | [**User Stories & RTM**](docs/user-stories.md) | User stories (US001-US006) and Requirements Traceability Matrix. |
+   | [**Class Diagram**](docs/class-diagram.puml) | PlantUML class diagram of bounded contexts, aggregates, entities, and value objects. |
+   | [**Changelog**](CHANGELOG.md) | Version history and release notes. |
+   | [**License**](LICENSE.md) | Project licensing information (MIT). |
+
+   ---
+
+   ## Getting Started
+
+   ### Prerequisites
+   - [.NET 10 SDK](https://dotnet.microsoft.com/download) (or later)
+
+   ### Build the Solution
    ```bash
    dotnet build
-   dotnet run --project Acme.OOProgramming
    ```
 
-   ## Docs
-   - [`docs/user-stories.md`](docs/user-stories.md): acceptance criteria.
-   - [`docs/adrs.md`](docs/adrs.md): architecture decision records.
-   - [`CHANGELOG.md`](CHANGELOG.md): version history.
-
-   ## License
-   MIT, see [`LICENSE.md`](LICENSE.md).
+   ### Run the Application
+   ```bash
+   dotnet run --project Acme.OOProgramming
+   ```
    ````
    </details>
 
@@ -4939,7 +5052,147 @@ The idea: add a test project with xUnit and FluentAssertions, paste in the start
    git push
    ```
 
-7. **Ship `v1.1.1`,** one more time through the release cycle. `develop` is ahead of `main` again, and there's no more work planned after this.
+7. **Update `README.md`** now that the test suite exists. Replace the file from `## Document the Project` with the version below: this adds the `Tests` badge, the `Testing Framework` bullet, the `Acme.OOProgramming.Tests` entry in `## Solution Structure`, and a `## Run the Automated Test Suite` step under `## Getting Started`.
+
+   <details>
+   <summary>README.md</summary>
+
+   ````markdown
+   # OOP Sample (`oop-sample`)
+
+   [![.NET](https://img.shields.io/badge/.NET-10-purple.svg)](https://dotnet.microsoft.com/)
+   [![C#](https://img.shields.io/badge/C%23-14-blue.svg)](https://learn.microsoft.com/dotnet/csharp/)
+   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md)
+   [![Tests](https://img.shields.io/badge/Tests-passing-brightgreen.svg)](Acme.OOProgramming.Tests)
+
+   `oop-sample` is a sample C# console application demonstrating **Object-Oriented Programming (OOP)** and **Domain-Driven Design (DDD)** principles across two bounded contexts, SupplyChain and Procurement, and a shared kernel.
+
+   **Author**: Web Applications Developer Team  
+   **License**: See [LICENSE.md](LICENSE.md) for details.
+
+   ---
+
+   ## Technical Stack & Modern Features
+
+   - **Runtime & Framework**: .NET 10.0 (C# 14.0)
+   - **Testing Framework**: xUnit with `Microsoft.NET.Test.Sdk`
+   - **C# 14 & .NET 10 Features**:
+     - **Extension Members (`extension(T)`)**: presentation formatting (`order.Summary`, `money.Display`) decoupled from the domain models.
+     - **`field` Keyword**: property validation and null-safe fallback without an explicit private backing field.
+     - **Struct Parameterless Constructor Safety**: every `readonly record struct` value object throws `InvalidOperationException` from `new X()`, and falls back safely on `default`.
+     - **UUIDv7 Identifiers**: time-ordered identifiers via `Guid.CreateVersion7()` (`ProductId`).
+     - **`DateOnly` Temporal Modeling**: a purchase order's date has no time-of-day or time zone.
+     - **Modern Throw Helpers**: `ArgumentException.ThrowIfNullOrWhiteSpace` and friends, not hand-written null checks.
+
+   ---
+
+   ## Solution Structure
+
+   ```text
+   oop-sample/
+   ├── Acme.OOProgramming/                     # Main domain & console application project
+   │   ├── Procurement/                        # Procurement Bounded Context
+   │   │   ├── Domain/Model/
+   │   │   │   ├── Aggregates/                 # PurchaseOrder (AR), PurchaseOrderItem (Entity)
+   │   │   │   └── ValueObjects/               # ProductId (UUIDv7), SupplierId
+   │   │   └── Presentation/                   # ConsoleFormatting (C# 14 extension members)
+   │   ├── SupplyChain/                        # Supply Chain Bounded Context
+   │   │   └── Domain/Model/
+   │   │       ├── Aggregates/                 # Supplier (AR)
+   │   │       └── ValueObjects/               # SupplierId
+   │   ├── Shared/                             # Shared Kernel
+   │   │   ├── Domain/Model/ValueObjects/      # Currency (ISO 4217), Money, Address
+   │   │   └── Presentation/                   # ConsoleFormatting (C# 14 extension members)
+   │   └── Program.cs                          # Application entry point & demo scenarios
+   ├── Acme.OOProgramming.Tests/                # Automated xUnit test suite (131 tests)
+   │   ├── Procurement/                        # PurchaseOrder, PurchaseOrderItem, ProductId tests
+   │   ├── SupplyChain/                        # Supplier, SupplierId tests
+   │   └── Shared/                             # Currency, Money, Address, ConsoleFormatting tests
+   ├── docs/                                   # Architecture & requirements documentation
+   │   ├── adrs.md                             # Architecture Decision Records (ADR-0001 through ADR-0011)
+   │   ├── class-diagram.puml                  # PlantUML domain model class diagram
+   │   └── user-stories.md                     # User stories (US001-US006) & Requirements Traceability Matrix
+   ├── CHANGELOG.md                            # Project release notes & version history
+   ├── LICENSE.md                              # Project license
+   └── README.md                               # Project overview & guide
+   ```
+
+   ---
+
+   ## Bounded Contexts & Domain Model
+
+   ### 1. `Acme.OOProgramming.SupplyChain` (Supply Chain Management)
+   - **`Supplier`** (*Aggregate Root*): a vendor with identity and location.
+   - **`SupplierId`** (*Value Object*): strongly-typed identifier, owned by SupplyChain.
+
+   ### 2. `Acme.OOProgramming.Procurement` (Procurement)
+   - **`PurchaseOrder`** (*Aggregate Root*): purchase order invariants, currency consistency, and item lifecycle; `OrderDate` is a `DateOnly`, a calendar date with no time-of-day or time zone component (see [ADR-0009](docs/adrs.md#adr-0009-dateonly-for-purchase-order-dates)).
+   - **`PurchaseOrderItem`** (*Entity*): managed exclusively by `PurchaseOrder`, its constructor is `internal`.
+   - **`ProductId`** (*Value Object*): time-ordered identifier generated with UUIDv7 (`Guid.CreateVersion7()`).
+   - **`SupplierId`** (*Value Object*): Procurement's own copy of the concept, deliberately decoupled from SupplyChain's (see [ADR-0002](docs/adrs.md#adr-0002-each-bounded-context-owns-its-own-reference-types)).
+   - **`Presentation.ConsoleFormatting`** (`order.Summary`): console-only formatting kept out of the aggregate itself, via a C# 14 extension member (see [ADR-0010](docs/adrs.md#adr-0010-presentation-formatting-via-c-14-extension-members)).
+
+   ### 3. `Acme.OOProgramming.Shared` (Shared Kernel)
+   - **`Money`** (*Value Object*): `decimal` amount + validated `Currency`, `readonly record struct` for value semantics and zero heap allocation.
+   - **`Currency`** (*Value Object*): validated 3-letter ISO code, `readonly record struct` (see [ADR-0006](docs/adrs.md#adr-0006-currency-as-a-dedicated-value-object)).
+   - **`Address`** (*Value Object*): international postal address, `readonly record struct`.
+   - **`Presentation.ConsoleFormatting`** (`money.Display`): console-only formatting kept out of `Money` itself, via a C# 14 extension member (see [ADR-0010](docs/adrs.md#adr-0010-presentation-formatting-via-c-14-extension-members)).
+
+   ---
+
+   ## Key Domain Rules & Design Invariants
+
+   - **Aggregate invariant encapsulation**: `PurchaseOrder` strictly controls the creation and lifecycle of `PurchaseOrderItem`.
+   - **Single-currency rule**: every item in a `PurchaseOrder` is priced in the order's own currency.
+   - **Currency-safe arithmetic**: `Money` rejects cross-currency operations and negative amounts; its `+`/`*` operators call the same validated methods underneath.
+   - **Duplicate line item handling**: `PurchaseOrder.AddItem` merges quantities when an existing `ProductId` is re-added at the same unit price; re-adding it at a different price throws instead of silently picking one (see [ADR-0008](docs/adrs.md#adr-0008-additem-merges-a-duplicate-product-rejecting-a-conflicting-unit-price)).
+   - **Uniform value-type adoption**: `Money`, `Currency`, `Address`, `SupplierId`, and `ProductId` are all `readonly record struct`s, each `default`-guarded at every aggregate boundary that consumes one (see [ADR-0005](docs/adrs.md#adr-0005-value-objects-as-readonly-record-struct) and [ADR-0006](docs/adrs.md#adr-0006-currency-as-a-dedicated-value-object)).
+   - **Cross-context references**: each bounded context owns its own copy of any identifier it references from another context, rather than sharing one type.
+   - **Presentation decoupling**: display formatting (`order.Summary`, `money.Display`) lives in dedicated `*.Presentation` namespaces, never on the domain models themselves (see [ADR-0010](docs/adrs.md#adr-0010-presentation-formatting-via-c-14-extension-members)).
+
+   ---
+
+   ## Project Documentation
+
+   | Document | Description |
+   | :--- | :--- |
+   | [**Architecture Decision Records (ADRs)**](docs/adrs.md) | Eleven architectural decisions (ADR-0001 through ADR-0011). |
+   | [**User Stories & RTM**](docs/user-stories.md) | User stories (US001-US006) and Requirements Traceability Matrix, with a test-suite column. |
+   | [**Class Diagram**](docs/class-diagram.puml) | PlantUML class diagram of bounded contexts, aggregates, entities, and value objects. |
+   | [**Changelog**](CHANGELOG.md) | Version history and release notes. |
+   | [**License**](LICENSE.md) | Project licensing information (MIT). |
+
+   ---
+
+   ## Getting Started
+
+   ### Prerequisites
+   - [.NET 10 SDK](https://dotnet.microsoft.com/download) (or later)
+
+   ### Build the Solution
+   ```bash
+   dotnet build
+   ```
+
+   ### Run the Application
+   ```bash
+   dotnet run --project Acme.OOProgramming
+   ```
+
+   ### Run the Automated Test Suite
+   ```bash
+   dotnet test
+   ```
+   ````
+   </details>
+
+   ```
+   git add .
+   git commit -m "docs(readme): document the test suite."
+   git push
+   ```
+
+8. **Ship `v1.1.1`,** one more time through the release cycle. `develop` is ahead of `main` again, and there's no more work planned after this.
    - `Release Start` → `v1.1.1` (branch `release/v1.1.1`)
    - drop the `-preview` suffix in `Acme.OOProgramming.csproj` (`1.1.1-preview` → `1.1.1`), commit `chore(release): bump version to 1.1.1.`
    - add a `## [1.1.1] - <date>` section to `CHANGELOG.md`, directly under the intro block and above `## [1.1.0]`, and commit it too
@@ -4975,7 +5228,7 @@ The idea: add a test project with xUnit and FluentAssertions, paste in the start
 
    **Note:** `1.1.1` is another patch bump, still no new capability, just tests and documentation.
 
-8. **From here, it's on you.** Add a test for a scenario not covered yet, break a validation rule on purpose and confirm the test catches it, or look up something in the xUnit or FluentAssertions docs this suite doesn't use yet.
+9. **From here, it's on you.** Add a test for a scenario not covered yet, break a validation rule on purpose and confirm the test catches it, or look up something in the xUnit or FluentAssertions docs this suite doesn't use yet.
 
 ## Appendix
 
