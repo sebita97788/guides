@@ -620,7 +620,7 @@
    <summary>Acme.Hello.Platform.http (GET scenario)</summary>
 
    ```http
-   @HostAddress = http://localhost:5195
+   @HostAddress = http://localhost:<port>
 
    ### GET - Greeting count
    GET {{HostAddress}}/api/v1/greetings
@@ -628,7 +628,9 @@
    ```
    </details>
 
-   **Note:** the wizard generates `Acme.Hello.Platform.http` with the variable named `Acme.Hello.Platform_HostAddress`, after the project's own name. Rename it to `HostAddress` (both the `@HostAddress = ...` declaration and every `{{HostAddress}}` reference below it): a dot in a variable name breaks Rider's HTTP Client, `{{Acme.Hello.Platform_HostAddress}}` fails with "Environment is not selected. Cannot resolve variable", since the client tries to parse the dots as property access. Keep the port the wizard already put on that line, though: it picks a random local port per project, `5195` is what this guide's own project got, yours is almost certainly different (`5149`, `5233`, whatever). The same port caveat applies everywhere else this guide shows a `localhost` URL, including `README.md` and `Properties/launchSettings.json`.
+   **Note:** the wizard generates `Acme.Hello.Platform.http` with the variable named `Acme.Hello.Platform_HostAddress`, after the project's own name. Rename it to `HostAddress` (both the `@HostAddress = ...` declaration and every `{{HostAddress}}` reference below it): a dot in a variable name breaks Rider's HTTP Client, `{{Acme.Hello.Platform_HostAddress}}` fails with "Environment is not selected. Cannot resolve variable", since the client tries to parse the dots as property access.
+
+   **Note:** `<port>` on the `@HostAddress` line is a placeholder. The wizard picks a random local port per project and already wrote yours into the file, so use that one; open `Properties/launchSettings.json` to see it. Wherever else this guide shows a literal `localhost` port, it's this guide's own project's, not yours.
 
    ```
    git add .
@@ -1411,8 +1413,9 @@
    ```
    git add .
    git commit -m "docs: add changelog for 1.0.0."
-   git push
    ```
+
+   **Note:** don't push here. This commit rides to the remote with `Release Publish` in the next step, together with the version bump; it's also what gives `Release Finish` a real commit to merge into `develop`.
 
    **Note:** the `## [version] - date` line uses the date you finish the release, `YYYY-MM-DD`.
 
@@ -1426,8 +1429,26 @@
    - On GitHub: **Releases** → **Draft a new release**.
    - Tag: pick the existing `v1.0.0` (do not create a new one).
    - Release title: `Version 1.0.0` (the title spells it out; the tag keeps the `v` prefix).
-   - Description: a short summary of what shipped.
+   - Description: the release notes below.
    - Click **Publish release**.
+
+   <details>
+   <summary>Release notes (1.0.0)</summary>
+
+   ```markdown
+   ## 🚀 Added
+
+   - **TS01: Retrieve Greeting Count via GET Request**: `GET /api/v1/greetings` returns the number of greetings generated, broken down into personalized and anonymous.
+   - **TS02: Create Greeting via POST Request**: `POST /api/v1/greetings` greets a developer, personalized when a first and last name are given, anonymous otherwise, each with a `201 Created` confirmation and its own UUID v7 identifier.
+   - `IGreetingCounter` domain service: thread-safe via `Interlocked`/`Volatile`, personalized and anonymous greetings counted separately, total computed from the two.
+   - `PersonName` value object (`readonly record struct`, always validated, blocked parameterless constructor) with a well-known `Anonymous` value, and the `Developer` entity built over it.
+   - Length validation on `GreetDeveloperRequest` (`[StringLength]` plus `builder.Services.AddValidation()`): a too-long name is a `400`; a missing or blank name is an anonymous greeting, not an error.
+   - OpenAPI document via `Microsoft.AspNetCore.OpenApi`, rendered by Scalar at `/scalar/v1`.
+   - Project `README.md` and MIT license; `docs/user-stories.md` with a Requirement Traceability Matrix, `docs/class-diagram.puml`, `docs/adrs.md`; `CHANGELOG.md` to track version history going forward.
+   ```
+   </details>
+
+   **Tip:** the same works from the command line: `gh release create v1.0.0 --title "Version 1.0.0" --notes-file CHANGELOG.md` (the [GitHub CLI](https://cli.github.com/), authenticated once via `gh auth login`). `--notes-file` takes any Markdown file; `CHANGELOG.md` works here since the tag already exists.
 
 6. **Back on `develop`, pick the `-preview` suffix back up.**
    - Still in **File System** view, in `Acme.Hello.Platform.csproj`: `<Version>1.0.0</Version>` → `<Version>1.0.1-preview</Version>`, so `develop` doesn't sit on an already-tagged version.
