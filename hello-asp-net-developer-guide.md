@@ -14,6 +14,7 @@
   - [Signing in to GitHub with a token](#signing-in-to-github-with-a-token)
   - [Backing up unfinished work](#backing-up-unfinished-work)
   - [Feature Finish and pull requests](#feature-finish-and-pull-requests)
+  - [Shipping a fix after a release (hotfix)](#shipping-a-fix-after-a-release-hotfix)
   - [Removing a stray .git folder](#removing-a-stray-git-folder)
   - [Creating the repo without the GitHub CLI](#creating-the-repo-without-the-github-cli)
   - [If the class diagram doesn't render](#if-the-class-diagram-doesnt-render)
@@ -2021,6 +2022,59 @@ This guide's `Feature Finish` merges straight into `develop` with no pull reques
 1. `Feature Publish` (pushes the branch, no `Feature Finish`).
 2. Open a pull request on GitHub, `feature/xxx` → `develop`.
 3. Review, then merge through GitHub, not through Git Flow Helper.
+
+### Shipping a fix after a release (hotfix)
+
+A `Hotfix` is for a defect in a release that is already tagged and published, when the correction shouldn't wait for the next feature to ship (a wrong value in `LICENSE.md`, a bug found right after tagging). It branches from `main`, not `develop`, and merges back into both.
+
+**Note:** Git Flow Helper's `Hotfix` menu is greyed out while you're on `develop`. Check out `main` first: branch widget in the status bar (bottom-right) → `main` → `Checkout`.
+
+1. **Start the hotfix.** Git Flow Helper widget → `Hotfix` → `Hotfix Start` → **Version description** `v1.0.1` (the next patch number after the release you're fixing) → `OK`. Creates and switches you to `hotfix/v1.0.1`.
+
+2. **Make the fix, then record it.**
+   - Correct whatever is wrong.
+   - In `Acme.Hello.Platform.csproj`, bump `<Version>`, for example `1.0.0` → `1.0.1`.
+   - In `CHANGELOG.md`, add an entry above the previous one:
+
+     ```markdown
+     ## [1.0.1] - YYYY-MM-DD
+
+     ### Fixed
+     - <one line describing the fix>
+     ```
+
+3. **Commit.** Don't push; `Hotfix Publish` does that next.
+
+   ```
+   git add .
+   git commit -m "fix: <short description>"
+   ```
+
+4. **Publish and finish the hotfix.**
+   - Git Flow Helper widget → `Hotfix` → `Hotfix Publish` (pushes `hotfix/v1.0.1`).
+   - Git Flow Helper widget → `Hotfix` → `Hotfix Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked).
+
+   `Hotfix Finish` merges `hotfix/v1.0.1` into `main` (tagging it `v1.0.1`), merges it into `develop`, pushes both, and deletes the branch.
+
+5. **Publish the GitHub Release.**
+   - On GitHub: **Releases** → **Draft a new release**.
+   - Tag: pick the existing `v1.0.1` (do not create a new one).
+   - Release title: `Version 1.0.1`.
+   - Description: the release notes below.
+   - **Set as the latest release** checked; **Set as a pre-release** unchecked.
+   - Click **Publish release**.
+
+   <details>
+   <summary>Release notes (1.0.1)</summary>
+
+   ```markdown
+   ## 🐛 Fixed
+
+   - <one line describing the fix>
+   ```
+   </details>
+
+**Note:** if the `Hotfix` menu stays greyed even from `main`, a dropped connection can leave the plugin in a stale state; re-run `Init` from the widget (same prefixes, harmless) or restart Rider. The plain-git equivalent works too: branch `hotfix/v1.0.1` from `main`, commit, `git merge --no-ff` it into both `main` (then `git tag -a v1.0.1 -m "Version 1.0.1"`) and `develop`, delete the branch, then `git push origin main develop v1.0.1`.
 
 ### Removing a stray .git folder
 
