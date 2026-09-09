@@ -8,6 +8,7 @@ Bookmark this repo once. A new guide lands here as each project is covered, in c
 
 - [OOP Sample](oop-sample-guide.md): Object-Oriented Programming and Domain-Driven Design in C#, across two bounded contexts (SupplyChain, Procurement) and a shared kernel.
 - [Hello ASP.NET Developer](hello-asp-net-developer-guide.md): Object-Oriented Programming and Domain-Driven Design in an ASP.NET Core Minimal API, a single bounded context (`Profiles`) behind a personalized-or-anonymous greeting endpoint.
+- [JavaScript Review](javascript-review-guide.md): Object-Oriented Programming and Domain-Driven Design in JavaScript, a Supply Chain and Procurement console application built outside-in across seven user stories, with value objects, an aggregate root, ECMAScript private fields, `Object.freeze` immutability, Git Flow, and a full release.
 
 ## How to use a guide
 
