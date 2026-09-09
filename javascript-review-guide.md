@@ -165,8 +165,8 @@
 
    **Note:** this downloads `uuid`, `eslint`, `prettier`, and their dependencies into `node_modules` and writes a `package-lock.json`. There is no compiler or build step: `npm start` runs `src/index.js` straight through Node.
 
-6. **Move the wizard's `index.js` into `src/`.** The wizard put `index.js` at the project root, but this project keeps its entry point at `src/index.js` (which `package.json`'s `main` and `start` script already expect).
-   - Delete the `index.js` at the project root.
+6. **Replace the wizard's `index.js` with an empty `src/index.js`.** The wizard created `index.js` at the project root, but this project keeps its entry point at `src/index.js` (which `package.json`'s `main` and `start` script already expect).
+   - Delete the root `index.js`.
    - Right-click the project root → `New` → `JavaScript File` → type `src/index` → Enter. Typing the `src/` prefix creates that folder too. Leave the file blank.
 
    Through the rest of this guide you build a short demo in `src/index.js` and run it with `npm start` to check each feature by hand.
