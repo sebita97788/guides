@@ -12,7 +12,6 @@
 - [(US007) Managing the Purchase Order Lifecycle](#managing-the-purchase-order-lifecycle-us007)
 - [Prepare the First Release](#prepare-the-first-release)
 - [Release](#release)
-- [Document the Project](#document-the-project)
 - [Appendix](#appendix)
   - [Continuing on another computer](#continuing-on-another-computer)
   - [Signing in to GitHub with a token](#signing-in-to-github-with-a-token)
@@ -1094,7 +1093,7 @@
    ```
    </details>
 
-   **Note:** the bounds come from `Supplier.#NAME_MIN_LENGTH` / `Supplier.#NAME_MAX_LENGTH`, and the error message interpolates them, so the rule lives in one place. ADR-0004 in `## Document the Project` covers why `Supplier` changes only through methods like this, never a raw `set name`.
+   **Note:** the bounds come from `Supplier.#NAME_MIN_LENGTH` / `Supplier.#NAME_MAX_LENGTH`, and the error message interpolates them, so the rule lives in one place. ADR-0004 in `## Release` covers why `Supplier` changes only through methods like this, never a raw `set name`.
 
 10. **Add `Supplier.updateEmail()` and its `#isValidEmail` helper.** `updateEmail()` sets the contact email, rejecting one that is not a well-formed address. `#isValidEmail` is a private method: a regex check no caller needs to see.
 
@@ -1737,7 +1736,7 @@
     ```
     </details>
 
-    **Note:** ADR-0004 in `## Document the Project` covers why `Supplier` changes only through `changeName` / `updateEmail` / `recordOrder`, never a raw setter.
+    **Note:** ADR-0004 in `## Release` covers why `Supplier` changes only through `changeName` / `updateEmail` / `recordOrder`, never a raw setter.
 
     **Note:** in the full file, `recordOrder` sits with `changeName` and `updateEmail`, before `#isValidEmail` and the getters, not at the end where you added it. Match the layout above; it keeps the three intention-revealing methods together.
 
@@ -1809,7 +1808,7 @@
    ```
    </details>
 
-   **Note:** this is ADR-0003 in `## Document the Project`: each bounded context owns its identifiers. This file lives at `procurement/domain/model/supplier-id.js`, a different folder from the SCM one in US001. The full file, with JSDoc, is below.
+   **Note:** this is ADR-0003 in `## Release`: each bounded context owns its identifiers. This file lives at `procurement/domain/model/supplier-id.js`, a different folder from the SCM one in US001. The full file, with JSDoc, is below.
 
    <details>
    <summary>supplier-id.js (procurement, full file)</summary>
@@ -2657,7 +2656,7 @@
    ```
    </details>
 
-   **Note:** ADR-0007 in `## Document the Project` covers why `PurchaseOrderItem` is a value object with no id of its own, unlike the aggregate root.
+   **Note:** ADR-0007 in `## Release` covers why `PurchaseOrderItem` is a value object with no id of its own, unlike the aggregate root.
 
    ```
    git add .
@@ -3615,105 +3614,7 @@
 
    **Note:** the release name carries a `v` prefix (`v1.0.0`), matching the git tag it becomes on finish. The `package.json` `"version"` stays plain (`1.0.0`), and so does the `CHANGELOG.md` heading (`## [1.0.0]`): npm and Keep a Changelog conventions don't use the prefix.
 
-2. **Bump the version.** A release branch needs at least one commit of its own, or the merge into `develop` is a no-op. Open `package.json`, change `"version": "0.1.0"` to `"version": "1.0.0"`.
-
-   ```
-   git add .
-   git commit -m "chore(release): bump version to 1.0.0."
-   ```
-
-3. **Add `CHANGELOG.md`.** Right-click the project root → `New` → `File` → type `CHANGELOG.md` → Enter.
-
-   <details>
-   <summary>CHANGELOG.md</summary>
-
-   ```markdown
-   # Changelog
-
-   All notable changes to this project will be documented in this file.
-
-   The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-   and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-   ## [1.0.0] - 2026-09-08
-
-   ### Added
-   - SCM and Procurement bounded contexts with a `shared` kernel.
-   - `Supplier` aggregate (SCM) covering US001-US002: register with a validated name and email, record its last order total through an intention-revealing method.
-   - `PurchaseOrder` aggregate root (Procurement) covering US003-US007: create, add items, calculate the total, and walk the lifecycle (submit, approve, ship, complete, cancel).
-   - `PurchaseOrderItem` value object, priced in the order's own currency.
-   - `PurchaseOrderState` value object encapsulating the six states and every legal transition.
-   - Value objects: `Money`, `Currency` (ISO 4217 whitelist), `DateTime` (immutable, defensively copied), `SupplierId` (SCM and Procurement each own a copy), `ProductId`, `PurchaseOrderId`.
-   - Each bounded context owns its identifiers: Procurement has its own `SupplierId` rather than importing SCM's, so the two contexts stay decoupled.
-   - `generateUuid()` / `validateUuid()` utility over the `uuid` package, producing time-ordered UUID v7 identifiers.
-   - ESLint and Prettier configuration, wired to `npm run lint` (also `npm test`) and `npm run format`.
-   - `docs/user-stories.md` (with a Requirement Traceability Matrix), `docs/class-diagram.puml`, `docs/adrs.md`.
-   - `CONTRIBUTING.md` with OOP, DDD, Git Flow, and Conventional Commit guidelines.
-
-   ### Design notes
-   - ECMAScript private fields (`#`) throughout, and `Object.freeze` on every value object for true runtime immutability.
-   - `PurchaseOrder.items` returns a frozen copy, so the internal array can't be mutated from outside; `addItem()` is the only way in.
-   - Items can only be added while the order is `Draft`; state transitions are the only way to change `#state`.
-   - `addItem()` takes a `Money` in the order's currency, rejecting a mismatch at the boundary.
-   ```
-   </details>
-
-   ```
-   git add .
-   git commit -m "docs: add changelog for 1.0.0."
-   git push
-   ```
-
-   **Note:** the `## [version] - date` line uses the date you finish the release, `YYYY-MM-DD`.
-
-4. **Publish and finish the release.**
-   - Git Flow Helper widget → `Release` → `Release Publish` (pushes `release/v1.0.0` with both commits).
-   - Git Flow Helper widget → `Release` → `Release Finish`.
-
-   `Release Finish` merges `release/v1.0.0` into `main` (tagging it `v1.0.0`), merges it into `develop`, pushes both, and deletes the release branch. `main` and `develop` are back in sync.
-
-5. **Publish the GitHub Release.**
-   - On GitHub: **Releases** → **Draft a new release**.
-   - Tag: pick the existing `v1.0.0` (do not create a new one).
-   - Release title: `Version 1.0.0` (the title spells it out; the tag keeps the `v` prefix).
-   - Description: the release notes below.
-   - **Set as the latest release** checked; **Set as a pre-release** unchecked.
-   - Click **Publish release**.
-
-   <details>
-   <summary>Release notes (1.0.0)</summary>
-
-   ```markdown
-   ## 🚀 Added
-
-   - **US001-US002 (SCM):** register a `Supplier` with a validated name and contact email, then change its name, update its email, or record its last order total, each through an intention-revealing method.
-   - **US003-US007 (Procurement):** create a `PurchaseOrder`, add items while it is `Draft`, calculate the total, and walk it through its lifecycle (submit, approve, ship, complete) or cancel it from any state but `Completed`.
-   - `PurchaseOrderItem` value object, priced in the order's own currency; `PurchaseOrderState` value object encapsulating the six states and every legal transition.
-   - Shared value objects: `Money`, `Currency` (USD, EUR, GBP, JPY), `DateTime` (immutable, defensively copied), and the per-context identifiers `SupplierId`, `ProductId`, `PurchaseOrderId`, all built on time-ordered UUID v7.
-   - Each bounded context owns its identifiers: Procurement carries its own `SupplierId` rather than importing SCM's.
-   - ECMAScript private fields (`#`) and `Object.freeze` throughout; `PurchaseOrder.items` returns a frozen copy, so `addItem()` is the only way in.
-   - ESLint and Prettier, wired to `npm run lint` (also `npm test`) and `npm run format`.
-   - `README.md`, MIT `LICENSE.md`, `CHANGELOG.md`; `docs/user-stories.md` with a Requirement Traceability Matrix, `docs/class-diagram.puml`, `docs/adrs.md`.
-   ```
-   </details>
-
-6. **Back on `develop`, move to the next development version.**
-   - In `package.json`: `"version": "1.0.0"` → `"version": "1.0.1"`, so `develop` doesn't sit on an already-tagged version. The next change decides whether it becomes `1.0.1` (a fix) or `1.1.0` (a feature).
-   - Then:
-
-   ```
-   git add .
-   git commit -m "chore(dev): set development version to 1.0.1."
-   git push
-   ```
-
----
-
-## Document the Project
-
-**Still on `develop`, no feature branch:** writing down decisions already made.
-
-1. **Add the Architecture Decision Records** to a single `docs/adrs.md`. Right-click the `docs` folder → `New` → `File` → type `adrs.md` → Enter. Seven decisions, written in one sitting: real runtime encapsulation, UUID v7, per-context identifiers, intention-revealing methods, defensive copies, how `addItem` is priced, and the purchase order line as a value object.
+2. **Add the Architecture Decision Records** to a single `docs/adrs.md`. Right-click the `docs` folder → `New` → `File` → type `adrs.md` → Enter. Seven decisions, written in one sitting: real runtime encapsulation, UUID v7, per-context identifiers, intention-revealing methods, defensive copies, how `addItem` is priced, and the purchase order line as a value object.
 
    <details>
    <summary>docs/adrs.md</summary>
@@ -3960,7 +3861,99 @@
    git push
    ```
 
-2. **Confirm the Requirement Traceability Matrix in `docs/user-stories.md`** maps every scenario to what implements it. It was added with the user stories; check each row still points at the right class now that all the code exists.
+3. **Confirm the Requirement Traceability Matrix in `docs/user-stories.md`** maps every scenario to what implements it. It was added with the user stories; check each row still points at the right class now that all the code exists.
+
+4. **Bump the version.** A release branch needs at least one commit of its own, or the merge into `develop` is a no-op. Open `package.json`, change `"version": "0.1.0"` to `"version": "1.0.0"`.
+
+   ```
+   git add .
+   git commit -m "chore(release): bump version to 1.0.0."
+   ```
+
+5. **Add `CHANGELOG.md`.** Right-click the project root → `New` → `File` → type `CHANGELOG.md` → Enter.
+
+   <details>
+   <summary>CHANGELOG.md</summary>
+
+   ```markdown
+   # Changelog
+
+   All notable changes to this project will be documented in this file.
+
+   The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+   and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+   ## [1.0.0] - 2026-09-08
+
+   ### Added
+   - SCM and Procurement bounded contexts with a `shared` kernel.
+   - `Supplier` aggregate (SCM) covering US001-US002: register with a validated name and email, record its last order total through an intention-revealing method.
+   - `PurchaseOrder` aggregate root (Procurement) covering US003-US007: create, add items, calculate the total, and walk the lifecycle (submit, approve, ship, complete, cancel).
+   - `PurchaseOrderItem` value object, priced in the order's own currency.
+   - `PurchaseOrderState` value object encapsulating the six states and every legal transition.
+   - Value objects: `Money`, `Currency` (ISO 4217 whitelist), `DateTime` (immutable, defensively copied), `SupplierId` (SCM and Procurement each own a copy), `ProductId`, `PurchaseOrderId`.
+   - Each bounded context owns its identifiers: Procurement has its own `SupplierId` rather than importing SCM's, so the two contexts stay decoupled.
+   - `generateUuid()` / `validateUuid()` utility over the `uuid` package, producing time-ordered UUID v7 identifiers.
+   - ESLint and Prettier configuration, wired to `npm run lint` (also `npm test`) and `npm run format`.
+   - `docs/user-stories.md` (with a Requirement Traceability Matrix), `docs/class-diagram.puml`, `docs/adrs.md`.
+   - `CONTRIBUTING.md` with OOP, DDD, Git Flow, and Conventional Commit guidelines.
+
+   ### Design notes
+   - ECMAScript private fields (`#`) throughout, and `Object.freeze` on every value object for true runtime immutability.
+   - `PurchaseOrder.items` returns a frozen copy, so the internal array can't be mutated from outside; `addItem()` is the only way in.
+   - Items can only be added while the order is `Draft`; state transitions are the only way to change `#state`.
+   - `addItem()` takes a `Money` in the order's currency, rejecting a mismatch at the boundary.
+   ```
+   </details>
+
+   ```
+   git add .
+   git commit -m "docs: add changelog for 1.0.0."
+   git push
+   ```
+
+   **Note:** the `## [version] - date` line uses the date you finish the release, `YYYY-MM-DD`.
+
+6. **Publish and finish the release.**
+   - Git Flow Helper widget → `Release` → `Release Publish` (pushes `release/v1.0.0` with both commits).
+   - Git Flow Helper widget → `Release` → `Release Finish`.
+
+   `Release Finish` merges `release/v1.0.0` into `main` (tagging it `v1.0.0`), merges it into `develop`, pushes both, and deletes the release branch. `main` and `develop` are back in sync.
+
+7. **Publish the GitHub Release.**
+   - On GitHub: **Releases** → **Draft a new release**.
+   - Tag: pick the existing `v1.0.0` (do not create a new one).
+   - Release title: `Version 1.0.0` (the title spells it out; the tag keeps the `v` prefix).
+   - Description: the release notes below.
+   - **Set as the latest release** checked; **Set as a pre-release** unchecked.
+   - Click **Publish release**.
+
+   <details>
+   <summary>Release notes (1.0.0)</summary>
+
+   ```markdown
+   ## 🚀 Added
+
+   - **US001-US002 (SCM):** register a `Supplier` with a validated name and contact email, then change its name, update its email, or record its last order total, each through an intention-revealing method.
+   - **US003-US007 (Procurement):** create a `PurchaseOrder`, add items while it is `Draft`, calculate the total, and walk it through its lifecycle (submit, approve, ship, complete) or cancel it from any state but `Completed`.
+   - `PurchaseOrderItem` value object, priced in the order's own currency; `PurchaseOrderState` value object encapsulating the six states and every legal transition.
+   - Shared value objects: `Money`, `Currency` (USD, EUR, GBP, JPY), `DateTime` (immutable, defensively copied), and the per-context identifiers `SupplierId`, `ProductId`, `PurchaseOrderId`, all built on time-ordered UUID v7.
+   - Each bounded context owns its identifiers: Procurement carries its own `SupplierId` rather than importing SCM's.
+   - ECMAScript private fields (`#`) and `Object.freeze` throughout; `PurchaseOrder.items` returns a frozen copy, so `addItem()` is the only way in.
+   - ESLint and Prettier, wired to `npm run lint` (also `npm test`) and `npm run format`.
+   - `README.md`, MIT `LICENSE.md`, `CHANGELOG.md`; `docs/user-stories.md` with a Requirement Traceability Matrix, `docs/class-diagram.puml`, `docs/adrs.md`.
+   ```
+   </details>
+
+8. **Back on `develop`, move to the next development version.**
+   - In `package.json`: `"version": "1.0.0"` → `"version": "1.0.1"`, so `develop` doesn't sit on an already-tagged version. The next change decides whether it becomes `1.0.1` (a fix) or `1.1.0` (a feature).
+   - Then:
+
+   ```
+   git add .
+   git commit -m "chore(dev): set development version to 1.0.1."
+   git push
+   ```
 
 ---
 

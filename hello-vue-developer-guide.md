@@ -10,7 +10,6 @@
 - [(US005) Clear the Registration Form](#clear-the-registration-form-us005)
 - [Prepare the First Release](#prepare-the-first-release)
 - [Release](#release)
-- [Document the Project](#document-the-project)
 - [Testing (optional, explore on your own)](#testing-optional-explore-on-your-own)
 - [Appendix](#appendix)
   - [Continuing on another computer](#continuing-on-another-computer)
@@ -298,7 +297,7 @@
    - Install the **plantuml4idea** plugin so the diagram renders: `File` → `Settings` → `Plugins` → `Marketplace` → search `plantuml4idea` → `Install`. Restart the IDE if prompted.
    - Right-click the `docs` folder → `New` → `File` → type `class-diagram.puml` → Enter. WebStorm shows a rendered preview beside the source.
 
-   Two areas: `greetings` (the `Developer` entity and `DeveloperId` value object, plus the three `.vue` components) and a `shared` kernel (`PersonName`, usable by any future context that deals with people, and the UUID utility). `Developer` receives a `DeveloperId` only once its `PersonName` is valid, so the presence of an ID marks a registered developer. This layered, bounded-context split is ADR-0001 in `## Document the Project`.
+   Two areas: `greetings` (the `Developer` entity and `DeveloperId` value object, plus the three `.vue` components) and a `shared` kernel (`PersonName`, usable by any future context that deals with people, and the UUID utility). `Developer` receives a `DeveloperId` only once its `PersonName` is valid, so the presence of an ID marks a registered developer. This layered, bounded-context split is ADR-0001 in `## Release`.
 
    <details>
    <summary>docs/class-diagram.puml</summary>
@@ -564,7 +563,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
    ```
    </details>
 
-   **Note:** `_id` / `_name`, not `#id` / `#name`. Vue wraps values placed in a `ref()` or passed as a prop in a `Proxy`, and reading a native `#field` through that `Proxy` throws `TypeError`, the read only works against the exact original instance. The `_` prefix marks these internal by convention instead, which the `Proxy` has no trouble with. ADR-0003 in `## Document the Project` has the full reasoning. This is the only exception in this project's JavaScript to the `#`-private-fields convention used elsewhere in the course, and it is deliberate. Every domain class below follows the same `_` convention.
+   **Note:** `_id` / `_name`, not `#id` / `#name`. Vue wraps values placed in a `ref()` or passed as a prop in a `Proxy`, and reading a native `#field` through that `Proxy` throws `TypeError`, the read only works against the exact original instance. The `_` prefix marks these internal by convention instead, which the `Proxy` has no trouble with. ADR-0003 in `## Release` has the full reasoning. This is the only exception in this project's JavaScript to the `#`-private-fields convention used elsewhere in the course, and it is deliberate. Every domain class below follows the same `_` convention.
 
 3. **Add `Developer`'s constructor.** It builds a `PersonName` from the given names, then assigns an identity only when that name is valid.
 
@@ -587,7 +586,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
 
    **Note:** no `import` for `PersonName` or `DeveloperId`, neither file exists yet. WebStorm shows both names unresolved, that clears once each is created below, typing the name again or `Alt+Enter` on it adds the import for you.
 
-   **Note:** an incomplete or empty name never throws here. `PersonName` accepts anything (step 4), and this constructor only asks `providedName.isValid()` to decide the `id`: `true` gets a real `DeveloperId`, `false` gets `null`. A `Developer` with `_id === null` is not an error, it is what an anonymous or partially-registered developer looks like in this domain. This is ADR-0005 in `## Document the Project`.
+   **Note:** an incomplete or empty name never throws here. `PersonName` accepts anything (step 4), and this constructor only asks `providedName.isValid()` to decide the `id`: `true` gets a real `DeveloperId`, `false` gets `null`. A `Developer` with `_id === null` is not an error, it is what an anonymous or partially-registered developer looks like in this domain. This is ADR-0005 in `## Release`.
 
    **Note:** no commit here. The file does not run yet, `PersonName` and `DeveloperId` don't exist.
 
@@ -1393,7 +1392,7 @@ Once someone registers, the app greets them by name and shows their ID. Before t
    ```
    </details>
 
-   **Note:** `const { developer } = defineProps({ ... })` is Vue 3.5's **reactive props destructuring**: `developer` stays reactive even though it was pulled out of the object `defineProps()` returned, there is no need to write `props.developer` everywhere. ADR-0002 in `## Document the Project`.
+   **Note:** `const { developer } = defineProps({ ... })` is Vue 3.5's **reactive props destructuring**: `developer` stays reactive even though it was pulled out of the object `defineProps()` returned, there is no need to write `props.developer` everywhere. ADR-0002 in `## Release`.
 
    **Note:** `${developer.id}` inside the template string calls `DeveloperId`'s own `toString()`, so the raw UUID prints, not `[object Object]`.
 
@@ -2316,100 +2315,7 @@ A **Clear** button empties the inputs without touching the current greeting or c
 
    **Note:** the release name carries a `v` prefix (`v1.0.0`), matching the git tag it becomes on finish. The `package.json` `"version"` stays plain (`1.0.0`), and so does the `CHANGELOG.md` heading (`## [1.0.0]`): npm and Keep a Changelog conventions don't use the prefix.
 
-2. **Bump the version.** A release branch needs at least one commit of its own, or the merge into `develop` is a no-op. Open `package.json`, change `"version": "0.1.0"` to `"version": "1.0.0"`.
-
-   ```
-   git add .
-   git commit -m "chore(release): bump version to 1.0.0."
-   ```
-
-3. **Add `CHANGELOG.md`.** Right-click the project root → `New` → `File` → type `CHANGELOG.md` → Enter.
-
-   <details>
-   <summary>CHANGELOG.md</summary>
-
-   ```markdown
-   # Changelog
-
-   All notable changes to this project will be documented in this file.
-
-   The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-   and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-   ## [1.0.0] - 2026-09-11
-
-   ### Added
-   - `greetings` bounded context (`Developer` entity, `DeveloperId` value object) and a `shared` kernel (`PersonName` value object, UUID v7 utility).
-   - `DeveloperRegistration` component: register with a first and last name, defer with "Later", or clear the form (US001, US004, US005).
-   - `DeveloperGreeting` component: shows "Welcome Anonymous Developer" by default and a personalized greeting with the developer's ID once a valid name is registered (US002).
-   - `DeveloperCountShow` component: running count of valid registrations only (US003).
-   - `docs/user-stories.md` with a Requirement Traceability Matrix, `docs/class-diagram.puml`, `docs/adrs.md`.
-   - `README.md`, MIT `LICENSE.md`.
-
-   ### Design notes
-   - `Developer` only receives a `DeveloperId` once `PersonName.isValid()` holds (both names present), so the presence of an ID marks a registered developer.
-   - Internal fields use the `_` convention, not native `#` private fields, because Vue 3's Proxy-based reactivity cannot read `#` fields through a wrapped instance (ADR-0003).
-   - Identifiers are UUID v7 (time-ordered), generated in the shared kernel so the version is decided in one file.
-   ```
-   </details>
-
-   ```
-   git add .
-   git commit -m "docs: add changelog for 1.0.0."
-   git push
-   ```
-
-   **Note:** the `## [version] - date` line uses the date you finish the release, `YYYY-MM-DD`.
-
-4. **Publish and finish the release.**
-   - Git Flow Helper widget → `Release` → `Release Publish` (pushes `release/v1.0.0` with both commits).
-   - Git Flow Helper widget → `Release` → `Release Finish`.
-
-   `Release Finish` merges `release/v1.0.0` into `main` (tagging it `v1.0.0`), merges it into `develop`, pushes both, and deletes the release branch. `main` and `develop` are back in sync.
-
-5. **Publish the GitHub Release.**
-   - On GitHub: **Releases** → **Draft a new release**.
-   - Tag: pick the existing `v1.0.0` (do not create a new one).
-   - Release title: `Version 1.0.0` (the title spells it out; the tag keeps the `v` prefix).
-   - Description: the release notes below.
-   - **Set as the latest release** checked; **Set as a pre-release** unchecked.
-   - Click **Publish release**.
-
-   <details>
-   <summary>Release notes (1.0.0)</summary>
-
-   ```markdown
-   ## 🚀 Added
-
-   - **US001:** register with a first and last name; `PersonName.isValid()` requires both, and the `DeveloperRegistration` component shows a message when they are missing or spaces-only.
-   - **US002:** the `DeveloperGreeting` component shows "Welcome Anonymous Developer" until a valid registration, then a personalized greeting with the developer's UUID v7 ID.
-   - **US003:** the `DeveloperCountShow` component tracks a running count of valid registrations only.
-   - **US004:** a `Later` action clears the form and resets the app to the anonymous state.
-   - **US005:** a `Clear` action empties the form without changing the current greeting or count.
-   - `Developer` entity: conditional identity, a `DeveloperId` is assigned only once its `PersonName` is valid.
-   - `DeveloperId` and `PersonName` value objects; `generateUUID()` / `isValidUUID()` in the shared kernel, backed by UUID v7.
-   - Internal fields use the `_` convention rather than native `#` private fields, so these objects work correctly wrapped in Vue's reactivity (ADR-0003).
-   - `README.md`, MIT `LICENSE.md`, `CHANGELOG.md`; `docs/user-stories.md` with a Requirement Traceability Matrix, `docs/class-diagram.puml`, `docs/adrs.md`.
-   ```
-   </details>
-
-6. **Back on `develop`, move to the next development version.**
-   - In `package.json`: `"version": "1.0.0"` → `"version": "1.0.1"`, so `develop` doesn't sit on an already-tagged version. The next change decides whether it becomes `1.0.1` (a fix) or `1.1.0` (a feature).
-   - Then:
-
-   ```
-   git add .
-   git commit -m "chore(dev): set development version to 1.0.1."
-   git push
-   ```
-
----
-
-## Document the Project
-
-**Still on `develop`, no feature branch:** writing down decisions already made.
-
-1. **Add the Architecture Decision Records** to a single `docs/adrs.md`. Right-click the `docs` folder → `New` → `File` → type `adrs.md` → Enter. Five decisions, written in one sitting: the bounded-context layout, reactive props destructuring, the `_` fields decision (the one that matters most here), identity as a value object, and the mandatory-full-name rule.
+2. **Add the Architecture Decision Records** to a single `docs/adrs.md`. Right-click the `docs` folder → `New` → `File` → type `adrs.md` → Enter. Five decisions, written in one sitting: the bounded-context layout, reactive props destructuring, the `_` fields decision (the one that matters most here), identity as a value object, and the mandatory-full-name rule.
 
    <details>
    <summary>docs/adrs.md</summary>
@@ -2592,7 +2498,94 @@ A **Clear** button empties the inputs without touching the current greeting or c
    git push
    ```
 
-2. **Confirm the Requirement Traceability Matrix in `docs/user-stories.md`** maps every scenario to what implements it. It was added at Project Setup; check each row still points at the right class now that all the code exists.
+3. **Confirm the Requirement Traceability Matrix in `docs/user-stories.md`** maps every scenario to what implements it. It was added at Project Setup; check each row still points at the right class now that all the code exists.
+
+4. **Bump the version.** A release branch needs at least one commit of its own, or the merge into `develop` is a no-op. Open `package.json`, change `"version": "0.1.0"` to `"version": "1.0.0"`.
+
+   ```
+   git add .
+   git commit -m "chore(release): bump version to 1.0.0."
+   ```
+
+5. **Add `CHANGELOG.md`.** Right-click the project root → `New` → `File` → type `CHANGELOG.md` → Enter.
+
+   <details>
+   <summary>CHANGELOG.md</summary>
+
+   ```markdown
+   # Changelog
+
+   All notable changes to this project will be documented in this file.
+
+   The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+   and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+   ## [1.0.0] - 2026-09-11
+
+   ### Added
+   - `greetings` bounded context (`Developer` entity, `DeveloperId` value object) and a `shared` kernel (`PersonName` value object, UUID v7 utility).
+   - `DeveloperRegistration` component: register with a first and last name, defer with "Later", or clear the form (US001, US004, US005).
+   - `DeveloperGreeting` component: shows "Welcome Anonymous Developer" by default and a personalized greeting with the developer's ID once a valid name is registered (US002).
+   - `DeveloperCountShow` component: running count of valid registrations only (US003).
+   - `docs/user-stories.md` with a Requirement Traceability Matrix, `docs/class-diagram.puml`, `docs/adrs.md`.
+   - `README.md`, MIT `LICENSE.md`.
+
+   ### Design notes
+   - `Developer` only receives a `DeveloperId` once `PersonName.isValid()` holds (both names present), so the presence of an ID marks a registered developer.
+   - Internal fields use the `_` convention, not native `#` private fields, because Vue 3's Proxy-based reactivity cannot read `#` fields through a wrapped instance (ADR-0003).
+   - Identifiers are UUID v7 (time-ordered), generated in the shared kernel so the version is decided in one file.
+   ```
+   </details>
+
+   ```
+   git add .
+   git commit -m "docs: add changelog for 1.0.0."
+   git push
+   ```
+
+   **Note:** the `## [version] - date` line uses the date you finish the release, `YYYY-MM-DD`.
+
+6. **Publish and finish the release.**
+   - Git Flow Helper widget → `Release` → `Release Publish` (pushes `release/v1.0.0` with both commits).
+   - Git Flow Helper widget → `Release` → `Release Finish`.
+
+   `Release Finish` merges `release/v1.0.0` into `main` (tagging it `v1.0.0`), merges it into `develop`, pushes both, and deletes the release branch. `main` and `develop` are back in sync.
+
+7. **Publish the GitHub Release.**
+   - On GitHub: **Releases** → **Draft a new release**.
+   - Tag: pick the existing `v1.0.0` (do not create a new one).
+   - Release title: `Version 1.0.0` (the title spells it out; the tag keeps the `v` prefix).
+   - Description: the release notes below.
+   - **Set as the latest release** checked; **Set as a pre-release** unchecked.
+   - Click **Publish release**.
+
+   <details>
+   <summary>Release notes (1.0.0)</summary>
+
+   ```markdown
+   ## 🚀 Added
+
+   - **US001:** register with a first and last name; `PersonName.isValid()` requires both, and the `DeveloperRegistration` component shows a message when they are missing or spaces-only.
+   - **US002:** the `DeveloperGreeting` component shows "Welcome Anonymous Developer" until a valid registration, then a personalized greeting with the developer's UUID v7 ID.
+   - **US003:** the `DeveloperCountShow` component tracks a running count of valid registrations only.
+   - **US004:** a `Later` action clears the form and resets the app to the anonymous state.
+   - **US005:** a `Clear` action empties the form without changing the current greeting or count.
+   - `Developer` entity: conditional identity, a `DeveloperId` is assigned only once its `PersonName` is valid.
+   - `DeveloperId` and `PersonName` value objects; `generateUUID()` / `isValidUUID()` in the shared kernel, backed by UUID v7.
+   - Internal fields use the `_` convention rather than native `#` private fields, so these objects work correctly wrapped in Vue's reactivity (ADR-0003).
+   - `README.md`, MIT `LICENSE.md`, `CHANGELOG.md`; `docs/user-stories.md` with a Requirement Traceability Matrix, `docs/class-diagram.puml`, `docs/adrs.md`.
+   ```
+   </details>
+
+8. **Back on `develop`, move to the next development version.**
+   - In `package.json`: `"version": "1.0.0"` → `"version": "1.0.1"`, so `develop` doesn't sit on an already-tagged version. The next change decides whether it becomes `1.0.1` (a fix) or `1.1.0` (a feature).
+   - Then:
+
+   ```
+   git add .
+   git commit -m "chore(dev): set development version to 1.0.1."
+   git push
+   ```
 
 ---
 

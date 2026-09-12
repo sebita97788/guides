@@ -12,7 +12,7 @@
 - [Prepare the First Release](#prepare-the-first-release)
 - [Release](#release)
 - [(US006) Merge Duplicate Items in a Purchase Order](#merge-duplicate-items-in-a-purchase-order-us006)
-- [Document the Project](#document-the-project)
+- [Release](#release-1)
 - [Testing (optional, explore on your own)](#testing-optional-explore-on-your-own)
 - [Appendix](#appendix)
   - [Continuing on another computer](#continuing-on-another-computer)
@@ -241,7 +241,7 @@
 
    **Tip:** if it shows an error instead of a diagram, see [Appendix: If the class diagram doesn't render](#if-the-class-diagram-doesnt-render).
 
-   **Note:** `SupplyChain` and `Procurement` each have their own `SupplierId` on the diagram, deliberately. Each context owns the identity type of the aggregate it holds (`SupplierId` belongs to SupplyChain, home of `Supplier`); no other context references it directly, and Procurement defines its own. That's **Context Mapping** in practice, not an accident. More on why in `## Document the Project` later.
+   **Note:** `SupplyChain` and `Procurement` each have their own `SupplierId` on the diagram, deliberately. Each context owns the identity type of the aggregate it holds (`SupplierId` belongs to SupplyChain, home of `Supplier`); no other context references it directly, and Procurement defines its own. That's **Context Mapping** in practice, not an accident. More on why in `## Release` later.
 
    **Note:** everything on this diagram gets built feature by feature from here on, including parts (`Currency`, `PurchaseOrder.OrderDate` as a `DateOnly`) that only become code later in the guide.
 
@@ -377,7 +377,7 @@
    Write only the three properties:
    - `Id` (`SupplierId`), `Name` (`string`), `Address` (`Address`), all `get;` only: assignable in the constructor and never again, this project's equivalent of Java's `final`
 
-   **Note:** the properties carry no validation. `Supplier` is an aggregate root, so its creation invariant is enforced in the constructor a few steps from now, not in the properties: the constructor is the aggregate's single entry point, and the only place a rule spanning more than one field could ever go. Its value objects (`SupplierId`, `Address`) still validate themselves. This split, value objects validate in their `init` accessor, aggregate roots in the constructor, is a deliberate decision, written up in `## Document the Project` as ADR-0011.
+   **Note:** the properties carry no validation. `Supplier` is an aggregate root, so its creation invariant is enforced in the constructor a few steps from now, not in the properties: the constructor is the aggregate's single entry point, and the only place a rule spanning more than one field could ever go. Its value objects (`SupplierId`, `Address`) still validate themselves. This split, value objects validate in their `init` accessor, aggregate roots in the constructor, is a deliberate decision, written up in `## Release` as ADR-0011.
 
    **Tip:** if Rider pops up an "Add File to Git" dialog, check `Don't ask again` and click `Cancel`. This guide stages through explicit `git add` / `git commit`.
 
@@ -3024,9 +3024,9 @@
 
 6. **Publish and finish the feature.** Git Flow Helper widget → `Feature` → `Feature Publish`, then → `Feature Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked). Merges into `develop` and pushes it too.
 
-## Document the Project
+## Release
 
-**Still on `develop`, no Git Flow feature needed:** writing down decisions already made across every feature so far, and shipping the record of them. It goes out in `1.1.0`, the same release as US006.
+**Still on `develop`, no Git Flow feature needed until the version bump below:** writing down decisions already made across every feature so far, and shipping the record of them. It goes out in `1.1.0`, the same release as US006.
 
 1. **Generate the XML documentation from the comments already in your code.** In **File System** view (Solution view hides the `.csproj`), add one property to `Acme.OOProgramming.csproj`, in the same `<PropertyGroup>` as `<Version>`:
    ```xml
@@ -3040,7 +3040,7 @@
 
    **Note:** Expect a batch of `CS1591` warnings ("missing XML comment for publicly visible member") on properties/methods that never got their own explicit `<summary>`, only a class-level one: a real, honest gap this flag surfaces, not a sign anything is broken. A team with a strict docs policy would either add per-property comments or explicitly suppress `CS1591`; either is a legitimate call, just make it on purpose.
 
-9. **Add these eleven Architecture Decision Records (ADRs) to a single `docs/adrs.md` file.** In **File System** view: right-click the `docs` folder → `Add` → `File` → `adrs.md`. They document every decision made so far, across all six user stories and the presentation layer, in one sitting rather than scattered one per feature:
+2. **Add these eleven Architecture Decision Records (ADRs) to a single `docs/adrs.md` file.** In **File System** view: right-click the `docs` folder → `Add` → `File` → `adrs.md`. They document every decision made so far, across all six user stories and the presentation layer, in one sitting rather than scattered one per feature:
    - why value objects are `record`s, including identity types like `ProductId`, instead of a raw `Guid`
    - why each bounded context owns its own `SupplierId` instead of sharing one
    - why aggregates compare by identity and hide their internal collections
@@ -3625,7 +3625,7 @@
    git push
    ```
 
-10. **Add a Requirements Traceability Matrix to the top of `docs/user-stories.md`**, right after the title, before the individual user stories: one row per story, mapping it to the bounded context, the aggregate/entity it lives on, and the method that implements it. No Test Suite column yet, there's no test suite yet, `## Testing` below adds one to this same table if you get to it.
+3. **Add a Requirements Traceability Matrix to the top of `docs/user-stories.md`**, right after the title, before the individual user stories: one row per story, mapping it to the bounded context, the aggregate/entity it lives on, and the method that implements it. No Test Suite column yet, there's no test suite yet, `## Testing` below adds one to this same table if you get to it.
 
    <details>
    <summary>docs/user-stories.md (addition, insert before "## US001")</summary>
@@ -3652,7 +3652,7 @@
    git push
    ```
 
-11. **Update `README.md`** now that the ADRs exist. Replace the file from `## Prepare the First Release` with the version below: the domain model is unchanged since `1.0.0`, this adds `see ADR-NNNN` links throughout, the two new US006 rules, and a `docs/adrs.md` row in `## Project Documentation`.
+4. **Update `README.md`** now that the ADRs exist. Replace the file from `## Prepare the First Release` with the version below: the domain model is unchanged since `1.0.0`, this adds `see ADR-NNNN` links throughout, the two new US006 rules, and a `docs/adrs.md` row in `## Project Documentation`.
 
    <details>
    <summary>README.md</summary>
@@ -3781,7 +3781,7 @@
    git push
    ```
 
-12. **Ship `v1.1.0`,** the same way as the `## Release` section above. `develop` is now ahead of `main` again, carrying everything built since `v1.0.0`: US006, all eleven ADRs, the requirements traceability matrix, and the `README.md` update.
+5. **Ship `v1.1.0`,** the same way as the `## Release` section above. `develop` is now ahead of `main` again, carrying everything built since `v1.0.0`: US006, all eleven ADRs, the requirements traceability matrix, and the `README.md` update.
    - `Release Start` → `v1.1.0` (branch `release/v1.1.0`)
    - drop the `-preview` suffix in `Acme.OOProgramming.csproj` (`1.1.0-preview` → `1.1.0`), commit `chore(release): bump version to 1.1.0.`
    - add a `## [1.1.0] - <date>` section to `CHANGELOG.md`, directly under the intro block and above `## [1.0.0]`, and commit it too
@@ -3828,7 +3828,7 @@
 
    **Note:** a release branch still needs at least one commit of its own (the changelog entry), or the merge into `develop` is a no-op, same reasoning as the `## Release` section.
 
-13. **Back on `develop`, pick the `-preview` suffix back up.** In `Acme.OOProgramming.csproj`: `<Version>1.1.0</Version>` → `<Version>1.1.1-preview</Version>`, commit `chore(dev): set development version to 1.1.1-preview.`, push.
+6. **Back on `develop`, pick the `-preview` suffix back up.** In `Acme.OOProgramming.csproj`: `<Version>1.1.0</Version>` → `<Version>1.1.1-preview</Version>`, commit `chore(dev): set development version to 1.1.1-preview.`, push.
 
    **Note:** `## Testing` below is optional, self-study only, so `develop` shouldn't sit on an already-tagged version while there's still unreleased optional work.
 
@@ -5029,7 +5029,7 @@ The idea: add a test project with xUnit and FluentAssertions, paste in the start
 
    **Note:** no user story behind this, so no Git Flow feature branch, same as the class diagram in Project Setup.
 
-6. **Add the `Test Suite` column to the Requirements Traceability Matrix.** Go back to the matrix in `## Document the Project` above and add it now that real tests exist: one cell per row, linking to the test class (or specific method) that verifies that user story.
+6. **Add the `Test Suite` column to the Requirements Traceability Matrix.** Go back to the matrix in `## Release` above and add it now that real tests exist: one cell per row, linking to the test class (or specific method) that verifies that user story.
 
    <details>
    <summary>docs/user-stories.md (addition, add a Test Suite column to the matrix)</summary>
@@ -5052,7 +5052,7 @@ The idea: add a test project with xUnit and FluentAssertions, paste in the start
    git push
    ```
 
-7. **Update `README.md`** now that the test suite exists. Replace the file from `## Document the Project` with the version below: this adds the `Tests` badge, the `Testing Framework` bullet, the `Acme.OOProgramming.Tests` entry in `## Solution Structure`, and a `## Run the Automated Test Suite` step under `## Getting Started`.
+7. **Update `README.md`** now that the test suite exists. Replace the file from `## Release` with the version below: this adds the `Tests` badge, the `Testing Framework` bullet, the `Acme.OOProgramming.Tests` entry in `## Solution Structure`, and a `## Run the Automated Test Suite` step under `## Getting Started`.
 
    <details>
    <summary>README.md</summary>

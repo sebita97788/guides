@@ -403,7 +403,7 @@
 
 1. **Start the feature.** Git Flow Helper widget → `Feature` → `Feature Start` → **Feature description** `retrieve-greeting-count-via-get` → `OK`. Creates and switches you to `feature/retrieve-greeting-count-via-get`.
 
-2. **Create the `IGreetingCounter` interface.** Switch Solution Explorer to **Solution** view (this section adds C# types). Right-click `Acme.Hello.Platform` → `Add` → `Class/Interface` → type `Profiles/Domain/Services/IGreetingCounter` in the **Name** field, select `Interface` → Enter (the folders don't exist yet; typing the path creates them together with the type). It tracks the greetings the whole system has generated, and it belongs to no single `Developer`. Two counts, `PersonalizedCount` and `AnonymousCount`, plus `TotalCount`, their sum, computed rather than its own field. ADR-0006 in `## Document the Project` covers why two counts, not one.
+2. **Create the `IGreetingCounter` interface.** Switch Solution Explorer to **Solution** view (this section adds C# types). Right-click `Acme.Hello.Platform` → `Add` → `Class/Interface` → type `Profiles/Domain/Services/IGreetingCounter` in the **Name** field, select `Interface` → Enter (the folders don't exist yet; typing the path creates them together with the type). It tracks the greetings the whole system has generated, and it belongs to no single `Developer`. Two counts, `PersonalizedCount` and `AnonymousCount`, plus `TotalCount`, their sum, computed rather than its own field. ADR-0006 in `## Release` covers why two counts, not one.
 
    <details>
    <summary>IGreetingCounter.cs</summary>
@@ -422,7 +422,7 @@
    ```
    </details>
 
-   **Note:** the greeting counts are application-wide state that isn't tied to any one entity, so they live in their own service, not as fields on `Developer`. ADR-0001 in `## Document the Project` covers the domain-service choice.
+   **Note:** the greeting counts are application-wide state that isn't tied to any one entity, so they live in their own service, not as fields on `Developer`. ADR-0001 in `## Release` covers the domain-service choice.
 
    <details>
    <summary>IGreetingCounter.cs (Full file with XML doc)</summary>
@@ -495,7 +495,7 @@
    ```
    </details>
 
-   **Note:** `internal` in the namespace signals that callers reach this class only through the `IGreetingCounter` interface, never by referencing it directly. ADR-0002 in `## Document the Project` covers the thread-safety choice.
+   **Note:** `internal` in the namespace signals that callers reach this class only through the `IGreetingCounter` interface, never by referencing it directly. ADR-0002 in `## Release` covers the thread-safety choice.
 
    <details>
    <summary>GreetingCounter.cs (Full file with XML doc)</summary>
@@ -665,7 +665,7 @@
 
    **Tip:** `PersonName` shows red, it doesn't exist yet. That's expected: you create it in the next step. Leave the `using` out for now; the IDE adds it once the type exists, or `Option+Enter` (macOS) / `Alt+Enter` (Windows) on the red name.
 
-   **Note:** the entity is the anchor of the model, so you read and build it first, then the value object it needs. `Id` is `Guid.CreateVersion7()`, a time-ordered UUID v7, unlike `Guid.NewGuid()`'s fully random v4; every developer gets one, named or anonymous. ADR-0004 in `## Document the Project` covers that choice.
+   **Note:** the entity is the anchor of the model, so you read and build it first, then the value object it needs. `Id` is `Guid.CreateVersion7()`, a time-ordered UUID v7, unlike `Guid.NewGuid()`'s fully random v4; every developer gets one, named or anonymous. ADR-0004 in `## Release` covers that choice.
 
    **Note:** no commit here. The file doesn't compile on its own yet (`PersonName` doesn't exist), so this skeleton goes in with the `PersonName` commit in the next step.
 
@@ -1379,110 +1379,6 @@
 
    **Note:** the release name carries a `v` prefix (`v1.0.0`), matching the git tag it becomes on finish. The `.csproj` `<Version>` stays plain (`1.0.0`), and so does the `CHANGELOG.md` heading (`## [1.0.0]`): NuGet and Keep a Changelog conventions don't use the prefix.
 
-2. **Bump the version.** A release branch needs at least one commit of its own, or the merge into `develop` is a no-op. Still in **File System** view, open `Acme.Hello.Platform.csproj`, change `<Version>0.1.0-preview</Version>` to `<Version>1.0.0</Version>`.
-
-   ```
-   git add .
-   git commit -m "chore(release): bump version to 1.0.0."
-   ```
-
-3. **Add `CHANGELOG.md`.** Right-click the solution root → `Add` → `File` → type `CHANGELOG.md` → Enter.
-
-   <details>
-   <summary>CHANGELOG.md</summary>
-
-   ```markdown
-   # Changelog
-
-   All notable changes to this project will be documented in this file.
-
-   The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-   and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-   ## [1.0.0] - 2026-09-04
-
-   ### Added
-   - TS01: Retrieve Greeting Count via GET Request.
-   - TS02: Create Greeting via POST Request, personalized or anonymous.
-   - `IGreetingCounter` domain service (thread-safe, `Interlocked`/`Volatile`-backed) tracking personalized and anonymous greeting counts separately, plus their total.
-   - `Developer` entity with UUID v7 identifiers and a `PersonName` value object that's never missing (`PersonName.Anonymous` stands in when one isn't given).
-   - Length validation on `GreetDeveloperRequest` (`[StringLength]`); a missing name is anonymous, not an error.
-   - Requirement Traceability Matrix in `docs/user-stories.md`, Architecture Decision Records in `docs/adrs.md`.
-   ```
-   </details>
-
-   ```
-   git add .
-   git commit -m "docs: add changelog for 1.0.0."
-   ```
-
-   **Note:** don't push here. This commit rides to the remote with `Release Publish` in the next step, together with the version bump; it's also what gives `Release Finish` a real commit to merge into `develop`.
-
-   **Note:** the `## [version] - date` line uses the date you finish the release, `YYYY-MM-DD`.
-
-4. **Publish and finish the release.**
-   - Git Flow Helper widget → `Release` → `Release Publish` (pushes `release/v1.0.0` with both commits).
-   - Git Flow Helper widget → `Release` → `Release Finish`.
-
-   `Release Finish` merges `release/v1.0.0` into `main` (tagging it `v1.0.0`), merges it into `develop`, pushes both, and deletes the release branch. `main` and `develop` are back in sync.
-
-5. **Publish the GitHub Release.**
-   - On GitHub: **Releases** → **Draft a new release**.
-   - Tag: pick the existing `v1.0.0` (do not create a new one).
-   - Release title: `Version 1.0.0` (the title spells it out; the tag keeps the `v` prefix).
-   - Description: the release notes below.
-   - Click **Publish release**.
-
-   <details>
-   <summary>Release notes (1.0.0)</summary>
-
-   ```markdown
-   ## 🚀 Added
-
-   - **TS01: Retrieve Greeting Count via GET Request**: `GET /api/v1/greetings` returns the number of greetings generated, broken down into personalized and anonymous.
-   - **TS02: Create Greeting via POST Request**: `POST /api/v1/greetings` greets a developer, personalized when a first and last name are given, anonymous otherwise, each with a `201 Created` confirmation and its own UUID v7 identifier.
-   - `IGreetingCounter` domain service: thread-safe via `Interlocked`/`Volatile`, personalized and anonymous greetings counted separately, total computed from the two.
-   - `PersonName` value object (`readonly record struct`, always validated, blocked parameterless constructor) with a well-known `Anonymous` value, and the `Developer` entity built over it.
-   - Length validation on `GreetDeveloperRequest` (`[StringLength]` plus `builder.Services.AddValidation()`): a too-long name is a `400`; a missing or blank name is an anonymous greeting, not an error.
-   - OpenAPI document via `Microsoft.AspNetCore.OpenApi`, rendered by Scalar at `/scalar/v1`.
-   - Project `README.md` and MIT license; `docs/user-stories.md` with a Requirement Traceability Matrix, `docs/class-diagram.puml`, `docs/adrs.md`; `CHANGELOG.md` to track version history going forward.
-   ```
-   </details>
-
-   **Tip:** the same works from the command line: `gh release create v1.0.0 --title "Version 1.0.0" --notes-file CHANGELOG.md` (the [GitHub CLI](https://cli.github.com/), authenticated once via `gh auth login`). `--notes-file` takes any Markdown file; `CHANGELOG.md` works here since the tag already exists.
-
-6. **Back on `develop`, pick the `-preview` suffix back up.**
-   - Still in **File System** view, in `Acme.Hello.Platform.csproj`: `<Version>1.0.0</Version>` → `<Version>1.0.1-preview</Version>`, so `develop` doesn't sit on an already-tagged version.
-   - Then:
-
-   ```
-   git add .
-   git commit -m "chore(dev): set development version to 1.0.1-preview."
-   git push
-   ```
-
----
-
-## Document the Project
-
-**Still on `develop`, no Git Flow feature needed:** writing down decisions already made across both features, and shipping the record of them.
-
-1. **Generate the XML documentation from the comments already in your code.** Still in **File System** view, add one property to `Acme.Hello.Platform.csproj`, in the same `<PropertyGroup>` as `<Version>`:
-
-   ```xml
-   <GenerateDocumentationFile>true</GenerateDocumentationFile>
-   ```
-
-   Then:
-
-   ```
-   dotnet build
-   ```
-
-   Open `Acme.Hello.Platform/bin/Debug/net10.0/Acme.Hello.Platform.xml`. Every `<summary>`/`<param>`/`<returns>`/`<exception>` comment written across both user stories turns into a real, structured XML file, exactly what IntelliSense reads to show tooltips.
-
-   **Note:** if you ever see a `CS1591` warning ("missing XML comment for publicly visible member") on a type here, it means some public member is missing its own `<summary>`, a real, honest gap the flag surfaces, not a sign anything is broken. Every type in this project is fully documented, so the build stays clean.
-
 2. **Add these six Architecture Decision Records (ADRs) to a single `docs/adrs.md` file.** Right-click the `docs` folder → `Add` → `File` → `adrs.md`. They document every decision made so far, across both user stories, in one sitting:
    - why the greeting count is a domain service, not a field on `Developer`
    - why the counter is thread-safe via `Interlocked`/`Volatile`, not a `lock`
@@ -1702,7 +1598,111 @@
    git push
    ```
 
-3. **Update `README.md`** now that the ADRs exist. Replace the file from `## Prepare the First Release` with the version below: this adds `see ADR-NNNN` links throughout and an Architecture Decision Records row in `## Project Documentation`.
+3. **Bump the version.** A release branch needs at least one commit of its own, or the merge into `develop` is a no-op. Still in **File System** view, open `Acme.Hello.Platform.csproj`, change `<Version>0.1.0-preview</Version>` to `<Version>1.0.0</Version>`.
+
+   ```
+   git add .
+   git commit -m "chore(release): bump version to 1.0.0."
+   ```
+
+4. **Add `CHANGELOG.md`.** Right-click the solution root → `Add` → `File` → type `CHANGELOG.md` → Enter.
+
+   <details>
+   <summary>CHANGELOG.md</summary>
+
+   ```markdown
+   # Changelog
+
+   All notable changes to this project will be documented in this file.
+
+   The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+   and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+   ## [1.0.0] - 2026-09-04
+
+   ### Added
+   - TS01: Retrieve Greeting Count via GET Request.
+   - TS02: Create Greeting via POST Request, personalized or anonymous.
+   - `IGreetingCounter` domain service (thread-safe, `Interlocked`/`Volatile`-backed) tracking personalized and anonymous greeting counts separately, plus their total.
+   - `Developer` entity with UUID v7 identifiers and a `PersonName` value object that's never missing (`PersonName.Anonymous` stands in when one isn't given).
+   - Length validation on `GreetDeveloperRequest` (`[StringLength]`); a missing name is anonymous, not an error.
+   - Requirement Traceability Matrix in `docs/user-stories.md`, Architecture Decision Records in `docs/adrs.md`.
+   ```
+   </details>
+
+   ```
+   git add .
+   git commit -m "docs: add changelog for 1.0.0."
+   ```
+
+   **Note:** don't push here. This commit rides to the remote with `Release Publish` in the next step, together with the version bump; it's also what gives `Release Finish` a real commit to merge into `develop`.
+
+   **Note:** the `## [version] - date` line uses the date you finish the release, `YYYY-MM-DD`.
+
+5. **Publish and finish the release.**
+   - Git Flow Helper widget → `Release` → `Release Publish` (pushes `release/v1.0.0` with both commits).
+   - Git Flow Helper widget → `Release` → `Release Finish`.
+
+   `Release Finish` merges `release/v1.0.0` into `main` (tagging it `v1.0.0`), merges it into `develop`, pushes both, and deletes the release branch. `main` and `develop` are back in sync.
+
+6. **Publish the GitHub Release.**
+   - On GitHub: **Releases** → **Draft a new release**.
+   - Tag: pick the existing `v1.0.0` (do not create a new one).
+   - Release title: `Version 1.0.0` (the title spells it out; the tag keeps the `v` prefix).
+   - Description: the release notes below.
+   - Click **Publish release**.
+
+   <details>
+   <summary>Release notes (1.0.0)</summary>
+
+   ```markdown
+   ## 🚀 Added
+
+   - **TS01: Retrieve Greeting Count via GET Request**: `GET /api/v1/greetings` returns the number of greetings generated, broken down into personalized and anonymous.
+   - **TS02: Create Greeting via POST Request**: `POST /api/v1/greetings` greets a developer, personalized when a first and last name are given, anonymous otherwise, each with a `201 Created` confirmation and its own UUID v7 identifier.
+   - `IGreetingCounter` domain service: thread-safe via `Interlocked`/`Volatile`, personalized and anonymous greetings counted separately, total computed from the two.
+   - `PersonName` value object (`readonly record struct`, always validated, blocked parameterless constructor) with a well-known `Anonymous` value, and the `Developer` entity built over it.
+   - Length validation on `GreetDeveloperRequest` (`[StringLength]` plus `builder.Services.AddValidation()`): a too-long name is a `400`; a missing or blank name is an anonymous greeting, not an error.
+   - OpenAPI document via `Microsoft.AspNetCore.OpenApi`, rendered by Scalar at `/scalar/v1`.
+   - Project `README.md` and MIT license; `docs/user-stories.md` with a Requirement Traceability Matrix, `docs/class-diagram.puml`, `docs/adrs.md`; `CHANGELOG.md` to track version history going forward.
+   ```
+   </details>
+
+   **Tip:** the same works from the command line: `gh release create v1.0.0 --title "Version 1.0.0" --notes-file CHANGELOG.md` (the [GitHub CLI](https://cli.github.com/), authenticated once via `gh auth login`). `--notes-file` takes any Markdown file; `CHANGELOG.md` works here since the tag already exists.
+
+7. **Back on `develop`, pick the `-preview` suffix back up.**
+   - Still in **File System** view, in `Acme.Hello.Platform.csproj`: `<Version>1.0.0</Version>` → `<Version>1.0.1-preview</Version>`, so `develop` doesn't sit on an already-tagged version.
+   - Then:
+
+   ```
+   git add .
+   git commit -m "chore(dev): set development version to 1.0.1-preview."
+   git push
+   ```
+
+---
+
+## Document the Project
+
+**Still on `develop`, no Git Flow feature needed:** writing down decisions already made across both features, and shipping the record of them.
+
+1. **Generate the XML documentation from the comments already in your code.** Still in **File System** view, add one property to `Acme.Hello.Platform.csproj`, in the same `<PropertyGroup>` as `<Version>`:
+
+   ```xml
+   <GenerateDocumentationFile>true</GenerateDocumentationFile>
+   ```
+
+   Then:
+
+   ```
+   dotnet build
+   ```
+
+   Open `Acme.Hello.Platform/bin/Debug/net10.0/Acme.Hello.Platform.xml`. Every `<summary>`/`<param>`/`<returns>`/`<exception>` comment written across both user stories turns into a real, structured XML file, exactly what IntelliSense reads to show tooltips.
+
+   **Note:** if you ever see a `CS1591` warning ("missing XML comment for publicly visible member") on a type here, it means some public member is missing its own `<summary>`, a real, honest gap the flag surfaces, not a sign anything is broken. Every type in this project is fully documented, so the build stays clean.
+
+2. **Update `README.md`** now that the ADRs exist. Replace the file from `## Prepare the First Release` with the version below: this adds `see ADR-NNNN` links throughout and an Architecture Decision Records row in `## Project Documentation`.
 
    <details>
    <summary>README.md</summary>
