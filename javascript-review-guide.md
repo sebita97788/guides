@@ -177,13 +177,7 @@
    npm start
    ```
 
-   An empty `src/index.js` prints nothing and exits cleanly. Then:
-
-   ```
-   npm test
-   ```
-
-   `npm test` runs ESLint over the project. With no source code yet it reports nothing. No error from either command means Node, npm, and the tooling are set up correctly.
+   An empty `src/index.js` prints nothing and exits cleanly. No error means Node, npm, and the tooling are set up correctly.
 
 8. **Create `docs/user-stories.md`.** Right-click the project root → `New` → `File` → type `docs/user-stories.md` → Enter.
 
@@ -3393,7 +3387,7 @@
 
 **All of this happens on `develop`:** `Feature Finish` leaves you there. These are the last steps before tagging `1.0.0`: two checks, then the files a public repo needs. Every real public repo ships a `LICENSE.md`, a `README.md`, and a `CONTRIBUTING.md`, but none of them belonged at Project Setup, back then there was nothing to describe.
 
-1. **Run the script and the linter end to end.**
+1. **Run the script end to end.**
 
    ```
    npm start
@@ -3409,13 +3403,7 @@
    Error: PurchaseOrder cannot be canceled once Completed
    ```
 
-   Then:
-
-   ```
-   npm test
-   ```
-
-   `npm test` runs ESLint over the project; it should report no errors. There are no unit tests: this manual `npm start` run, checked against every scenario in `docs/user-stories.md`, is the acceptance check, and `npm test` guards code quality.
+   There are no unit tests: this manual `npm start` run, checked against every scenario in `docs/user-stories.md`, is the acceptance check.
 
    **Tip:** `npm run format` runs Prettier over `src/` and the root files, so everything stays in one style.
 
