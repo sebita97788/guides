@@ -1057,7 +1057,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
     }
 
     get fullName() {
-        return this._name ? this._name.fullName : "Unknown";
+        return this._name.fullName || "Unknown";
     }
     ```
     </details>
@@ -1086,7 +1086,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
         }
 
         get fullName() {
-            return this._name ? this._name.fullName : "Unknown";
+            return this._name.fullName || "Unknown";
         }
 
         isRegisterable() {
@@ -1159,7 +1159,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
          * @returns {string}
          */
         get fullName() {
-            return this._name ? this._name.fullName : "Unknown";
+            return this._name.fullName || "Unknown";
         }
 
         /**
@@ -1249,7 +1249,6 @@ A visitor types a first and last name and clicks **Register**. This story builds
       if (developer.isRegisterable()) {
         emit("developer-registered", { developer });
         clearFields();
-        errorMessage.value = "";
       } else {
         errorMessage.value = "Please provide both first name and last name.";
       }
@@ -1355,7 +1354,6 @@ A visitor types a first and last name and clicks **Register**. This story builds
       if (developer.isRegisterable()) {
         emit("developer-registered", { developer });
         clearFields();
-        errorMessage.value = "";
       } else {
         errorMessage.value = "Please provide both first name and last name.";
       }
@@ -1823,12 +1821,17 @@ A **Later** button lets the visitor drop a pending registration: the form clears
    function deferRegistration() {
      emit("registration-deferred", {developer: null});
      clearFields();
-     errorMessage.value = "";
    }
    ```
    </details>
 
-   Add `'registration-deferred'` to the `defineEmits([...])` array.
+   <details>
+   <summary>src/greetings/presentation/components/developer-registration.vue (defineEmits, updated)</summary>
+
+   ```javascript
+   const emit = defineEmits(['developer-registered', 'registration-deferred']);
+   ```
+   </details>
 
    **Note:** the payload is `{ developer: null }`, on purpose. It has the same shape as `developer-registered`'s payload (an object with a `developer` key), so both handlers in `app.vue` can stay simple, but the value says "there is no developer", which is exactly what deferring means.
 
@@ -2123,7 +2126,6 @@ A **Clear** button empties the inputs without touching the current greeting or c
      if (developer.isRegisterable()) {
        emit("developer-registered", { developer });
        clearFields();
-       errorMessage.value = "";
      } else {
        errorMessage.value = "Please provide both first name and last name.";
      }
@@ -2136,7 +2138,6 @@ A **Clear** button empties the inputs without touching the current greeting or c
    function deferRegistration() {
      emit("registration-deferred", {developer: null});
      clearFields();
-     errorMessage.value = "";
    }
 
    /**
