@@ -26,7 +26,19 @@
 ## Project Setup
 
 1. **Install Node.js (the latest LTS).** npm comes bundled with it.
-   - macOS:
+   - macOS: check Homebrew itself is installed first:
+
+     ```
+     brew --version
+     ```
+
+     No output, or `command not found: brew`? Install it:
+
+     ```
+     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+     ```
+
+     The installer prints one or two `echo` commands near the end, under "Next steps", that add Homebrew to your `PATH`, they differ by chip (Apple Silicon vs Intel) and shell. Run exactly the ones it shows you, then close the terminal and open a new one, and confirm with `brew --version` before continuing. Now install Node:
 
      ```
      brew install node@24
@@ -4056,23 +4068,31 @@ On a shared macOS machine, a file or folder owned by another account causes one 
 
 Both mean the path is not owned by your account. A project's `npm install` only writes to `node_modules/` and the npm cache (`~/.npm`), both of which you own, so it should **never** need `sudo`; when it does, something is owned by `root`, usually because `sudo npm install` was run once before.
 
-**Don't keep adding `sudo`.** Give the path back to your account. On the lab machines the account is `alumnos` and the group is `staff`; put your project's path in place of the placeholder:
+**Don't keep adding `sudo`.** Give the path back to your account instead, `$(whoami)`/`$(id -gn)` resolve to whoever is actually logged in and their primary group, so the same command works on a lab machine or your own Mac; put your project's path in place of the placeholder:
 
 ```
-sudo chown -R alumnos:staff {CHANGE_WITH_YOUR_PATH}
+sudo chown -R "$(whoami):$(id -gn)" {CHANGE_WITH_YOUR_PATH}
 ```
 
 For example:
 
 ```
-sudo chown -R alumnos:staff ~/Documents/javascript-review
+sudo chown -R "$(whoami):$(id -gn)" ~/javascript-review
 ```
 
-On your own Mac, use your account name (what `whoami` prints) instead of `alumnos`. If `npm install` was the failure, do the npm cache too:
+If `npm install` was the failure, do the npm cache too:
 
 ```
-sudo chown -R alumnos:staff ~/.npm
+sudo chown -R "$(whoami):$(id -gn)" ~/.npm
 ```
+
+**If `npm install` still fails with `EACCES` after that**, the cache isn't actually at `~/.npm`, check where it really lives (`npm config get cache`), delete whatever path that prints, and let npm rebuild it from scratch under the right owner:
+
+```
+sudo rm -rf ~/.npm
+```
+
+No `sudo` on the `npm install` that follows, letting the folder not exist is what makes npm recreate it correctly.
 
 Then delete any half-written `node_modules/` and install again as yourself, no `sudo`:
 

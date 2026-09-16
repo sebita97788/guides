@@ -37,7 +37,19 @@
 
    - If `node --version` prints `v24.20.x` or higher, you are done with this step, skip to step 2.
    - If it prints an older `v24` (like `v24.14.x`), or anything else, or "command not found", install or update Node:
-     - macOS:
+     - macOS: check Homebrew itself is installed first:
+
+       ```
+       brew --version
+       ```
+
+       No output, or `command not found: brew`? Install it:
+
+       ```
+       /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+       ```
+
+       The installer prints one or two `echo` commands near the end, under "Next steps", that add Homebrew to your `PATH`, they differ by chip (Apple Silicon vs Intel) and shell. Run exactly the ones it shows you, then close the terminal and open a new one, and confirm with `brew --version` before continuing. Now install Node:
 
        ```
        brew update
@@ -56,15 +68,21 @@
 
      `node --version` must now read `v24.20.x` or higher.
 
-   **Note:** this project needs at least `24.20`, not just "any `24`": older `24.x` patches (`24.14` in particular) have caused real problems on lab machines with the rest of this course's toolchain. `24.20` is the floor, a newer patch is fine too.
+   **Note:** this project needs at least `24.20`, not just "any `24`". This course standardizes on the same Node version across every lab project, including the Angular ones, so if you already installed `24.20` or newer for another course project, there is nothing to do here.
 
    **Note:** on some lab Macs, `brew install node@24` finishes with no error but `node --version` still shows an older `v24.x.x` (for example `v24.14.0`), it still matches "starts with `v24`", so it is easy to miss, this is exactly the case above. Homebrew installs a versioned formula like `node@24` "keg-only", without linking it onto your `PATH`, so whatever `node` was already there (another Homebrew formula, or the system one) keeps running. `brew update` alone does not fix an already-installed keg-only formula still on `PATH`. Point your shell at the versioned install instead:
+
+   Run both of these, one per shell config file, so this works no matter which shell your terminal actually reads, zsh is the default on current macOS but older setups (or ones changed by hand) still use bash:
+
+   ```
+   echo 'export PATH="/opt/homebrew/opt/node@24/bin:$PATH"' >> ~/.zshrc
+   ```
 
    ```
    echo 'export PATH="/opt/homebrew/opt/node@24/bin:$PATH"' >> ~/.bash_profile
    ```
 
-   **You must restart the terminal for this to take effect**, close the terminal window or tab entirely and open a new one (an already-open tab keeps the old `PATH` even after this command runs; if you have WebStorm open, restart its Terminal tool window too). Then check `node --version` again. If your terminal runs zsh instead (macOS's current default shell), use `~/.zshrc` in place of `~/.bash_profile`.
+   **You must restart the terminal for this to take effect**, close the terminal window or tab entirely and open a new one (an already-open tab keeps the old `PATH` even after this command runs; if you have WebStorm open, restart its Terminal tool window too). Then check `node --version` again.
 
    If a later step complains it cannot find Node's headers or libraries while compiling something, also export these (once per terminal session, or add them to the same profile file):
 
@@ -75,23 +93,43 @@
 
    **Note:** `24` is the LTS line this guide targets, `24.20` and up is what it requires. [nodejs.org](https://nodejs.org) shows the current LTS major on its front page; this project runs fine on a newer LTS too.
 
-   **Note:** on a shared lab Mac, every student uses the same `alumnos` account, so if a previous student ran an `npm install` command with `sudo` at some point, its npm cache (`~/.npm`) is now owned by `root` instead of `alumnos`. When that happens, every later `npm install` fails with an `EACCES` permission error, even on a machine where Node itself is installed correctly. This does not happen on every machine, so fix it now, before the first `npm install` in step 2, running it does nothing if the cache was already fine:
+   **Note:** on a shared lab Mac, every student uses the same account, so if a previous student ran an `npm install` command with `sudo` at some point, its npm cache (`~/.npm`) is now owned by `root` instead of the account you're on. When that happens, every later `npm install` fails with an `EACCES` permission error, even on a machine where Node itself is installed correctly. This does not happen on every machine, so fix it now, before the first `npm install` in step 2, running it does nothing if the cache was already fine:
 
    ```
-   sudo chown -R alumnos:staff ~/.npm
+   sudo chown -R "$(whoami):$(id -gn)" ~/.npm
    ```
 
-   On your own Mac, use your own account instead of `alumnos`:
+   `$(whoami)` and `$(id -gn)` resolve to whoever is actually logged in and their own primary group, on a lab Mac that's the shared lab account, on your own Mac it's you, same command either way.
+
+   **If `npm install` still fails with `EACCES` after this**, the cache isn't actually at `~/.npm`, check where it really lives:
 
    ```
-   sudo chown -R "$(whoami):staff" ~/.npm
+   npm config get cache
    ```
+
+   Delete whatever path that prints and let npm rebuild it from scratch, under the right owner (substitute the real path if it wasn't `~/.npm`):
+
+   ```
+   sudo rm -rf ~/.npm
+   ```
+
+   ```
+   npm install
+   ```
+
+   No `sudo` on that second command, letting the folder not exist is what makes npm recreate it correctly.
 
    Never fix a permission error by adding more `sudo`, it only moves the ownership problem to the next command. This is a macOS-only fix, Windows does not use this permission model, `npm install` there fails differently, from a read-only folder, which is fixed through the folder's `Properties` dialog, not the terminal.
 
 2. **Create the project.** Two ways, pick one. Either leaves the same scaffold on disk.
 
-   **Option A, from the terminal.** In the folder where you keep your projects (on the lab Macs, `~/Documents`), run:
+   **Option A, from the terminal.** `cd` into the folder where you keep your projects, for example:
+
+   ```
+   cd ~/projects
+   ```
+
+   Then create the project there:
 
    ```
    npm create vite@latest hello-vue-developer -- --template vue
@@ -122,22 +160,16 @@
    - **Node runtime:** leave at its detected default.
    - **Vite:** leave this dropdown at its default value, `npx create-vite`.
    - **Template:** pick `Vue` from the dropdown.
-   - Make sure **Use TypeScript template** is unchecked, this project is plain JavaScript.
+   - **Make sure "Use TypeScript template" is unchecked**, this project is plain JavaScript.
    - **Create**, then run `npm install` in the WebStorm terminal if the wizard did not do it for you.
 
-   **Note:** on a shared lab Mac, either option can fail with a permissions error, because a previous account owns files under your home folder or the new project folder. Take ownership, then re-run the failed command. The lab account is `alumnos`, group `staff`:
+   **Note:** on a shared lab Mac, either option can fail with a permissions error, because a previous account owns files under your home folder or the new project folder. Take ownership, then re-run the failed command, `$(whoami)`/`$(id -gn)` resolve to whoever is actually logged in and their primary group, the same command works whether that's the shared lab account or your own:
 
    ```
-   sudo chown -R alumnos:staff ~/Documents
+   sudo chown -R "$(whoami):$(id -gn)" ~/hello-vue-developer
    ```
 
-   Then the project folder itself, since the recursive command above sometimes still leaves it unwritable. Use the path where you actually created it:
-
-   ```
-   sudo chown -R alumnos:staff ~/Documents/hello-vue-developer
-   ```
-
-   The paths are examples: put your own project location in (for instance `~/Documents/<your-nrc>/hello-vue-developer`). On your own Mac, use your account instead of `alumnos` (run `whoami`). Full details, including the `npm install` case and the Windows equivalent, are in [Appendix: Fixing file or folder permissions](#fixing-file-or-folder-permissions).
+   The path is an example: put your own project location in. Full details, including the `npm install` case and the Windows equivalent, are in [Appendix: Fixing file or folder permissions](#fixing-file-or-folder-permissions).
 
 3. **Adjust the project metadata in `package.json`.** Open it. Leave `name`, `type`, `scripts`, `dependencies`, and `devDependencies` exactly as the scaffold wrote them; only touch the top:
    - Change `"version": "0.0.0"` to `"version": "0.1.0"`.
@@ -590,7 +622,78 @@ A visitor types a first and last name and clicks **Register**. This story builds
 
    **Note:** no commit here. The file does not run yet, `PersonName` and `DeveloperId` don't exist.
 
-4. **Create the `PersonName` value object, undocumented.** Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/person-name.value-object` → Enter (WebStorm adds the `.js` and creates the folders). A value object is small enough to write whole: fields, constructor, accessors, and equality, all in this one step. It trims both names on the way in; an empty or all-whitespace name becomes `""`, never `null` or `undefined`. `fullName` joins whichever parts are present; `equals()` compares by value; `isValid()` (an alias for `isFullyNamed()`) is the invariant the rest of the domain relies on: both names present.
+4. **Create the `PersonName` value object, fields and constructor.** Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/person-name.value-object` → Enter (WebStorm adds the `.js` and creates the folders). It trims both names on the way in; an empty or all-whitespace name becomes `""`, never `null` or `undefined`.
+
+   <details>
+   <summary>src/shared/domain/model/person-name.value-object.js (fields and constructor)</summary>
+
+   ```javascript
+   export class PersonName {
+       _firstName;
+       _lastName;
+
+       constructor(firstName, lastName) {
+           const trimmedFirstName = firstName?.trim() || "";
+           const trimmedLastName = lastName?.trim() || "";
+           this._firstName = trimmedFirstName;
+           this._lastName = trimmedLastName;
+       }
+   }
+   ```
+   </details>
+
+   **Note:** `firstName?.trim() || ""` combines two operators. `?.` is optional chaining, if `firstName` is `null` or `undefined`, it stops right there and evaluates to `undefined` instead of throwing on `.trim()`. `||` is a fallback, if what is on its left is falsy, `undefined`, an empty string, `0`, and so on, it evaluates to the right side instead. Together: call `.trim()` only if there is something to call it on, and fall back to `""` either way, whether `firstName` was missing or trimming it left nothing. The result is always a string, never `null` or `undefined`. Spaces do not render reliably in a table or in regular text, so the table below marks each one with `·`:
+
+   | raw `firstName` passed in | `_firstName` after the constructor |
+   |---|---|
+   | `"··Ada··"` | `"Ada"` |
+   | `"···"` (only spaces) | `""` |
+
+   **Note:** no commit here, nothing can read `_firstName`/`_lastName` from outside the class yet, that's the next step.
+
+5. **Add the read accessors.** `firstName` and `lastName` expose the trimmed fields as-is; `fullName` combines them.
+
+   <details>
+   <summary>src/shared/domain/model/person-name.value-object.js (so far)</summary>
+
+   ```javascript
+   export class PersonName {
+       _firstName;
+       _lastName;
+
+       constructor(firstName, lastName) {
+           const trimmedFirstName = firstName?.trim() || "";
+           const trimmedLastName = lastName?.trim() || "";
+           this._firstName = trimmedFirstName;
+           this._lastName = trimmedLastName;
+       }
+
+       get firstName() {
+           return this._firstName;
+       }
+
+       get lastName() {
+           return this._lastName;
+       }
+
+       get fullName() {
+           return [this._firstName, this._lastName].filter(name => name.length > 0).join(" ");
+       }
+   }
+   ```
+   </details>
+
+   **Note:** `fullName` builds an array with both names, drops the empty ones with `.filter(name => name.length > 0)`, then glues whatever is left with `.join(" ")`. `.join(" ")` places its argument between every pair of array elements, so two elements get exactly one space between them, and one element gets none, there is no pair to separate. It always works off the already-trimmed fields from the constructor, so it never has to deal with stray spaces itself. `·` marks the one space `.join(" ")` inserts:
+
+   | `_firstName` | `_lastName` | after `.filter(...)` | `fullName` |
+   |---|---|---|---|
+   | `"Ada"` | `"Lovelace"` | `["Ada", "Lovelace"]` | `"Ada·Lovelace"` |
+   | `"Ada"` | `""` | `["Ada"]` | `"Ada"` |
+   | `""` | `""` | `[]` | `""` |
+
+   **Note:** no commit here, `PersonName` still has no way to compare or validate itself, that's next.
+
+6. **Add equality and the validation checks.** `equals()` compares by value; `isValid()` (an alias for `isFullyNamed()`) is the invariant the rest of the domain relies on: both names present.
 
    <details>
    <summary>src/shared/domain/model/person-name.value-object.js (so far)</summary>
@@ -636,24 +739,9 @@ A visitor types a first and last name and clicks **Register**. This story builds
    ```
    </details>
 
-   **Note:** `firstName?.trim() || ""` combines two operators. `?.` is optional chaining, if `firstName` is `null` or `undefined`, it stops right there and evaluates to `undefined` instead of throwing on `.trim()`. `||` is a fallback, if what is on its left is falsy, `undefined`, an empty string, `0`, and so on, it evaluates to the right side instead. Together: call `.trim()` only if there is something to call it on, and fall back to `""` either way, whether `firstName` was missing or trimming it left nothing. The result is always a string, never `null` or `undefined`. Spaces do not render reliably in a table or in regular text, so the table below marks each one with `·`:
-
-   | raw `firstName` passed in | `_firstName` after the constructor |
-   |---|---|
-   | `"··Ada··"` | `"Ada"` |
-   | `"···"` (only spaces) | `""` |
-
-   **Note:** `fullName` builds an array with both names, drops the empty ones with `.filter(name => name.length > 0)`, then glues whatever is left with `.join(" ")`. `.join(" ")` places its argument between every pair of array elements, so two elements get exactly one space between them, and one element gets none, there is no pair to separate. It always works off the already-trimmed fields from the constructor, so it never has to deal with stray spaces itself. `·` again marks the one space `.join(" ")` inserts:
-
-   | `_firstName` | `_lastName` | after `.filter(...)` | `fullName` |
-   |---|---|---|---|
-   | `"Ada"` | `"Lovelace"` | `["Ada", "Lovelace"]` | `"Ada·Lovelace"` |
-   | `"Ada"` | `""` | `["Ada"]` | `"Ada"` |
-   | `""` | `""` | `[]` | `""` |
-
    **Note:** no commit here, `PersonName` works but is undocumented, the next step adds that.
 
-5. **Add `PersonName`'s doc comments.** It does not change again after this, so it gets its doc comments now, right after the last method, not spread across the steps that added each one.
+7. **Add `PersonName`'s doc comments.** It does not change again after this, so it gets its doc comments now, right after the last method, not spread across the steps that added each one.
 
    <details>
    <summary>src/shared/domain/model/person-name.value-object.js (Full file with doc comments)</summary>
@@ -792,7 +880,61 @@ A visitor types a first and last name and clicks **Register**. This story builds
    git commit -m "feat(shared): add uuid generation utility."
    ```
 
-8. **Create `DeveloperId`, undocumented.** Right-click `src` → `New` → `JavaScript File` → type `greetings/domain/model/developer-id.value-object` → Enter (WebStorm adds the `.js`). Fields, constructor, accessors, the factory, and equality, all in one step, same as `PersonName`. Unlike `PersonName`, this constructor throws: a `DeveloperId` that exists at all is guaranteed to wrap a well-formed UUID v7. `build()` is the only way this project ever creates one from scratch; the constructor stays available for reconstructing one from a known-good stored value.
+8. **Create `DeveloperId`, fields and constructor.** Right-click `src` → `New` → `JavaScript File` → type `greetings/domain/model/developer-id.value-object` → Enter (WebStorm adds the `.js`). Unlike `PersonName`, this constructor throws: a `DeveloperId` that exists at all is guaranteed to wrap a well-formed UUID v7.
+
+   <details>
+   <summary>src/greetings/domain/model/developer-id.value-object.js (fields and constructor)</summary>
+
+   ```javascript
+   import {isValidUUID} from "../../../shared/domain/uuid.js";
+
+   export class DeveloperId {
+       _value;
+
+       constructor(value) {
+           if (!isValidUUID(value)) {
+               throw new Error(`Invalid UUID: ${value}`);
+           }
+           this._value = value;
+       }
+   }
+   ```
+   </details>
+
+   **Note:** no commit here, nothing calls this constructor successfully yet, there is no way to generate a value for it, that is the next step.
+
+9. **Add the accessor and the factory.** `build()` is the only way this project ever creates a `DeveloperId` from scratch; the constructor stays available for reconstructing one from a known-good stored value.
+
+   <details>
+   <summary>src/greetings/domain/model/developer-id.value-object.js (so far)</summary>
+
+   ```javascript
+   import {generateUUID, isValidUUID} from "../../../shared/domain/uuid.js";
+
+   export class DeveloperId {
+       _value;
+
+       constructor(value) {
+           if (!isValidUUID(value)) {
+               throw new Error(`Invalid UUID: ${value}`);
+           }
+           this._value = value;
+       }
+
+       get value() {
+           return this._value;
+       }
+
+       static build() {
+           return new DeveloperId(generateUUID());
+       }
+   }
+   ```
+   </details>
+
+   **Note:** no commit here, `DeveloperId` still can't be compared or printed, that's next.
+
+10. **Add equality and the string conversion.**
 
    <details>
    <summary>src/greetings/domain/model/developer-id.value-object.js (so far)</summary>
@@ -831,7 +973,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
 
    **Note:** no commit here, `DeveloperId` works but is undocumented, the next step adds that.
 
-9. **Add `DeveloperId`'s doc comments.**
+11. **Add `DeveloperId`'s doc comments.**
 
    <details>
    <summary>src/greetings/domain/model/developer-id.value-object.js (Full file with doc comments)</summary>
@@ -2844,29 +2986,31 @@ On a shared lab machine, `npm install` or the project folder itself can end up o
 - Files created outside the IDE (from the terminal) don't show up in WebStorm's **Project** tool window, or the IDE can't save over them.
 - `npm install` fails with `EACCES`, or only works with `sudo` (which then makes the problem worse, because the files it writes are owned by `root`).
 
-Fix the ownership of the whole project tree in one go. On the lab Macs the login account is `alumnos` and its group is `staff`:
+Fix the ownership of the whole project tree in one go, `$(id -gn)` resolves to the logged-in account's own primary group, one command works on the lab Macs and on your own Mac alike:
 
 ```
-sudo chown -R alumnos:staff {CHANGE_WITH_YOUR_PATH}
+sudo chown -R "$(whoami):$(id -gn)" {CHANGE_WITH_YOUR_PATH}
 ```
 
-For example, if the project is in `~/Documents/hello-vue-developer`:
+For example, if the project is in `~/hello-vue-developer`:
 
 ```
-sudo chown -R alumnos:staff ~/Documents/hello-vue-developer
-```
-
-On your own Mac, use your own account instead of `alumnos` (run `whoami` to see it):
-
-```
-sudo chown -R "$(whoami):staff" ~/Documents/hello-vue-developer
+sudo chown -R "$(whoami):$(id -gn)" ~/hello-vue-developer
 ```
 
 If `npm` itself has been run with `sudo` before, its cache is root-owned too:
 
 ```
-sudo chown -R alumnos:staff ~/.npm
+sudo chown -R "$(whoami):$(id -gn)" ~/.npm
 ```
+
+**If `npm install` still fails with `EACCES` after that**, the cache isn't actually at `~/.npm`, check where it really lives (`npm config get cache`), delete whatever path that prints, and let npm rebuild it from scratch under the right owner:
+
+```
+sudo rm -rf ~/.npm
+```
+
+No `sudo` on the `npm install` that follows, letting the folder not exist is what makes npm recreate it correctly.
 
 Then delete `node_modules` and reinstall **without** `sudo`:
 

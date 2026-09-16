@@ -10,6 +10,7 @@ Bookmark this repo once. A new guide lands here as each project is covered, in c
 - [Hello ASP.NET Developer](hello-asp-net-developer-guide.md): Object-Oriented Programming and Domain-Driven Design in an ASP.NET Core Minimal API, a single bounded context (`Profiles`) behind a personalized-or-anonymous greeting endpoint.
 - [JavaScript Review](javascript-review-guide.md): Object-Oriented Programming and Domain-Driven Design in JavaScript, a Supply Chain and Procurement console application built outside-in across seven user stories, with value objects, an aggregate root, ECMAScript private fields, `Object.freeze` immutability, Git Flow, and a full release.
 - [Hello Vue Developer](hello-vue-developer-guide.md): a first Vue application with the Composition API and `<script setup>`, greeting and tracking registered developers across five user stories, applying Domain-Driven Design with a Greetings bounded context and a Shared Kernel, with Git Flow and a full release.
+- [Catch Up](catch-up-guide.md): a newsreader Vue application built outside-in across four user stories, applying Domain-Driven Design with a News bounded context and a Shared Kernel, immutable entities and value objects, PrimeVue, vue-i18n, and axios, with Git Flow and a full release.
 
 ## How to use a guide
 
