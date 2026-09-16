@@ -285,27 +285,27 @@
    # Note: In real scenarios, this file is not committed to the repository.
 
    # VITE_NEWS_API_KEY is the API key for the News API.
-   VITE_NEWS_API_KEY="your_news_api_key"
+   VITE_NEWS_API_KEY="0d5b87d6eed74a768b7f2f7a3ca1bafb"
    # VITE_NEWS_API_URL is the base URL for the News API.
    VITE_NEWS_API_URL="https://newsapi.org/v2"
    # VITE_LOGO_API_URL is the base URL for the Logo.dev API.
    VITE_LOGO_API_URL="https://img.logo.dev"
    # VITE_LOGO_PUBLISHABLE_API_KEY is the publishable API key for the Logo.dev API.
-   VITE_LOGO_PUBLISHABLE_API_KEY="your_logo_dev_publishable_key"
+   VITE_LOGO_PUBLISHABLE_API_KEY="pk_bufKzaXPQFeNkMz5gxZWAA"
    # VITE_SOURCES_ENDPOINT_PATH is the path to the news sources endpoint.
    VITE_SOURCES_ENDPOINT_PATH="/top-headlines/sources"
    # VITE_TOP_HEADLINES_ENDPOINT_PATH is the path to the top headlines endpoint.
    VITE_TOP_HEADLINES_ENDPOINT_PATH="/top-headlines"
    # VITE_PRIME_UI_LICENSE_KEY is the license key for the Prime UI library.
-   VITE_PRIME_UI_LICENSE_KEY="your_prime_ui_license_key"
+   VITE_PRIME_UI_LICENSE_KEY="eyJpZCI6IjZlODA0NjNhLTJkMGMtNGI2ZC1iYmI1LTAwYjk3OWFkMGFmNCIsInByb2R1Y3QiOiJwcmltZXVpIiwidGllciI6ImNvbW11bml0eSIsInR5cGUiOiJkZXYiLCJpYXQiOjE3ODk1NTQ5MzAsImV4cCI6MTgyMTA5MDkzMH0.yvULBRGTn5hRzalLkmTf6BZaJYSwrK2LS6hLxTtO9fI0W2sgsCFpfcVHjfbqEQQe3i84X_KEZQv-WAQbRj9IAg"
    ```
    </details>
 
    Do the same for `.env.production`, same content.
 
-   Paste in the three keys from the previous three steps: `VITE_NEWS_API_KEY` gets the NewsAPI.org key, `VITE_LOGO_PUBLISHABLE_API_KEY` gets the `pk_` key, `VITE_PRIME_UI_LICENSE_KEY` gets the PrimeVue Community license key. Get your own keys for each, never reuse someone else's, none of these three services are optional, the app calls all of them.
+   All three keys above are disposable demo keys, shown so you see the exact shape each provider issues (NewsAPI.org: 32 lowercase hex characters; Logo.dev: `pk_` followed by a token; PrimeVue: a signed JWT), not something to keep using. Replace all three with the keys from your own accounts, from steps 8, 9, and 10. None of these three services are optional, the app calls all of them, and a demo key shared by the whole class will run out of quota fast.
 
-   **Note:** `.env.development` and `.env.production` hold working keys here because this is a teaching project on a scaffold Vite already ignores real secrets from (`*.local` in `.gitignore` covers `.env.local`, the file meant for a key you do not want committed at all). A real production app would keep every key out of source control; treat these two files the same way you would treat any other credential, do not paste a key you were not personally issued into a repository other people can see.
+   **Note:** `.env.development` and `.env.production` hold working keys here because this is a teaching project on a scaffold Vite already ignores real secrets from (`*.local` in `.gitignore` covers `.env.local`, the file meant for a key you do not want committed at all). A real production app would keep every key out of source control; treat these two files the same way you would treat any other credential, once you swap in your own keys, do not paste a key you were not personally issued into a repository other people can see.
 
    ```
    git add .
