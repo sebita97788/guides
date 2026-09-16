@@ -49,11 +49,13 @@
        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
        ```
 
-       The installer prints one or two `echo` commands near the end, under "Next steps", that add Homebrew to your `PATH`, they differ by chip (Apple Silicon vs Intel) and shell. Run exactly the ones it shows you, then close the terminal and open a new one, and confirm with `brew --version` before continuing. Now install Node:
+       The installer prints one or two `echo` commands near the end, under "Next steps", that add Homebrew to your `PATH`, they differ by chip (Apple Silicon vs Intel) and shell. Run exactly the ones it shows you, then close the terminal and open a new one. Confirm it worked:
 
        ```
-       brew update
+       brew --version
        ```
+
+       Now install Node:
 
        ```
        brew install node@24
@@ -93,7 +95,7 @@
 
    **Note:** `24` is the LTS line this guide targets, `24.20` and up is what it requires. [nodejs.org](https://nodejs.org) shows the current LTS major on its front page; this project runs fine on a newer LTS too.
 
-   **Note:** on a shared lab Mac, every student uses the same account, so if a previous student ran an `npm install` command with `sudo` at some point, its npm cache (`~/.npm`) is now owned by `root` instead of the account you're on. When that happens, every later `npm install` fails with an `EACCES` permission error, even on a machine where Node itself is installed correctly. This does not happen on every machine, so fix it now, before the first `npm install` in step 2, running it does nothing if the cache was already fine:
+   **Note:** on a shared lab Mac, every student uses the same account, so if a previous student ran an `npm install` command with `sudo` at some point, its npm cache (`~/.npm`) is now owned by `root` instead of the account you're on. When that happens, every later `npm install` fails with an `EACCES` permission error, even on a machine where Node itself is installed correctly. Run it now, before the first `npm install` in step 2, whether or not you think it applies to you, it's a no-op if the cache was already fine, so there's no downside to always running it:
 
    ```
    sudo chown -R "$(whoami):$(id -gn)" ~/.npm
@@ -101,25 +103,7 @@
 
    `$(whoami)` and `$(id -gn)` resolve to whoever is actually logged in and their own primary group, on a lab Mac that's the shared lab account, on your own Mac it's you, same command either way.
 
-   **If `npm install` still fails with `EACCES` after this**, the cache isn't actually at `~/.npm`, check where it really lives:
-
-   ```
-   npm config get cache
-   ```
-
-   Delete whatever path that prints and let npm rebuild it from scratch, under the right owner (substitute the real path if it wasn't `~/.npm`):
-
-   ```
-   sudo rm -rf ~/.npm
-   ```
-
-   ```
-   npm install
-   ```
-
-   No `sudo` on that second command, letting the folder not exist is what makes npm recreate it correctly.
-
-   Never fix a permission error by adding more `sudo`, it only moves the ownership problem to the next command. This is a macOS-only fix, Windows does not use this permission model, `npm install` there fails differently, from a read-only folder, which is fixed through the folder's `Properties` dialog, not the terminal.
+   Don't fix an `EACCES` error by running `npm install` itself with `sudo`, that only moves the ownership problem to whatever it writes next, `chown` above is the actual fix; `sudo` is fine, even necessary, for the `chown` command itself. This is a macOS-only fix, Windows does not use this permission model, `npm install` there fails differently, from a read-only folder, which is fixed through the folder's `Properties` dialog, not the terminal. If `npm install` still fails with `EACCES` once a real project exists, see [Appendix: Fixing file or folder permissions](#fixing-file-or-folder-permissions) for the full escalation.
 
 2. **Create the project.** Two ways, pick one. Either leaves the same scaffold on disk.
 
@@ -493,7 +477,25 @@
 
     **Sign in first.**
     - Install the GitHub CLI once.
-      - macOS:
+      - macOS: check Homebrew itself is installed first:
+
+        ```
+        brew --version
+        ```
+
+        No output, or `command not found: brew`? Install it:
+
+        ```
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        ```
+
+        The installer prints one or two `echo` commands near the end, under "Next steps", that add Homebrew to your `PATH`, they differ by chip (Apple Silicon vs Intel) and shell. Run exactly the ones it shows you, then close the terminal and open a new one. Confirm it worked:
+
+        ```
+        brew --version
+        ```
+
+        Now install the CLI:
 
         ```
         brew install gh
@@ -2641,16 +2643,14 @@ A **Clear** button empties the inputs without touching the current greeting or c
    git push
    ```
 
-3. **Confirm the Requirement Traceability Matrix in `docs/user-stories.md`** maps every scenario to what implements it. It was added at Project Setup; check each row still points at the right class now that all the code exists.
-
-4. **Bump the version.** A release branch needs at least one commit of its own, or the merge into `develop` is a no-op. Open `package.json`, change `"version": "0.1.0"` to `"version": "1.0.0"`.
+3. **Bump the version.** A release branch needs at least one commit of its own, or the merge into `develop` is a no-op. Open `package.json`, change `"version": "0.1.0"` to `"version": "1.0.0"`.
 
    ```
    git add .
    git commit -m "chore(release): bump version to 1.0.0."
    ```
 
-5. **Add `CHANGELOG.md`.** Right-click the project root → `New` → `File` → type `CHANGELOG.md` → Enter.
+4. **Add `CHANGELOG.md`.** Right-click the project root → `New` → `File` → type `CHANGELOG.md` → Enter.
 
    <details>
    <summary>CHANGELOG.md</summary>
@@ -2683,23 +2683,24 @@ A **Clear** button empties the inputs without touching the current greeting or c
    ```
    git add .
    git commit -m "docs: add changelog for 1.0.0."
-   git push
    ```
+
+   **Note:** don't push here. This commit rides to the remote with `Release Publish` in the next step, together with the version bump; it's also what gives `Release Finish` a real commit to merge into `develop`.
 
    **Note:** the `## [version] - date` line uses the date you finish the release, `YYYY-MM-DD`.
 
-6. **Publish and finish the release.**
+5. **Publish and finish the release.**
    - Git Flow Helper widget → `Release` → `Release Publish` (pushes `release/v1.0.0` with both commits).
    - Git Flow Helper widget → `Release` → `Release Finish`.
 
    `Release Finish` merges `release/v1.0.0` into `main` (tagging it `v1.0.0`), merges it into `develop`, pushes both, and deletes the release branch. `main` and `develop` are back in sync.
 
-7. **Publish the GitHub Release.**
+6. **Publish the GitHub Release.**
    - On GitHub: **Releases** → **Draft a new release**.
    - Tag: pick the existing `v1.0.0` (do not create a new one).
    - Release title: `Version 1.0.0` (the title spells it out; the tag keeps the `v` prefix).
    - Description: the release notes below.
-   - **Set as the latest release** checked; **Set as a pre-release** unchecked.
+   - Release label: leave the default, **None**, selected, don't pick **Pre-release**.
    - Click **Publish release**.
 
    <details>
@@ -2720,7 +2721,7 @@ A **Clear** button empties the inputs without touching the current greeting or c
    ```
    </details>
 
-8. **Back on `develop`, move to the next development version.**
+7. **Back on `develop`, move to the next development version.**
    - In `package.json`: `"version": "1.0.0"` → `"version": "1.0.1"`, so `develop` doesn't sit on an already-tagged version. The next change decides whether it becomes `1.0.1` (a fix) or `1.1.0` (a feature).
    - Then:
 
@@ -3026,7 +3027,25 @@ On Windows this rarely happens; if a file is read-only, right-click it → `Prop
 
 The plantuml4idea plugin needs a local Java runtime and Graphviz to render some diagrams. If `docs/class-diagram.puml` shows an error instead of a diagram, install a JDK and Graphviz, then restart WebStorm.
 
-On macOS:
+On macOS, check Homebrew itself is installed first:
+
+```
+brew --version
+```
+
+No output, or `command not found: brew`? Install it:
+
+```
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+The installer prints one or two `echo` commands near the end, under "Next steps", that add Homebrew to your `PATH`, they differ by chip (Apple Silicon vs Intel) and shell. Run exactly the ones it shows you, then close the terminal and open a new one. Confirm it worked:
+
+```
+brew --version
+```
+
+Now install Graphviz:
 
 ```
 brew install graphviz

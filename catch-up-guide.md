@@ -43,11 +43,13 @@
      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
      ```
 
-     The installer prints one or two `echo` commands near the end, under "Next steps", that add Homebrew to your `PATH`, they differ by chip (Apple Silicon vs Intel) and shell. Run exactly the ones it shows you, then close the terminal and open a new one, and confirm with `brew --version` before continuing. Now install Node:
+     The installer prints one or two `echo` commands near the end, under "Next steps", that add Homebrew to your `PATH`, they differ by chip (Apple Silicon vs Intel) and shell. Run exactly the ones it shows you, then close the terminal and open a new one. Confirm it worked:
 
      ```
-     brew update
+     brew --version
      ```
+
+     Now install Node:
 
      ```
      brew install node@24
@@ -88,7 +90,7 @@
 
    **Note:** `24` is the LTS line this guide targets, `24.20` and up is what it requires. [nodejs.org](https://nodejs.org) shows the current LTS major on its front page; this project runs fine on a newer LTS too.
 
-   **Note:** on a shared lab Mac, every student uses the same account, so if a previous student ran an `npm install` command with `sudo` at some point, its npm cache (`~/.npm`) is now owned by `root` instead of the account you're on. When that happens, every later `npm install` fails with an `EACCES` permission error, even on a machine where Node itself is installed correctly. This does not happen on every machine, so fix it now, before the first `npm install` in step 2, running it does nothing if the cache was already fine:
+   **Note:** on a shared lab Mac, every student uses the same account, so if a previous student ran an `npm install` command with `sudo` at some point, its npm cache (`~/.npm`) is now owned by `root` instead of the account you're on. When that happens, every later `npm install` fails with an `EACCES` permission error, even on a machine where Node itself is installed correctly. Run it now, before the first `npm install` in step 2, whether or not you think it applies to you, it's a no-op if the cache was already fine, so there's no downside to always running it:
 
    ```
    sudo chown -R "$(whoami):$(id -gn)" ~/.npm
@@ -96,25 +98,7 @@
 
    `$(whoami)` and `$(id -gn)` resolve to whoever is actually logged in and their own primary group, on a lab Mac that's the shared lab account, on your own Mac it's you, same command either way.
 
-   **If `npm install` still fails with `EACCES` after this**, the cache isn't actually at `~/.npm`, check where it really lives:
-
-   ```
-   npm config get cache
-   ```
-
-   Delete whatever path that prints and let npm rebuild it from scratch, under the right owner (substitute the real path if it wasn't `~/.npm`):
-
-   ```
-   sudo rm -rf ~/.npm
-   ```
-
-   ```
-   npm install
-   ```
-
-   No `sudo` on that second command, letting the folder not exist is what makes npm recreate it correctly.
-
-   Never fix a permission error by adding more `sudo`, it only moves the ownership problem to the next command. This is a macOS-only fix, Windows does not use this permission model, `npm install` there fails differently, from a read-only folder, which is fixed through the folder's `Properties` dialog, not the terminal.
+   Don't fix an `EACCES` error by running `npm install` itself with `sudo`, that only moves the ownership problem to whatever it writes next, `chown` above is the actual fix; `sudo` is fine, even necessary, for the `chown` command itself. This is a macOS-only fix, Windows does not use this permission model, `npm install` there fails differently, from a read-only folder, which is fixed through the folder's `Properties` dialog, not the terminal. If `npm install` still fails with `EACCES` once a real project exists, see [Appendix: Fixing file or folder permissions](#fixing-file-or-folder-permissions) for the full escalation.
 
 2. **Create the project.** Two ways, pick one. Either leaves the same scaffold on disk.
 
@@ -150,7 +134,7 @@
    npm install
    ```
 
-   Unlike some scaffolding tools, `npm create vite` does **not** initialize git for you, that stays an explicit step, in step 19 below.
+   Unlike some scaffolding tools, `npm create vite` does **not** initialize git for you, that stays an explicit step, in step 4 below.
 
    Then open it in the editor:
 
@@ -176,7 +160,56 @@
 
    Full details, including the `npm install` case and the Windows equivalent, are in [Appendix: Fixing file or folder permissions](#fixing-file-or-folder-permissions).
 
-3. **Adjust the project metadata in `package.json`.** Open it. Leave `name`, `type`, `scripts`, `dependencies`, and `devDependencies` exactly as the scaffold wrote them; only touch the top:
+3. **Update the wizard's `.gitignore`.** Before the repository exists, so the very first commit already ignores the right things instead of tracking a few files this project doesn't want, then having to untrack them later. Vite already generated one at the project root; every section is exactly what this project needs except one, the editor section ignores everything under `.vscode/` except one file (`!.vscode/extensions.json`), which is how a WebStorm-only project can still end up with a stray `.vscode/` folder tracked on GitHub. Ignore the whole folder instead.
+
+   <details>
+   <summary>.gitignore</summary>
+
+   ```
+   # Logs
+   logs
+   *.log
+   npm-debug.log*
+   yarn-debug.log*
+   yarn-error.log*
+   pnpm-debug.log*
+   lerna-debug.log*
+
+   node_modules
+   dist
+   dist-ssr
+   *.local
+
+   # Editor directories and files
+   .vscode/
+   .idea
+   .DS_Store
+   *.suo
+   *.ntvs*
+   *.njsproj
+   *.sln
+   *.sw?
+   ```
+   </details>
+
+   **Note:** no commit here, no repository exists yet, this edit rides into the first commit the next step makes.
+
+4. **Initialize the local repository.** Right here, on the wizard output plus the `.gitignore` fix, before touching anything else, so every change from this point on gets its own commit instead of piling up into one at the end.
+
+   ```
+   git init -b main
+   git config user.name "Your Name"
+   git config user.email "your.email@example.com"
+   ```
+
+   See [git-from-repo-root trap](#removing-a-stray-git-folder) if this ever ends up run from the wrong folder.
+
+   ```
+   git add .
+   git commit -m "chore: initial commit."
+   ```
+
+5. **Adjust the project metadata in `package.json`.** Open it. Leave `name`, `type`, `scripts`, `dependencies`, and `devDependencies` exactly as the scaffold wrote them; only touch the top:
    - Change `"version": "0.0.0"` to `"version": "0.0.1"`.
    - Add `"description"`, `"author"`, and `"license"` right after `"version"`:
 
@@ -188,7 +221,12 @@
 
    **Note:** starting at `0.0.1`, well below `1.0.0`, signals early development: the structure and behavior can still change freely from one version to the next. `## Release` at the end of this guide bumps it to `1.0.0`, the first version meant to stay stable.
 
-4. **Replace the wizard's starter page.** The scaffold ships a demo counter (`src/components/HelloWorld.vue`, wired into `src/App.vue`). This project builds its own components instead.
+   ```
+   git add .
+   git commit -m "chore: update project metadata."
+   ```
+
+6. **Replace the wizard's starter page.** The scaffold ships a demo counter (`src/components/HelloWorld.vue`, wired into `src/App.vue`). This project builds its own components instead.
    - Rename `src/App.vue` to `src/app.vue`. Right-click the file → `Refactor` → `Rename`, or rename it from the File System view and fix the import by hand.
 
      **Note:** on Windows, and on a Mac with the default file system, file names are not case-sensitive, so a rename that only changes the case (`App.vue` to `app.vue`) can silently do nothing, the file stays `App.vue`. If that happens, rename it twice, first to any different name, then to the final one:
@@ -233,9 +271,7 @@
    git commit -m "chore: replace the wizard's starter page with an empty shell."
    ```
 
-   **Note:** no repository exists yet (step 19 creates one), so this commit, like every commit before then, is staged only in your head, not run for real until then. Keep reading, the git commands throughout this guide are exactly what you will run once the repository exists.
-
-5. **Add PrimeVue.** This project's UI components (`pv-button`, `pv-drawer`, `pv-card`, and the rest) come from it, not from hand-rolled markup.
+7. **Add PrimeVue.** This project's UI components (`pv-button`, `pv-drawer`, `pv-card`, and the rest) come from it, not from hand-rolled markup.
 
    ```
    npm install primevue @primeuix/themes primeicons primeflex
@@ -243,13 +279,23 @@
 
    **Note:** `primevue` is the component library itself; `@primeuix/themes` is its theming engine (this project uses the `Material` preset); `primeicons` and `primeflex` are its icon font and CSS utility classes, both used throughout the templates below (`pi pi-share-alt`, `flex`, `gap-2`, and so on).
 
-6. **Add vue-i18n.** The language switcher and every translated string this app shows depend on it.
+   ```
+   git add .
+   git commit -m "chore: add PrimeVue dependency."
+   ```
+
+8. **Add vue-i18n.** The language switcher and every translated string this app shows depend on it.
 
    ```
    npm install vue-i18n
    ```
 
-7. **Add axios.** The HTTP client this project's API calls use, instead of the browser's built-in `fetch`.
+   ```
+   git add .
+   git commit -m "chore: add vue-i18n dependency."
+   ```
+
+9. **Add axios.** The HTTP client this project's API calls use, instead of the browser's built-in `fetch`.
 
    ```
    npm install axios
@@ -257,24 +303,29 @@
 
    **Note:** three separate installs (PrimeVue, vue-i18n, axios), not one combined command. Each one is its own concern, and if any single install fails (a flaky network on a lab machine, for instance), you know exactly which dependency to retry, not which one of several to suspect.
 
-8. **Get a NewsAPI.org API key.**
+   ```
+   git add .
+   git commit -m "chore: add axios dependency."
+   ```
+
+10. **Get a NewsAPI.org API key.**
    - Go to [newsapi.org/register](https://newsapi.org/register).
    - Fill in the form: **First name**, **Email address**, **Choose a password**, **You are...** (pick `Individual`), check the box agreeing to the terms.
    - Submit the form. Your account page shows your API key, a 32-character string, copy it.
 
-9. **Get a Logo.dev publishable key.**
+11. **Get a Logo.dev publishable key.**
    - Go to [logo.dev](https://logo.dev/) and create a free account.
    - Open the dashboard's **API Keys** page (`logo.dev/dashboard/api-keys`). Your **publishable key** is the one prefixed `pk_`, copy that one, not the `sk_` secret key next to it.
 
    **Note:** `pk_` keys are meant to sit in client-side code, that is exactly what this app does with it, a browser calling `img.logo.dev` directly. The `sk_` secret key is for server-to-server calls this app never makes, never put it here.
 
-10. **Get a PrimeVue Community license key.** PrimeVue 22 and up needs a license key even for free use, the library paints a banner over the whole app without one.
+12. **Get a PrimeVue Community license key.** PrimeVue 22 and up needs a license key even for free use, the library paints a banner over the whole app without one.
     - Go to [primeui.dev/licenses/community](https://primeui.dev/licenses/community) and confirm you're eligible (the free Community license covers individuals, students, non-profits, and small organizations under specific revenue/headcount thresholds listed on that page).
     - Registration is self-service, based on your own confirmation of eligibility, no manual approval step. Copy the license key it issues you.
 
     **Note:** a Community key needs renewing once a year to reconfirm eligibility, with a 30-day grace period after it expires. Verification happens offline, the library never phones home to check it.
 
-11. **Add the environment variables.** This project talks to three real external services, NewsAPI.org, Logo.dev, and PrimeVue's own license check. Right-click the project root → `New` → `File` → type `.env.development` → Enter.
+13. **Add the environment variables.** This project talks to three real external services, NewsAPI.org, Logo.dev, and PrimeVue's own license check. Right-click the project root → `New` → `File` → type `.env.development` → Enter.
 
    <details>
    <summary>.env.development</summary>
@@ -328,7 +379,7 @@
    ```
    </details>
 
-   All three keys above are disposable demo keys, shown so you see the exact shape each provider issues (NewsAPI.org: 32 lowercase hex characters; Logo.dev: `pk_` followed by a token; PrimeVue: a signed JWT), not something to keep using. Replace all three with the keys from your own accounts, from steps 8, 9, and 10. None of these three services are optional, the app calls all of them, and a demo key shared by the whole class will run out of quota fast.
+   All three keys above are disposable demo keys, shown so you see the exact shape each provider issues (NewsAPI.org: 32 lowercase hex characters; Logo.dev: `pk_` followed by a token; PrimeVue: a signed JWT), not something to keep using. Replace all three with the keys from your own accounts, from steps 10, 11, and 12. None of these three services are optional, the app calls all of them, and a demo key shared by the whole class will run out of quota fast.
 
    **Note:** `.env.development` and `.env.production` hold working keys here because this is a teaching project on a scaffold Vite already ignores real secrets from (`*.local` in `.gitignore` covers `.env.local`, the file meant for a key you do not want committed at all). A real production app would keep every key out of source control; treat these two files the same way you would treat any other credential, once you swap in your own keys, do not paste a key you were not personally issued into a repository other people can see.
 
@@ -337,7 +388,7 @@
    git commit -m "chore: add environment variable files."
    ```
 
-12. **Look at the architecture, then model the system at the C4 Context level.**
+14. **Look at the architecture, then model the system at the C4 Context level.**
    - Real projects rarely start from a blank slate: the course already sets DDD and this bounded-context split as part of the Definition of Done. What is ahead is learning to read a given architecture and implement it well.
    - Install the **plantuml4idea** plugin so every diagram in this guide renders: `File` → `Settings` → `Plugins` → `Marketplace` → search `plantuml4idea` → `Install`. Restart the IDE if prompted.
    - Right-click the `docs` folder → `New` → `Directory` → type `c4` → Enter.
@@ -369,7 +420,12 @@
 
    **Note:** `!includeurl` fetches the C4 macro definitions (`Person`, `System`, `System_Ext`, `Rel`, ...) from a public GitHub URL at render time, this needs internet access, unlike `class-diagram.puml`'s plain PlantUML which needs none. If it shows an error instead of a diagram, see [Appendix: If a PlantUML diagram doesn't render](#if-a-plantuml-diagram-doesnt-render).
 
-13. **Model the system at the C4 Container level.** One level in: the separately runnable pieces inside CatchUp, each one something you could deploy and run on its own. Still nothing about what is inside any one of them.
+   ```
+   git add .
+   git commit -m "docs: add C4 context diagram."
+   ```
+
+15. **Model the system at the C4 Container level.** One level in: the separately runnable pieces inside CatchUp, each one something you could deploy and run on its own. Still nothing about what is inside any one of them.
 
    <details>
    <summary>docs/c4/containers.puml</summary>
@@ -400,7 +456,12 @@
 
    **Note:** two containers, not one, `npm run build` only outputs static files, something still has to serve them over HTTP, that is `Nginx`'s job. The `Single Page Application` container is where every line of JavaScript in this guide ends up running, entirely inside the user's browser.
 
-14. **Model the SPA's components by bounded context (C4).** One level deeper, into a single container: the Single Page Application's major internal building blocks. This view groups them by DDD bounded context, the same news/shared split `class-diagram.puml` uses.
+   ```
+   git add .
+   git commit -m "docs: add C4 container diagram."
+   ```
+
+16. **Model the SPA's components by bounded context (C4).** One level deeper, into a single container: the Single Page Application's major internal building blocks. This view groups them by DDD bounded context, the same news/shared split `class-diagram.puml` uses.
 
    <details>
    <summary>docs/c4/components-frontend.puml</summary>
@@ -428,7 +489,12 @@
    ```
    </details>
 
-15. **Model the news bounded context's components (C4).** One level deeper than the previous step, into the `news` box specifically: not "what does the SPA divide into" but "how is `news` itself divided", by layer.
+   ```
+   git add .
+   git commit -m "docs: add C4 component diagram by bounded context."
+   ```
+
+17. **Model the news bounded context's components (C4).** One level deeper than the previous step, into the `news` box specifically: not "what does the SPA divide into" but "how is `news` itself divided", by layer.
 
    <details>
    <summary>docs/c4/components-frontend-news.puml</summary>
@@ -461,7 +527,12 @@
 
    **Note:** no C4 diagram for what NewsAPI.org or Logo.dev look like on the inside, they are `System_Ext`, systems this project doesn't own and has no visibility into past their public API. C4 only models what is actually yours to draw.
 
-16. **Model the shared kernel's components (C4).** The same zoom level as the previous step, the other box from `components-frontend.puml`: how `shared` is divided internally.
+   ```
+   git add .
+   git commit -m "docs: add C4 news component diagram."
+   ```
+
+18. **Model the shared kernel's components (C4).** The same zoom level as the previous step, the other box from `components-frontend.puml`: how `shared` is divided internally.
 
    <details>
    <summary>docs/c4/components-frontend-shared.puml</summary>
@@ -489,7 +560,12 @@
 
    **Note:** no `Rel` between Shared's own `domain`, `infrastructure`, and `presentation`, because there genuinely isn't one: `LogoDevApi`/`errorInterceptor` don't touch `Url`/`DateTime`/`StringValidator`, and `Layout`/`LanguageSwitcher`/`FooterContent` don't call either. Each is an independent utility the `news` context reaches into on its own (`components-frontend.puml`'s `Rel(news, shared, "Uses")` is that cross-context call, one level up), which is exactly what makes `shared` a shared kernel rather than a bounded context with its own use case.
 
-17. **Go one level deeper than C4: the class diagram.** C4 stops at Components on purpose, it never shows individual classes or their members. The actual classes, fields, and methods this guide builds are one level of detail past what C4 draws, in a plain (non-C4) PlantUML class diagram.
+   ```
+   git add .
+   git commit -m "docs: add C4 shared component diagram."
+   ```
+
+19. **Go one level deeper than C4: the class diagram.** C4 stops at Components on purpose, it never shows individual classes or their members. The actual classes, fields, and methods this guide builds are one level of detail past what C4 draws, in a plain (non-C4) PlantUML class diagram.
 
    <details>
    <summary>docs/class-diagram.puml</summary>
@@ -693,52 +769,10 @@
 
    If it shows an error instead of a diagram, see [Appendix: If a PlantUML diagram doesn't render](#if-a-plantuml-diagram-doesnt-render).
 
-18. **Update the wizard's `.gitignore`.** Vite already generated one at the project root; every section is exactly what this project needs except one, the editor section ignores everything under `.vscode/` except one file (`!.vscode/extensions.json`), which is how a WebStorm-only project can still end up with a stray `.vscode/` folder tracked on GitHub. Ignore the whole folder instead.
-
-    <details>
-    <summary>.gitignore</summary>
-
-    ```
-    # Logs
-    logs
-    *.log
-    npm-debug.log*
-    yarn-debug.log*
-    yarn-error.log*
-    pnpm-debug.log*
-    lerna-debug.log*
-
-    node_modules
-    dist
-    dist-ssr
-    *.local
-
-    # Editor directories and files
-    .vscode/
-    .idea
-    .DS_Store
-    *.suo
-    *.ntvs*
-    *.njsproj
-    *.sln
-    *.sw?
-    ```
-    </details>
-
-19. **Initialize the local repository.**
-
-    ```
-    git init -b main
-    git config user.name "Your Name"
-    git config user.email "your.email@example.com"
-    ```
-
-    See [git-from-repo-root trap](#removing-a-stray-git-folder) if this ever ends up run from the wrong folder.
-
-    ```
-    git add .
-    git commit -m "chore: default setup."
-    ```
+   ```
+   git add .
+   git commit -m "docs: add class diagram."
+   ```
 
 20. **Connect to GitHub.**
 
@@ -4537,16 +4571,14 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    git commit -m "docs: add architecture decision records."
    ```
 
-3. **Confirm the Requirement Traceability Matrix in `docs/user-stories.md`** maps every scenario to what implements it. It was added with the user stories; check each row still points at the right class now that all the code exists.
-
-4. **Bump the version.** A release branch needs at least one commit of its own, or the merge into `develop` is a no-op. Open `package.json`, change `"version": "0.0.1"` to `"version": "1.0.0"`.
+3. **Bump the version.** A release branch needs at least one commit of its own, or the merge into `develop` is a no-op. Open `package.json`, change `"version": "0.0.1"` to `"version": "1.0.0"`.
 
    ```
    git add .
    git commit -m "chore(release): bump version to 1.0.0."
    ```
 
-5. **Add `CHANGELOG.md`.** Right-click the project root → `New` → `File` → type `CHANGELOG.md` → Enter.
+4. **Add `CHANGELOG.md`.** Right-click the project root → `New` → `File` → type `CHANGELOG.md` → Enter.
 
    <details>
    <summary>CHANGELOG.md</summary>
@@ -4580,23 +4612,24 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    ```
    git add .
    git commit -m "docs: add changelog for 1.0.0."
-   git push
    ```
+
+   **Note:** don't push here. This commit rides to the remote with `Release Publish` in the next step, together with the version bump; it's also what gives `Release Finish` a real commit to merge into `develop`.
 
    **Note:** the `## [version] - date` line uses the date you finish the release, `YYYY-MM-DD`.
 
-6. **Publish and finish the release.**
+5. **Publish and finish the release.**
    - Git Flow Helper widget → `Release` → `Release Publish` (pushes `release/v1.0.0` with both commits).
    - Git Flow Helper widget → `Release` → `Release Finish`.
 
    `Release Finish` merges `release/v1.0.0` into `main` (tagging it `v1.0.0`), merges it into `develop`, pushes both, and deletes the release branch. `main` and `develop` are back in sync.
 
-7. **Publish the GitHub Release.**
+6. **Publish the GitHub Release.**
    - On GitHub: **Releases** → **Draft a new release**.
    - Tag: pick the existing `v1.0.0` (do not create a new one).
    - Release title: `Version 1.0.0` (the title spells it out; the tag keeps the `v` prefix).
    - Description: the release notes below.
-   - **Set as the latest release** checked; **Set as a pre-release** unchecked.
+   - Release label: leave the default, **None**, selected, don't pick **Pre-release**.
    - Click **Publish release**.
 
    <details>
@@ -4615,7 +4648,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    ```
    </details>
 
-8. **Back on `develop`, move to the next development version.**
+7. **Back on `develop`, move to the next development version.**
    - In `package.json`: `"version": "1.0.0"` → `"version": "1.0.1"`, so `develop` doesn't sit on an already-tagged version. The next change decides whether it becomes `1.0.1` (a fix) or `1.1.0` (a feature).
    - Then:
 
@@ -4656,7 +4689,7 @@ Once you have pushed your work it is on GitHub, so you can carry on from any mac
    npm install
    ```
 
-3. **Fill in your own keys.** The clone already has `.env.development` and `.env.production` with the placeholder values from Project Setup step 11. Replace the three placeholders in each with your own NewsAPI, Logo.dev, and PrimeVue keys (Project Setup steps 8-10), they are not something `npm install` restores.
+3. **Fill in your own keys.** The clone already has `.env.development` and `.env.production` with the demo values from Project Setup step 13. Replace the three demo values in each with your own NewsAPI, Logo.dev, and PrimeVue keys (Project Setup steps 10-12), they are not something `npm install` restores.
 
 4. **Reinstall the tools that live outside the repo.** Plugins live in the IDE, not the repo: reinstall the Git Flow Helper plugin (Project Setup step 21) if this machine does not have it.
 
@@ -4765,7 +4798,7 @@ Remove-Item -Recurse -Force .git   # Windows PowerShell
 rmdir /s /q .git                   # Windows Command Prompt
 ```
 
-Then initialize from the project root as step 19 describes:
+Then initialize from the project root as step 4 describes:
 
 ```
 git init -b main
@@ -4816,6 +4849,32 @@ On Windows this rarely happens; if a file is read-only, right-click it → `Prop
 ### If a PlantUML diagram doesn't render
 
 The plantuml4idea plugin needs a local Java runtime and Graphviz to render some diagrams. If `docs/class-diagram.puml` shows an error instead of a diagram, install a JDK and Graphviz, then restart WebStorm.
+
+On macOS, check Homebrew itself is installed first:
+
+```
+brew --version
+```
+
+No output, or `command not found: brew`? Install it:
+
+```
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+The installer prints one or two `echo` commands near the end, under "Next steps", that add Homebrew to your `PATH`, they differ by chip (Apple Silicon vs Intel) and shell. Run exactly the ones it shows you, then close the terminal and open a new one. Confirm it worked:
+
+```
+brew --version
+```
+
+Now install Graphviz:
+
+```
+brew install graphviz
+```
+
+On Windows, download and run the installer from [graphviz.org](https://graphviz.org/download/).
 
 The five diagrams under `docs/c4/` have an extra requirement: each starts with `!includeurl`, which downloads the C4-PlantUML macro definitions from GitHub the first time it renders. If one of them errors out specifically on the `!includeurl` line, check the machine has internet access and isn't behind a proxy or firewall blocking `raw.githubusercontent.com`.
 

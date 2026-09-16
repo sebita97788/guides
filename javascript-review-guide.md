@@ -38,7 +38,13 @@
      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
      ```
 
-     The installer prints one or two `echo` commands near the end, under "Next steps", that add Homebrew to your `PATH`, they differ by chip (Apple Silicon vs Intel) and shell. Run exactly the ones it shows you, then close the terminal and open a new one, and confirm with `brew --version` before continuing. Now install Node:
+     The installer prints one or two `echo` commands near the end, under "Next steps", that add Homebrew to your `PATH`, they differ by chip (Apple Silicon vs Intel) and shell. Run exactly the ones it shows you, then close the terminal and open a new one. Confirm it worked:
+
+     ```
+     brew --version
+     ```
+
+     Now install Node:
 
      ```
      brew install node@24
@@ -778,7 +784,25 @@
 
     **Sign in first.**
     - Install the GitHub CLI once.
-      - macOS:
+      - macOS: check Homebrew itself is installed first:
+
+        ```
+        brew --version
+        ```
+
+        No output, or `command not found: brew`? Install it:
+
+        ```
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        ```
+
+        The installer prints one or two `echo` commands near the end, under "Next steps", that add Homebrew to your `PATH`, they differ by chip (Apple Silicon vs Intel) and shell. Run exactly the ones it shows you, then close the terminal and open a new one. Confirm it worked:
+
+        ```
+        brew --version
+        ```
+
+        Now install the CLI:
 
         ```
         brew install gh
@@ -3873,16 +3897,14 @@
    git push
    ```
 
-3. **Confirm the Requirement Traceability Matrix in `docs/user-stories.md`** maps every scenario to what implements it. It was added with the user stories; check each row still points at the right class now that all the code exists.
-
-4. **Bump the version.** A release branch needs at least one commit of its own, or the merge into `develop` is a no-op. Open `package.json`, change `"version": "0.1.0"` to `"version": "1.0.0"`.
+3. **Bump the version.** A release branch needs at least one commit of its own, or the merge into `develop` is a no-op. Open `package.json`, change `"version": "0.1.0"` to `"version": "1.0.0"`.
 
    ```
    git add .
    git commit -m "chore(release): bump version to 1.0.0."
    ```
 
-5. **Add `CHANGELOG.md`.** Right-click the project root → `New` → `File` → type `CHANGELOG.md` → Enter.
+4. **Add `CHANGELOG.md`.** Right-click the project root → `New` → `File` → type `CHANGELOG.md` → Enter.
 
    <details>
    <summary>CHANGELOG.md</summary>
@@ -3921,23 +3943,24 @@
    ```
    git add .
    git commit -m "docs: add changelog for 1.0.0."
-   git push
    ```
+
+   **Note:** don't push here. This commit rides to the remote with `Release Publish` in the next step, together with the version bump; it's also what gives `Release Finish` a real commit to merge into `develop`.
 
    **Note:** the `## [version] - date` line uses the date you finish the release, `YYYY-MM-DD`.
 
-6. **Publish and finish the release.**
+5. **Publish and finish the release.**
    - Git Flow Helper widget → `Release` → `Release Publish` (pushes `release/v1.0.0` with both commits).
    - Git Flow Helper widget → `Release` → `Release Finish`.
 
    `Release Finish` merges `release/v1.0.0` into `main` (tagging it `v1.0.0`), merges it into `develop`, pushes both, and deletes the release branch. `main` and `develop` are back in sync.
 
-7. **Publish the GitHub Release.**
+6. **Publish the GitHub Release.**
    - On GitHub: **Releases** → **Draft a new release**.
    - Tag: pick the existing `v1.0.0` (do not create a new one).
    - Release title: `Version 1.0.0` (the title spells it out; the tag keeps the `v` prefix).
    - Description: the release notes below.
-   - **Set as the latest release** checked; **Set as a pre-release** unchecked.
+   - Release label: leave the default, **None**, selected, don't pick **Pre-release**.
    - Click **Publish release**.
 
    <details>
@@ -3957,7 +3980,7 @@
    ```
    </details>
 
-8. **Back on `develop`, move to the next development version.**
+7. **Back on `develop`, move to the next development version.**
    - In `package.json`: `"version": "1.0.0"` → `"version": "1.0.1"`, so `develop` doesn't sit on an already-tagged version. The next change decides whether it becomes `1.0.1` (a fix) or `1.1.0` (a feature).
    - Then:
 

@@ -329,7 +329,21 @@
 
     **Sign in first.**
     - Install the GitHub CLI once.
-      - macOS:
+      - macOS: check Homebrew itself is installed first:
+        ```
+        brew --version
+        ```
+        No output, or `command not found: brew`? Install it:
+        ```
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        ```
+        The installer prints one or two `echo` commands near the end, under "Next steps", that add Homebrew to your `PATH`, they differ by chip (Apple Silicon vs Intel) and shell. Run exactly the ones it shows you, then close the terminal and open a new one. Confirm it worked:
+
+        ```
+        brew --version
+        ```
+
+        Now install the CLI:
         ```
         brew install gh
         ```
@@ -2061,7 +2075,7 @@ A `Hotfix` is for a defect in a release that is already tagged and published, wh
    - Tag: pick the existing `v1.0.1` (do not create a new one).
    - Release title: `Version 1.0.1`.
    - Description: the release notes below.
-   - **Set as the latest release** checked; **Set as a pre-release** unchecked.
+   - Release label: leave the default, **None**, selected, don't pick **Pre-release**.
    - Click **Publish release**.
 
    <details>

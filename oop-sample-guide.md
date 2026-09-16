@@ -290,7 +290,21 @@
 
    **Sign in first.**
    - Install the GitHub CLI once.
-     - macOS:
+     - macOS: check Homebrew itself is installed first:
+       ```
+       brew --version
+       ```
+       No output, or `command not found: brew`? Install it:
+       ```
+       /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+       ```
+       The installer prints one or two `echo` commands near the end, under "Next steps", that add Homebrew to your `PATH`, they differ by chip (Apple Silicon vs Intel) and shell. Run exactly the ones it shows you, then close the terminal and open a new one. Confirm it worked:
+
+       ```
+       brew --version
+       ```
+
+       Now install the CLI:
        ```
        brew install gh
        ```
@@ -5351,7 +5365,25 @@ No `gh`? Do the whole thing through the GitHub website plus plain `git`.
 
 The `plantuml4idea` plugin needs Graphviz for some diagrams. If `docs/class-diagram.puml` shows an error instead of a rendered diagram, install Graphviz and restart the IDE.
 
-On macOS:
+On macOS, check Homebrew itself is installed first:
+
+```
+brew --version
+```
+
+No output, or `command not found: brew`? Install it:
+
+```
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+The installer prints one or two `echo` commands near the end, under "Next steps", that add Homebrew to your `PATH`, they differ by chip (Apple Silicon vs Intel) and shell. Run exactly the ones it shows you, then close the terminal and open a new one. Confirm it worked:
+
+```
+brew --version
+```
+
+Now install Graphviz:
 
 ```
 brew install graphviz
