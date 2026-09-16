@@ -1059,7 +1059,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
     }
 
     get fullName() {
-        return this._name.fullName || "Unknown";
+        return this._name?.fullName || "Unknown";
     }
     ```
     </details>
@@ -1088,7 +1088,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
         }
 
         get fullName() {
-            return this._name.fullName || "Unknown";
+            return this._name?.fullName || "Unknown";
         }
 
         isRegisterable() {
@@ -1161,7 +1161,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
          * @returns {string}
          */
         get fullName() {
-            return this._name.fullName || "Unknown";
+            return this._name?.fullName || "Unknown";
         }
 
         /**
