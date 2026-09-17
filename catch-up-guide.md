@@ -2089,7 +2089,13 @@ A visitor opens the app and sees a drawer listing every available news source, w
     git commit -m "feat: add Layout component, wired into app.vue."
     ```
 
-30. **Run it.** `npm run dev`, open the local URL Vite prints. A "CatchUp" button opens a drawer with a real list of news sources, fetched live from NewsAPI. Click one, the drawer closes. Nothing else on the page changes yet, that's US002. Stop the server with `Ctrl+C`.
+30. **Run it.**
+
+    ```
+    npm run dev
+    ```
+
+    Open the local URL Vite prints. A "CatchUp" button opens a drawer with a real list of news sources, fetched live from NewsAPI. Click one, the drawer closes. Nothing else on the page changes yet, that's US002. Stop the server with `Ctrl+C`.
 
 31. **Publish and finish the feature.**
 
@@ -3003,7 +3009,13 @@ Choosing a source now only marks it active. This story makes it load and show re
     git commit -m "feat: show ArticleList in Layout."
     ```
 
-18. **Run it.** `npm run dev`. Choosing a source now loads real articles for it: title, image (or the placeholder), author when one exists, and a formatted publish date. Click **Share** on an article, its URL lands on your clipboard (or your device's native share sheet opens, if it supports the Web Share API). Stop the server with `Ctrl+C`.
+18. **Run it.**
+
+    ```
+    npm run dev
+    ```
+
+    Choosing a source now loads real articles for it: title, image (or the placeholder), author when one exists, and a formatted publish date. Click **Share** on an article, its URL lands on your clipboard (or your device's native share sheet opens, if it supports the Web Share API). Stop the server with `Ctrl+C`.
 
 19. **Publish and finish the feature.**
 
@@ -3605,7 +3617,12 @@ Every string shown so far is hardcoded English. This story adds real internation
     git commit -m "feat(i18n): translate ArticleItem's text."
     ```
 
-12. **Run it.** `npm run dev`. The switcher in the top bar changes every visible string, article text included, immediately. Disconnect from the network and reload: `UnavailableContent`'s message appears instead of a blank page. Stop the server with `Ctrl+C`.
+
+    ```
+    npm run dev
+    ```
+
+    The switcher in the top bar changes every visible string, article text included, immediately. Disconnect from the network and reload: `UnavailableContent`'s message appears instead of a blank page. Stop the server with `Ctrl+C`.
 
 13. **Publish and finish the feature.**
 
@@ -3983,7 +4000,13 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    git commit -m "feat(news): show SourceSummary from ArticleItem."
    ```
 
-6. **Run it.** `npm run dev`. Click a source's name or avatar on any article card, a popover opens with its description, category, language, country, and a link to its website. Stop the server with `Ctrl+C`.
+6. **Run it.**
+
+    ```
+    npm run dev
+    ```
+
+    Click a source's name or avatar on any article card, a popover opens with its description, category, language, country, and a link to its website. Stop the server with `Ctrl+C`.
 
 7. **Publish and finish the feature.**
 

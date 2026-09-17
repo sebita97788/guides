@@ -1490,7 +1490,13 @@ A visitor types a first and last name and clicks **Register**. This story builds
     git commit -m "feat(app): add state management for developer registration."
     ```
 
-22. **Run it.** `npm run dev`, open `http://localhost:5173/`. Register "Jane" and "Smith": the form clears with no error. Try just "Jane", or two fields of spaces, or nothing at all: the error message appears and nothing is emitted. Stop the server with `Ctrl+C`.
+22. **Run it.**
+
+    ```
+    npm run dev
+    ```
+
+    Open `http://localhost:5173/`. Register "Jane" and "Smith": the form clears with no error. Try just "Jane", or two fields of spaces, or nothing at all: the error message appears and nothing is emitted. Stop the server with `Ctrl+C`.
 
 23. **Publish and finish the feature.** Git Flow Helper widget → `Feature` → `Feature Publish`, then → `Feature Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked). Merges into `develop` and pushes it too.
 
@@ -1652,7 +1658,13 @@ Once someone registers, the app greets them by name and shows their ID. Before t
    git commit -m "feat(app): wire developer greeting into the app."
    ```
 
-6. **Run it.** `npm run dev`. On load, nothing renders below the form (no greeting at all). Register "Ada" and "Lovelace": "Congrats Ada Lovelace! Now you are a Vue Developer, identified by ID: ..." appears, with a UUID. Stop the server with `Ctrl+C`.
+6. **Run it.**
+
+    ```
+    npm run dev
+    ```
+
+    On load, nothing renders below the form (no greeting at all). Register "Ada" and "Lovelace": "Congrats Ada Lovelace! Now you are a Vue Developer, identified by ID: ..." appears, with a UUID. Stop the server with `Ctrl+C`.
 
 7. **Publish and finish the feature.** Git Flow Helper widget → `Feature` → `Feature Publish`, then → `Feature Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked).
 
@@ -1802,7 +1814,13 @@ A running count of how many developers have registered with a valid name, shown 
    git commit -m "feat(app): add developer count tracking."
    ```
 
-6. **Run it.** `npm run dev`. Register two valid developers: the count reaches 2. Attempt a registration with only one name: it is rejected by US001's validation before it ever reaches the counter. Stop the server with `Ctrl+C`.
+6. **Run it.**
+
+    ```
+    npm run dev
+    ```
+
+    Register two valid developers: the count reaches 2. Attempt a registration with only one name: it is rejected by US001's validation before it ever reaches the counter. Stop the server with `Ctrl+C`.
 
 7. **Publish and finish the feature.** Git Flow Helper widget → `Feature` → `Feature Publish`, then → `Feature Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked).
 
@@ -2022,7 +2040,13 @@ A **Later** button lets the visitor drop a pending registration: the form clears
    git commit -m "feat(app): reset to anonymous on deferred registration."
    ```
 
-6. **Run it.** `npm run dev`. Register "Jane Smith", then type "John" and "Doe" and click **Later**: the form clears, the greeting and count disappear (back to the pre-registration state), and no error shows. Stop the server with `Ctrl+C`.
+6. **Run it.**
+
+    ```
+    npm run dev
+    ```
+
+    Register "Jane Smith", then type "John" and "Doe" and click **Later**: the form clears, the greeting and count disappear (back to the pre-registration state), and no error shows. Stop the server with `Ctrl+C`.
 
 7. **Publish and finish the feature.** Git Flow Helper widget → `Feature` → `Feature Publish`, then → `Feature Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked).
 
@@ -2209,7 +2233,13 @@ A **Clear** button empties the inputs without touching the current greeting or c
    git commit -m "feat(developer-registration): add clear button."
    ```
 
-4. **Run it.** `npm run dev`. Register "Jane Smith", type a different name, click **Clear**: the fields empty and the greeting still reads "Congrats Jane Smith! ...". Do the same without registering first: the greeting stays absent. Stop the server with `Ctrl+C`.
+4. **Run it.**
+
+    ```
+    npm run dev
+    ```
+
+    Register "Jane Smith", type a different name, click **Clear**: the fields empty and the greeting still reads "Congrats Jane Smith! ...". Do the same without registering first: the greeting stays absent. Stop the server with `Ctrl+C`.
 
 5. **Publish and finish the feature.** Git Flow Helper widget → `Feature` → `Feature Publish`, then → `Feature Finish` (`Integrate Immediately`, `Keep remote branch when finished` unchecked).
 
