@@ -3617,6 +3617,7 @@ Every string shown so far is hardcoded English. This story adds real internation
     git commit -m "feat(i18n): translate ArticleItem's text."
     ```
 
+12. **Run it.**
 
     ```
     npm run dev
