@@ -266,9 +266,33 @@
      ```
      </details>
 
+   - Open `src/style.css` and replace its whole content. The scaffold's stylesheet centers `#app` in a fixed 1126px column with side borders and centered text, which would squeeze the layout this project builds; this one leaves the page full width:
+
+     <details>
+     <summary>src/style.css</summary>
+
+     ```css
+     :root {
+       font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+       line-height: 1.5;
+       font-weight: 400;
+     }
+
+     body {
+       margin: 0;
+     }
+
+     #app {
+       width: 100%;
+       margin: 0;
+       padding: 0;
+     }
+     ```
+     </details>
+
    ```
    git add .
-   git commit -m "chore: replace the wizard's starter page with an empty shell."
+   git commit -m "chore: replace the wizard's starter page with an empty shell and a plain stylesheet."
    ```
 
 7. **Add PrimeVue.** This project's UI components (`pv-button`, `pv-drawer`, `pv-card`, and the rest) come from it, not from hand-rolled markup.
@@ -335,7 +359,7 @@
     VITE_NEWS_API_URL="https://newsapi.org/v2"
     VITE_LOGO_API_URL="https://img.logo.dev"
     VITE_LOGO_PUBLISHABLE_API_KEY="pk_bufKzaXPQFeNkMz5gxZWAA"
-    VITE_SOURCES_ENDPOINT_PATH="/top-headlines/sources"
+    VITE_SOURCES_ENDPOINT_PATH="/sources"
     VITE_TOP_HEADLINES_ENDPOINT_PATH="/top-headlines"
     VITE_PRIME_UI_LICENSE_KEY="eyJpZCI6IjZlODA0NjNhLTJkMGMtNGI2ZC1iYmI1LTAwYjk3OWFkMGFmNCIsInByb2R1Y3QiOiJwcmltZXVpIiwidGllciI6ImNvbW11bml0eSIsInR5cGUiOiJkZXYiLCJpYXQiOjE3ODk1NTQ5MzAsImV4cCI6MTgyMTA5MDkzMH0.yvULBRGTn5hRzalLkmTf6BZaJYSwrK2LS6hLxTtO9fI0W2sgsCFpfcVHjfbqEQQe3i84X_KEZQv-WAQbRj9IAg"
     ```
@@ -351,7 +375,7 @@
     VITE_NEWS_API_URL="https://newsapi.org/v2"
     VITE_LOGO_API_URL="https://img.logo.dev"
     VITE_LOGO_PUBLISHABLE_API_KEY="pk_bufKzaXPQFeNkMz5gxZWAA"
-    VITE_SOURCES_ENDPOINT_PATH="/top-headlines/sources"
+    VITE_SOURCES_ENDPOINT_PATH="/sources"
     VITE_TOP_HEADLINES_ENDPOINT_PATH="/top-headlines"
     VITE_PRIME_UI_LICENSE_KEY="eyJpZCI6IjZlODA0NjNhLTJkMGMtNGI2ZC1iYmI1LTAwYjk3OWFkMGFmNCIsInByb2R1Y3QiOiJwcmltZXVpIiwidGllciI6ImNvbW11bml0eSIsInR5cGUiOiJkZXYiLCJpYXQiOjE3ODk1NTQ5MzAsImV4cCI6MTgyMTA5MDkzMH0.yvULBRGTn5hRzalLkmTf6BZaJYSwrK2LS6hLxTtO9fI0W2sgsCFpfcVHjfbqEQQe3i84X_KEZQv-WAQbRj9IAg"
     ```
@@ -528,7 +552,7 @@
             Component(unavailable_content, "UnavailableContent", "Vue Component", "unavailable-content.vue: the fallback shown when there are no articles, with the errors behind it")
         }
         Boundary(application, "Application") {
-            Component(news_store, "newsStore", "Vue reactive store with shallowRef entities", "newsStore, news.store.js: the sources, the articles of the current source, the errors, and the current source")
+            Component(news_store, "newsStore", "Vue class with private state, entities in shallowRef", "newsStore, news.store.js: the sources, the articles cached by source, the errors, and the current source")
         }
         Boundary(domain, "Domain") {
             Component(news_domain_model, "news/domain/model", "Entities", "Source (source.entity.js), Article (article.entity.js): what makes a source and an article valid")
@@ -829,11 +853,57 @@
 
 ## Browse News Sources (US001)
 
-A visitor opens the app and sees a drawer listing every available news source, with the first one already active. This story builds the domain from the ground up: the `Source` entity and the `Url` value object it needs, then the infrastructure that fetches real sources, then the components that display them.
+A visitor opens the app and sees a drawer listing every available news source, with the first one already active. This story builds the domain from the ground up: the `Source` entity first, then the `StringValidator` and `Url` it turned out to need, then the infrastructure that fetches real sources, then the components that display them.
 
 1. **Start the feature `register-source-browsing`.**
 
-2. **Create the `StringValidator` utility.** Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/string-validator` → Enter (WebStorm adds the `.js`). A small, static-only class: no instance ever gets created, it exists purely to hold string-checking rules shared by every entity that validates one.
+2. **Create the `Source` entity, fields and constructor.** Right-click `src` → `New` → `JavaScript File` → type `news/domain/model/source.entity` → Enter (WebStorm adds the `.js` and creates the folders). This is the aggregate the whole story is about, it validates `id` and `name`, the two fields nothing downstream can work without, and stores both trimmed, so `"  bbc-news "` and `"bbc-news"` end up as the same source.
+
+   <details>
+   <summary>src/news/domain/model/source.entity.js (so far)</summary>
+
+   ```javascript
+   export class Source {
+       #id;
+       #name;
+       #description;
+       #url;
+       #category;
+       #language;
+       #country;
+       #urlToLogo;
+
+       constructor({id = "", name = "", description = "", url = "", category = "", language = "", country = "", urlToLogo = ""}) {
+           if (!StringValidator.isNotEmptyString(id)) throw new Error('Source id must be a non-empty string');
+           if (!StringValidator.isNotEmptyString(name)) throw new Error('Source name must be a non-empty string');
+
+           this.#id = id.trim();
+           this.#name = name.trim();
+           this.#description = description;
+           this.#url = url instanceof Url ? url : new Url(url);
+           this.#category = category;
+           this.#language = language;
+           this.#country = country;
+           this.#urlToLogo = urlToLogo;
+           Object.freeze(this);
+       }
+   }
+   ```
+   </details>
+
+   **Note:** file names below carry a type suffix, `.entity.js`, this project's own convention for making the kind of domain object obvious from the file name alone, not a requirement of JavaScript or Vue.
+
+   **Note:** real private fields, `#id`/`#name`/and so on, same as `Url` and `DateTime`. `Source` instances end up inside `NewsStore`, and a deep `reactive()` or `ref()` would wrap them in a `Proxy`, so a `#field` read would throw against that `Proxy`. `NewsStore` keeps them in a `shallowRef` instead of giving up `#`: Vue tracks the replacement of the list, never the entities inside it. ADR-0003 in `## Release` has the full reasoning.
+
+   **Note:** `urlToLogo` is a constructor parameter, not a field you set after the fact. The temptation is `const source = new Source({...}); source.urlToLogo = theRealUrl;`, construct first, patch after, but `Source` has no setter for `urlToLogo`, so the assignment throws in strict mode (ES modules are always strict) and is silently ignored otherwise. Whoever creates a `Source` resolves the logo URL first, then passes everything into one constructor call. ADR-0004 in `## Release` covers why.
+
+   **Note:** `Source` is already immutable by design: private fields, only getters, no operation that changes them. `Object.freeze(this)`, the last line of the constructor, adds a guard against adding or reassigning public properties from outside; it does not cover the `#` private fields.
+
+   **Note:** until the next two steps exist, the IDE underlines `StringValidator` and `Url` in the constructor as undefined. That is expected: writing the model is how you discover which support classes it needs, and the next two steps create them.
+
+   **Note:** no commit here, `Source` still needs `StringValidator`, `Url`, and its read accessors.
+
+3. **Create the `StringValidator` utility.** Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/string-validator` → Enter (WebStorm adds the `.js`). `Source`'s constructor calls it to validate `id` and `name`, so it comes next. A small, static-only class: no instance ever gets created, it exists purely to hold string-checking rules shared by every entity that validates one.
 
    <details>
    <summary>src/shared/domain/model/string-validator.js</summary>
@@ -851,12 +921,14 @@ A visitor opens the app and sees a drawer listing every available news source, w
    ```
    </details>
 
+   **Note:** back in `source.entity.js`, `StringValidator` is still underlined until it is imported. Put the cursor on it and press `Option+Enter` on macOS or `Alt+Enter` on Windows, then pick the option that adds the import; the underline disappears. The `Source` file is not complete until both imports are there.
+
    ```
    git add .
    git commit -m "feat(shared): add string validator utility."
    ```
 
-3. **Create the `Url` value object.** Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/url` → Enter (WebStorm adds the `.js`). A malformed URL never throws, it just becomes an empty `Url`, `""`. `toString()`/`valueOf()` expose the raw string, `isEmpty()` is the check most callers actually need, and `equals()` compares by value.
+4. **Create the `Url` value object.** Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/url` → Enter (WebStorm adds the `.js`). `Source` also stores a `Url` for its website, so this is the last support class it needs. A malformed URL never throws, it just becomes an empty `Url`, `""`. `toString()`/`valueOf()` expose the raw string, `isEmpty()` is the check most callers actually need, and `equals()` compares by value.
 
    <details>
    <summary>src/shared/domain/model/url.js</summary>
@@ -904,57 +976,12 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
    **Note:** `Url` uses a native `#value` private field, not `_value`, same as `Source` and `Article`. It never goes into Vue on its own: it only lives inside a `Source` or an `Article`, and those enter `newsStore` in a `shallowRef`, so Vue never wraps them in a `Proxy`. ADR-0003 in `## Release` has the full reasoning.
 
+   **Note:** back in `source.entity.js`, `Url` is still underlined until it is imported. Put the cursor on it and press `Option+Enter` on macOS or `Alt+Enter` on Windows, then pick the option that adds the import; the underline disappears. The `Source` file is not complete until both imports are there.
+
    ```
    git add .
    git commit -m "feat(shared): add Url value object."
    ```
-
-4. **Create the `Source` entity, fields and constructor.** Right-click `src` → `New` → `JavaScript File` → type `news/domain/model/source.entity` → Enter (WebStorm adds the `.js` and creates the folders). This is the aggregate the whole story is about, it validates `id` and `name`, the two fields nothing downstream can work without, and stores both trimmed, so `"  bbc-news "` and `"bbc-news"` end up as the same source.
-
-   <details>
-   <summary>src/news/domain/model/source.entity.js (so far)</summary>
-
-   ```javascript
-   import {StringValidator} from "../../../shared/domain/model/string-validator.js";
-   import {Url} from "../../../shared/domain/model/url.js";
-
-   export class Source {
-       #id;
-       #name;
-       #description;
-       #url;
-       #category;
-       #language;
-       #country;
-       #urlToLogo;
-
-       constructor({id = "", name = "", description = "", url = "", category = "", language = "", country = "", urlToLogo = ""}) {
-           if (!StringValidator.isNotEmptyString(id)) throw new Error('Source id must be a non-empty string');
-           if (!StringValidator.isNotEmptyString(name)) throw new Error('Source name must be a non-empty string');
-
-           this.#id = id.trim();
-           this.#name = name.trim();
-           this.#description = description;
-           this.#url = url instanceof Url ? url : new Url(url);
-           this.#category = category;
-           this.#language = language;
-           this.#country = country;
-           this.#urlToLogo = urlToLogo;
-           Object.freeze(this);
-       }
-   }
-   ```
-   </details>
-
-   **Note:** file names below carry a type suffix, `.entity.js`, this project's own convention for making the kind of domain object obvious from the file name alone, not a requirement of JavaScript or Vue.
-
-   **Note:** real private fields, `#id`/`#name`/and so on, same as `Url` and `DateTime`. `Source` instances end up inside `newsStore`, and a deep `reactive()` or `ref()` would wrap them in a `Proxy`, so a `#field` read would throw against that `Proxy`. `newsStore` keeps them in a `shallowRef` instead of giving up `#`: Vue tracks the replacement of the list, never the entities inside it. ADR-0003 in `## Release` has the full reasoning.
-
-   **Note:** `urlToLogo` is a constructor parameter, not a field you set after the fact. The temptation is `const source = new Source({...}); source.urlToLogo = theRealUrl;`, construct first, patch after, but `Source` has no setter for `urlToLogo`, so the assignment throws in strict mode (ES modules are always strict) and is silently ignored otherwise. Whoever creates a `Source` resolves the logo URL first, then passes everything into one constructor call. ADR-0004 in `## Release` covers why.
-
-   **Note:** `Source` is already immutable by design: private fields, only getters, no operation that changes them. `Object.freeze(this)`, the last line of the constructor, adds a guard against adding or reassigning public properties from outside; it does not cover the `#` private fields.
-
-   **Note:** no commit here, `Source` has no read accessors yet.
 
 5. **Add the read accessors.** One getter per field, exposing exactly what the constructor validated and stored.
 
@@ -1056,7 +1083,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
 7. **Create the news API response shapes.** Right-click `src` → `New` → `JavaScript File` → type `news/infrastructure/news-resources` → Enter. Plain JSDoc `@typedef`s describing what NewsAPI actually returns, no runtime code, just the types the assemblers and the store below reference. They are the one exception to "comments go last": the editor reads them for autocompletion and checking, so the code depends on them and they are written here, not in the final comments step.
 
-   **Tip:** open [`https://newsapi.org/v2/top-headlines/sources?apiKey=0d5b87d6eed74a768b7f2f7a3ca1bafb`](https://newsapi.org/v2/top-headlines/sources?apiKey=0d5b87d6eed74a768b7f2f7a3ca1bafb) in the browser, this raw JSON is exactly what `SourceResource` and `SourcesResponse` model below.
+   **Tip:** open [`https://newsapi.org/v2/sources?apiKey=0d5b87d6eed74a768b7f2f7a3ca1bafb`](https://newsapi.org/v2/sources?apiKey=0d5b87d6eed74a768b7f2f7a3ca1bafb) in the browser, this raw JSON is exactly what `SourceResource` and `SourcesResponse` model below.
 
    **Tip:** open [`https://newsapi.org/v2/top-headlines?sources=bbc-news&apiKey=0d5b87d6eed74a768b7f2f7a3ca1bafb`](https://newsapi.org/v2/top-headlines?sources=bbc-news&apiKey=0d5b87d6eed74a768b7f2f7a3ca1bafb) in the browser, this raw JSON is exactly what `ArticleResource` and `ArticlesResponse` model below.
 
@@ -1240,51 +1267,73 @@ A visitor opens the app and sees a drawer listing every available news source, w
     git commit -m "feat(news): add SourceAssembler."
     ```
 
-11. **Create the `newsStore`, sources only for now.** Right-click `src` → `New` → `JavaScript File` → type `news/application/news.store` → Enter. A `reactive()` object, not a class, this is what every component below reads from and calls into. Domain entities go in `shallowRef`, so Vue never wraps them in a `Proxy`; plain UI state, like the error messages, goes in a normal `ref`.
+11. **Create the `NewsStore`, sources only for now.** Right-click `src` → `New` → `JavaScript File` → type `news/application/news.store` → Enter. It is the application service every component below reads from and calls into. A class whose state is private (`#`), read through getters: domain entities go in `shallowRef`, so Vue never wraps them in a `Proxy`; plain UI state, like the error messages, goes in a normal `ref`.
 
     <details>
     <summary>src/news/application/news.store.js (so far)</summary>
 
     ```javascript
-    import {reactive, ref, shallowRef} from "vue";
+    import {computed, ref, shallowRef} from "vue";
     import {NewsApi} from "../infrastructure/news-api.js";
     import {SourceAssembler} from "../infrastructure/source.assembler.js";
 
-    const newsApi = new NewsApi();
-    const sourceAssembler = new SourceAssembler();
+    class NewsStore {
+        #sources = shallowRef([]);
+        #currentSource = shallowRef(undefined);
+        #errors = ref([]);
+        #newsApi = new NewsApi();
+        #sourceAssembler = new SourceAssembler();
+        #currentSourceId = computed(() => this.#currentSource.value?.id);
 
-    const sources = shallowRef([]);
-    const currentSource = shallowRef(null);
-    const errors = ref([]);
+        get sources() {
+            return this.#sources.value;
+        }
 
-    export const newsStore = reactive({
-            sources,
-            errors,
-            currentSource,
-            setCurrentSource(source) {
-                this.currentSource = source;
-            },
-            loadSources() {
-                this.errors = [];
-                newsApi.getSources().then(response => {
-                    this.sources = sourceAssembler.toEntitiesFromResponse(response);
-                    if (this.sources.length > 0 && !this.currentSource) this.setCurrentSource(this.sources[0]);
-                }).catch(message => {
-                    this.errors.push(message);
-                    this.sources = [];
-                });
-            }
-        });
+        get errors() {
+            return this.#errors.value;
+        }
+
+        get currentSource() {
+            return this.#currentSource.value;
+        }
+
+        get currentSourceId() {
+            return this.#currentSourceId.value;
+        }
+
+        setCurrentSource(source) {
+            this.#currentSource.value = source;
+        }
+
+        loadSources() {
+            if (this.#sources.value.length > 0) return;
+            this.#errors.value = [];
+            this.#newsApi.getSources().then(response => {
+                const sources = this.#sourceAssembler.toEntitiesFromResponse(response);
+                this.#sources.value = sources;
+                if (sources.length > 0) this.setCurrentSource(sources[0]);
+            }).catch(message => {
+                this.#errors.value.push(message);
+                this.#sources.value = [];
+            });
+        }
+    }
+
+    export const newsStore = new NewsStore();
     ```
     </details>
 
-    **Note:** `newsStore` is exported as a single, shared `const`, not instantiated per component. Every component that imports it gets the exact same reactive object, that is what makes selecting a source in one component show up in another.
+    **Note:** the state lives in `#sources`, `#currentSource` and `#errors`, private fields, so no component can assign `newsStore.sources = ...` from outside; components only read through the getters and change state by calling `setCurrentSource()` or `loadSources()`.
 
-    **Note:** `setCurrentSource` does nothing with `articles` yet, US002 is the one that adds that. Right now, choosing a source only updates which one is marked active.
+    **Note:** `newsStore` is exported as a single, shared instance, not created per component. Every component that imports it gets the exact same object, that is what makes selecting a source in one component show up in another. The instance is never wrapped in `reactive()`, the refs inside it already carry the reactivity, and the getters read `.value`, so any `computed()` that calls a getter keeps updating.
+
+    **Note:** `loadSources()` returns early when the sources are already there, so calling it more than once (every time `Layout` mounts, for instance) only ever fetches once. `currentSourceId`, not the whole `Source`, is what the navigation list needs to know which row to mark active.
+
+    **Note:** `setCurrentSource` does nothing with articles yet, US002 is the one that adds that. Right now, choosing a source only updates which one is marked active.
 
     ```
     git add .
-    git commit -m "feat(news): add newsStore, sources only."
+    git commit -m "feat(news): add NewsStore, sources only."
     ```
 
 12. **Create the `SourceItem` component's template.** Right-click `src` → `New` → `Vue Single-File Component`. A dropdown asks `Composition API` or `Options API`, pick `Composition API`. Type the full path starting from the bounded context, `news/presentation/components/source-item` → Enter. An avatar with the source's logo, and its name next to it; clicking anywhere in the row selects it.
@@ -1994,60 +2043,128 @@ Choosing a source now only marks it active. This story makes it load and show re
    git commit -m "feat(news): add ArticleAssembler."
    ```
 
-6. **Extend `newsStore` to load articles for the current source.**
+6. **Extend `NewsStore` to load articles for the current source.** Cache the articles by source id, expose the ones of the current source, and load them when the source changes. Choosing a source that was already visited shows its cached list, with no second request.
+
+   Add the private article cache, the derived list for the current source, and the loading method:
+
+   ```javascript
+   #articles = shallowRef({});
+   #currentSourceArticles = computed(() => {
+       const id = this.#currentSourceId.value;
+       return id ? (this.#articles.value[id] ?? []) : [];
+   });
+
+   get currentSourceArticles() {
+       return this.#currentSourceArticles.value;
+   }
+
+   loadArticlesForCurrentSource() {
+       const source = this.#currentSource.value;
+       if (!source) return;
+       if (this.#articles.value[source.id]) return;
+       this.#newsApi.getArticlesForSourceId(source.id).then(response => {
+           const articles = new ArticleAssembler(source).toEntitiesFromResponse(response);
+           this.#articles.value = {...this.#articles.value, [source.id]: articles};
+       }).catch(message => {
+           this.#errors.value.push(message);
+       });
+   }
+   ```
+
+   `setCurrentSource` now ends by loading the articles of the source it just selected:
+
+   ```javascript
+   setCurrentSource(source) {
+       this.#currentSource.value = source;
+       this.loadArticlesForCurrentSource();
+   }
+   ```
 
    <details>
    <summary>src/news/application/news.store.js (Full file)</summary>
 
    ```javascript
-   import {reactive, ref, shallowRef} from "vue";
-   import {Source} from "../domain/model/source.entity.js";
+   import {computed, ref, shallowRef} from "vue";
    import {NewsApi} from "../infrastructure/news-api.js";
    import {SourceAssembler} from "../infrastructure/source.assembler.js";
    import {ArticleAssembler} from "../infrastructure/article.assembler.js";
 
-   const newsApi = new NewsApi();
-   const sourceAssembler = new SourceAssembler();
+   class NewsStore {
+       #sources = shallowRef([]);
+       #articles = shallowRef({});
+       #currentSource = shallowRef(undefined);
+       #errors = ref([]);
+       #newsApi = new NewsApi();
+       #sourceAssembler = new SourceAssembler();
+       #currentSourceId = computed(() => this.#currentSource.value?.id);
 
-   const sources = shallowRef([]);
-   const articles = shallowRef([]);
-   const currentSource = shallowRef(null);
-   const errors = ref([]);
-
-   export const newsStore = reactive({
-           sources,
-           articles,
-           errors,
-           currentSource,
-           setCurrentSource(source) {
-               this.currentSource = source;
-               this.loadArticlesForCurrentSource();
-           },
-           loadSources() {
-               this.errors = [];
-               newsApi.getSources().then(response => {
-                   this.sources = sourceAssembler.toEntitiesFromResponse(response);
-                   if (this.sources.length > 0 && !this.currentSource) this.setCurrentSource(this.sources[0]);
-               }).catch(message => {
-                   this.errors.push(message);
-                   this.sources = [];
-               });
-           },
-           loadArticlesForCurrentSource() {
-               if (this.currentSource === null) return;
-               newsApi.getArticlesForSourceId(this.currentSource.id).then(response => {
-                   const articleAssembler = new ArticleAssembler(this.currentSource);
-                   this.articles = articleAssembler.toEntitiesFromResponse(response);
-               }).catch(message => {
-                   this.errors.push(message);
-                   this.articles = [];
-               });
-           }
+       #currentSourceArticles = computed(() => {
+           const id = this.#currentSourceId.value;
+           return id ? (this.#articles.value[id] ?? []) : [];
        });
+
+       get sources() {
+           return this.#sources.value;
+       }
+
+       get articles() {
+           return this.#articles.value;
+       }
+
+       get errors() {
+           return this.#errors.value;
+       }
+
+       get currentSource() {
+           return this.#currentSource.value;
+       }
+
+       get currentSourceId() {
+           return this.#currentSourceId.value;
+       }
+
+       get currentSourceArticles() {
+           return this.#currentSourceArticles.value;
+       }
+
+       setCurrentSource(source) {
+           this.#currentSource.value = source;
+           this.loadArticlesForCurrentSource();
+       }
+
+       loadSources() {
+           if (this.#sources.value.length > 0) return;
+           this.#errors.value = [];
+           this.#newsApi.getSources().then(response => {
+               const sources = this.#sourceAssembler.toEntitiesFromResponse(response);
+               this.#sources.value = sources;
+               if (sources.length > 0) this.setCurrentSource(sources[0]);
+           }).catch(message => {
+               this.#errors.value.push(message);
+               this.#sources.value = [];
+           });
+       }
+
+       loadArticlesForCurrentSource() {
+           const source = this.#currentSource.value;
+           if (!source) return;
+           if (this.#articles.value[source.id]) return;
+           this.#newsApi.getArticlesForSourceId(source.id).then(response => {
+               const articles = new ArticleAssembler(source).toEntitiesFromResponse(response);
+               this.#articles.value = {...this.#articles.value, [source.id]: articles};
+           }).catch(message => {
+               this.#errors.value.push(message);
+           });
+       }
+   }
+
+   export const newsStore = new NewsStore();
    ```
    </details>
 
-   **Note:** `setCurrentSource` now calls `this.loadArticlesForCurrentSource()` as its last line, choosing a source and loading its articles are one action from the caller's side, never two separate steps to remember. `loadArticlesForCurrentSource` builds a *fresh* `ArticleAssembler(this.currentSource)` every time, not a shared one, so the source it resolves articles against is always the one active right now.
+   **Note:** `setCurrentSource` calls `this.loadArticlesForCurrentSource()` as its last line, choosing a source and loading its articles are one action from the caller's side, never two separate steps to remember. `loadArticlesForCurrentSource` builds a *fresh* `ArticleAssembler(source)` every time, not a shared one, so the source it resolves articles against is always the one active right now.
+
+   **Note:** `#articles` is replaced as a whole, `{...this.#articles.value, [source.id]: articles}`, never mutated in place, a `shallowRef` only notices a new value, and that is the same rule the entities follow.
 
    ```
    git add .
@@ -2254,7 +2371,7 @@ Choosing a source now only marks it active. This story makes it load and show re
     };
 
     const sources = computed(() => newsStore.sources);
-    const articles = computed(() => newsStore.articles || []);
+    const articles = computed(() => newsStore.currentSourceArticles);
 
     const setSource = source => {
       newsStore.setCurrentSource(source);
@@ -2313,7 +2430,7 @@ Choosing a source now only marks it active. This story makes it load and show re
     ```
     </details>
 
-    **Note:** `articles` reads `newsStore.articles || []`, not just `newsStore.articles`. Right after picking a source, the request is still in flight, `newsStore.articles` briefly holds whatever the *previous* source's articles were (or nothing at all on the very first load); the `|| []` is not defending against `articles` ever being `null`, it is there so `v-for` always has an array to iterate, never `undefined`.
+    **Note:** `articles` reads `newsStore.currentSourceArticles`, the list cached for the source that is active right now. While the request for a newly chosen source is still in flight the getter returns an empty array, never `undefined`, so `v-for` always has an array to iterate.
 
     ```
     git add .
@@ -2675,7 +2792,7 @@ Every string shown so far is hardcoded English. This story adds real internation
 
     const sources = computed(() => newsStore.sources);
     const errors = computed(() => newsStore.errors);
-    const articles = computed(() => newsStore.articles || []);
+    const articles = computed(() => newsStore.currentSourceArticles);
 
     const setSource = source => {
       newsStore.setCurrentSource(source);
@@ -3337,7 +3454,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    # VITE_LOGO_PUBLISHABLE_API_KEY is the publishable API key for the Logo.dev API.
    VITE_LOGO_PUBLISHABLE_API_KEY="pk_bufKzaXPQFeNkMz5gxZWAA"
    # VITE_SOURCES_ENDPOINT_PATH is the path to the news sources endpoint.
-   VITE_SOURCES_ENDPOINT_PATH="/top-headlines/sources"
+   VITE_SOURCES_ENDPOINT_PATH="/sources"
    # VITE_TOP_HEADLINES_ENDPOINT_PATH is the path to the top headlines endpoint.
    VITE_TOP_HEADLINES_ENDPOINT_PATH="/top-headlines"
    # VITE_PRIME_UI_LICENSE_KEY is the license key for the Prime UI library.
@@ -3362,7 +3479,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    # VITE_LOGO_PUBLISHABLE_API_KEY is the publishable API key for the Logo.dev API.
    VITE_LOGO_PUBLISHABLE_API_KEY="pk_bufKzaXPQFeNkMz5gxZWAA"
    # VITE_SOURCES_ENDPOINT_PATH is the path to the news sources endpoint.
-   VITE_SOURCES_ENDPOINT_PATH="/top-headlines/sources"
+   VITE_SOURCES_ENDPOINT_PATH="/sources"
    # VITE_TOP_HEADLINES_ENDPOINT_PATH is the path to the top headlines endpoint.
    VITE_TOP_HEADLINES_ENDPOINT_PATH="/top-headlines"
    # VITE_PRIME_UI_LICENSE_KEY is the license key for the Prime UI library.
@@ -3460,6 +3577,104 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    <style scoped>
 
    </style>
+   ```
+   </details>
+
+   <details>
+   <summary>src/news/domain/model/source.entity.js (Full file with doc comments)</summary>
+
+   ```javascript
+   import {StringValidator} from "../../../shared/domain/model/string-validator.js";
+   import {Url} from "../../../shared/domain/model/url.js";
+
+   /**
+    * Domain entity representing a news provider.
+    *
+    * @remarks
+    * This model belongs to the domain layer and encapsulates the identity and
+    * attributes of a news source. It remains independent of external API structures.
+    * Every field is set once, in the constructor, then frozen: `urlToLogo` is
+    * resolved by the assembler before the entity is built, never assigned after.
+    */
+   export class Source {
+       #id;
+       #name;
+       #description;
+       #url;
+       #category;
+       #language;
+       #country;
+       #urlToLogo;
+
+       /**
+        * Creates a new Source entity instance.
+        *
+        * @param {Object} source - The source's identity, name, and optional details.
+        * @param {string} [source.id] - Unique identifier for the source (e.g., 'bbc-news').
+        * @param {string} [source.name] - Display name of the news source.
+        * @param {string} [source.description] - A short description of the news source.
+        * @param {string|Url} [source.url] - The website URL of the news source.
+        * @param {string} [source.category] - The category the news source belongs to.
+        * @param {string} [source.language] - The primary language of the source (ISO code).
+        * @param {string} [source.country] - The country of origin (ISO code).
+        * @param {string|Url} [source.urlToLogo] - The logo image URL, already resolved by the assembler.
+        * @throws {Error} If id or name is empty.
+        */
+       constructor({id = "", name = "", description = "", url = "", category = "", language = "", country = "", urlToLogo = ""}) {
+           if (!StringValidator.isNotEmptyString(id)) throw new Error('Source id must be a non-empty string');
+           if (!StringValidator.isNotEmptyString(name)) throw new Error('Source name must be a non-empty string');
+
+           this.#id = id.trim();
+           this.#name = name.trim();
+           this.#description = description;
+           this.#url = url instanceof Url ? url : new Url(url);
+           this.#category = category;
+           this.#language = language;
+           this.#country = country;
+           this.#urlToLogo = urlToLogo;
+           Object.freeze(this);
+       }
+
+       /** @returns {string} */
+       get id() {
+           return this.#id;
+       }
+
+       /** @returns {string} */
+       get name() {
+           return this.#name;
+       }
+
+       /** @returns {string} */
+       get description() {
+           return this.#description;
+       }
+
+       /** @returns {Url} */
+       get url() {
+           return this.#url;
+       }
+
+       /** @returns {string} */
+       get category() {
+           return this.#category;
+       }
+
+       /** @returns {string} */
+       get language() {
+           return this.#language;
+       }
+
+       /** @returns {string} */
+       get country() {
+           return this.#country;
+       }
+
+       /** @returns {string} */
+       get urlToLogo() {
+           return this.#urlToLogo;
+       }
+   }
    ```
    </details>
 
@@ -3572,104 +3787,6 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
         */
        equals(other) {
            return other instanceof Url && this.#value === other.toString();
-       }
-   }
-   ```
-   </details>
-
-   <details>
-   <summary>src/news/domain/model/source.entity.js (Full file with doc comments)</summary>
-
-   ```javascript
-   import {StringValidator} from "../../../shared/domain/model/string-validator.js";
-   import {Url} from "../../../shared/domain/model/url.js";
-
-   /**
-    * Domain entity representing a news provider.
-    *
-    * @remarks
-    * This model belongs to the domain layer and encapsulates the identity and
-    * attributes of a news source. It remains independent of external API structures.
-    * Every field is set once, in the constructor, then frozen: `urlToLogo` is
-    * resolved by the assembler before the entity is built, never assigned after.
-    */
-   export class Source {
-       #id;
-       #name;
-       #description;
-       #url;
-       #category;
-       #language;
-       #country;
-       #urlToLogo;
-
-       /**
-        * Creates a new Source entity instance.
-        *
-        * @param {Object} source - The source's identity, name, and optional details.
-        * @param {string} [source.id] - Unique identifier for the source (e.g., 'bbc-news').
-        * @param {string} [source.name] - Display name of the news source.
-        * @param {string} [source.description] - A short description of the news source.
-        * @param {string|Url} [source.url] - The website URL of the news source.
-        * @param {string} [source.category] - The category the news source belongs to.
-        * @param {string} [source.language] - The primary language of the source (ISO code).
-        * @param {string} [source.country] - The country of origin (ISO code).
-        * @param {string|Url} [source.urlToLogo] - The logo image URL, already resolved by the assembler.
-        * @throws {Error} If id or name is empty.
-        */
-       constructor({id = "", name = "", description = "", url = "", category = "", language = "", country = "", urlToLogo = ""}) {
-           if (!StringValidator.isNotEmptyString(id)) throw new Error('Source id must be a non-empty string');
-           if (!StringValidator.isNotEmptyString(name)) throw new Error('Source name must be a non-empty string');
-
-           this.#id = id.trim();
-           this.#name = name.trim();
-           this.#description = description;
-           this.#url = url instanceof Url ? url : new Url(url);
-           this.#category = category;
-           this.#language = language;
-           this.#country = country;
-           this.#urlToLogo = urlToLogo;
-           Object.freeze(this);
-       }
-
-       /** @returns {string} */
-       get id() {
-           return this.#id;
-       }
-
-       /** @returns {string} */
-       get name() {
-           return this.#name;
-       }
-
-       /** @returns {string} */
-       get description() {
-           return this.#description;
-       }
-
-       /** @returns {Url} */
-       get url() {
-           return this.#url;
-       }
-
-       /** @returns {string} */
-       get category() {
-           return this.#category;
-       }
-
-       /** @returns {string} */
-       get language() {
-           return this.#language;
-       }
-
-       /** @returns {string} */
-       get country() {
-           return this.#country;
-       }
-
-       /** @returns {string} */
-       get urlToLogo() {
-           return this.#urlToLogo;
        }
    }
    ```
@@ -3935,88 +4052,156 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    <summary>src/news/application/news.store.js (Full file with doc comments)</summary>
 
    ```javascript
-   import {reactive, ref, shallowRef} from "vue";
-   import {Source} from "../domain/model/source.entity.js";
+   import {computed, ref, shallowRef} from "vue";
    import {NewsApi} from "../infrastructure/news-api.js";
    import {SourceAssembler} from "../infrastructure/source.assembler.js";
    import {ArticleAssembler} from "../infrastructure/article.assembler.js";
 
    /**
-    * Application state and service orchestrator for news-related operations.
-    *
-    * @typedef {Object} NewsStore
-    * @property {import('../domain/model/source.entity.js').Source[]} sources - List of available news sources.
-    * @property {import('../domain/model/article.entity.js').Article[]} articles - List of articles for the current source.
-    * @property {Array<string>} errors - List of error messages encountered during operations.
-    * @property {import('../domain/model/source.entity.js').Source | null} currentSource - The currently selected news source.
-    * @property {(source: import('../domain/model/source.entity.js').Source) => void} setCurrentSource - Sets the current source and triggers article loading.
-    * @property {() => void} loadSources - Orchestrates fetching and assembling news sources.
-    * @property {() => void} loadArticlesForCurrentSource - Orchestrates fetching and assembling articles for the active source.
-    */
-
-   const newsApi = new NewsApi();
-   const sourceAssembler = new SourceAssembler();
-
-   const sources = shallowRef([]);
-   const articles = shallowRef([]);
-   const currentSource = shallowRef(null);
-   const errors = ref([]);
-
-   /**
-    * Reactive application store that coordinates use cases for news management.
+    * Application service that coordinates read models for the News bounded context.
     *
     * @remarks
-    * In DDD, this serves as an Application Service, managing the interaction
-    * between UI components and infrastructure-driven data acquisition.
-    *
-    * @type {NewsStore}
+    * The state is private. Domain entities are held in `shallowRef` so Vue never wraps
+    * them in a Proxy, plain UI state (error messages) stays in a regular `ref`.
     */
-   export const newsStore = reactive({
-           sources,
-           articles,
-           errors,
-           currentSource,
-           /**
-            * Sets the active source and triggers article retrieval.
-            *
-            * @param {Source} source
-            * @returns {void}
-            */
-           setCurrentSource(source) {
-               this.currentSource = source;
-               this.loadArticlesForCurrentSource();
-           },
-           /**
-            * Loads the source list from the provider and selects the first source.
-            *
-            * @returns {void}
-            */
-           loadSources() {
-               this.errors = [];
-               newsApi.getSources().then(response => {
-                   this.sources = sourceAssembler.toEntitiesFromResponse(response);
-                   if (this.sources.length > 0 && !this.currentSource) this.setCurrentSource(this.sources[0]);
-               }).catch(message => {
-                   this.errors.push(message);
-                   this.sources = [];
-               });
-           },
-           /**
-            * Loads articles for the current source.
-            *
-            * @returns {void}
-            */
-           loadArticlesForCurrentSource() {
-               if (this.currentSource === null) return;
-               newsApi.getArticlesForSourceId(this.currentSource.id).then(response => {
-                   const articleAssembler = new ArticleAssembler(this.currentSource);
-                   this.articles = articleAssembler.toEntitiesFromResponse(response);
-               }).catch(message => {
-                   this.errors.push(message);
-                   this.articles = [];
-               });
-           }
+   class NewsStore {
+       /**
+        * All available sources, replaced as a whole when they load.
+        *
+        * @type {import('vue').ShallowRef<import('../domain/model/source.entity.js').Source[]>}
+        */
+       #sources = shallowRef([]);
+
+       /**
+        * Article lists cached by source id.
+        *
+        * @type {import('vue').ShallowRef<Record<string, import('../domain/model/article.entity.js').Article[]>>}
+        */
+       #articles = shallowRef({});
+
+       /**
+        * The currently selected source.
+        *
+        * @type {import('vue').ShallowRef<import('../domain/model/source.entity.js').Source | undefined>}
+        */
+       #currentSource = shallowRef(undefined);
+
+       /**
+        * Error messages encountered while loading data.
+        *
+        * @type {import('vue').Ref<string[]>}
+        */
+       #errors = ref([]);
+
+       #newsApi = new NewsApi();
+       #sourceAssembler = new SourceAssembler();
+
+       /**
+        * Id of the currently selected source, used to mark it as active in the navigation list.
+        */
+       #currentSourceId = computed(() => this.#currentSource.value?.id);
+
+       /**
+        * Articles of the currently selected source.
+        */
+       #currentSourceArticles = computed(() => {
+           const id = this.#currentSourceId.value;
+           return id ? (this.#articles.value[id] ?? []) : [];
        });
+
+       /**
+        * @returns {import('../domain/model/source.entity.js').Source[]}
+        */
+       get sources() {
+           return this.#sources.value;
+       }
+
+       /**
+        * @returns {Record<string, import('../domain/model/article.entity.js').Article[]>}
+        */
+       get articles() {
+           return this.#articles.value;
+       }
+
+       /**
+        * @returns {string[]}
+        */
+       get errors() {
+           return this.#errors.value;
+       }
+
+       /**
+        * @returns {import('../domain/model/source.entity.js').Source | undefined}
+        */
+       get currentSource() {
+           return this.#currentSource.value;
+       }
+
+       /**
+        * @returns {string | undefined}
+        */
+       get currentSourceId() {
+           return this.#currentSourceId.value;
+       }
+
+       /**
+        * @returns {import('../domain/model/article.entity.js').Article[]}
+        */
+       get currentSourceArticles() {
+           return this.#currentSourceArticles.value;
+       }
+
+       /**
+        * Selects a source and triggers article loading for it.
+        *
+        * @param {import('../domain/model/source.entity.js').Source} source
+        * @returns {void}
+        */
+       setCurrentSource(source) {
+           this.#currentSource.value = source;
+           this.loadArticlesForCurrentSource();
+       }
+
+       /**
+        * Loads the source list from the provider and selects the first source.
+        *
+        * @returns {void}
+        */
+       loadSources() {
+           if (this.#sources.value.length > 0) return;
+           this.#errors.value = [];
+           this.#newsApi.getSources().then(response => {
+               const sources = this.#sourceAssembler.toEntitiesFromResponse(response);
+               this.#sources.value = sources;
+               if (sources.length > 0) this.setCurrentSource(sources[0]);
+           }).catch(message => {
+               this.#errors.value.push(message);
+               this.#sources.value = [];
+           });
+       }
+
+       /**
+        * Loads articles for the selected source when they are not already cached.
+        *
+        * @returns {void}
+        */
+       loadArticlesForCurrentSource() {
+           const source = this.#currentSource.value;
+           if (!source) return;
+           if (this.#articles.value[source.id]) return;
+           this.#newsApi.getArticlesForSourceId(source.id).then(response => {
+               const articles = new ArticleAssembler(source).toEntitiesFromResponse(response);
+               this.#articles.value = {...this.#articles.value, [source.id]: articles};
+           }).catch(message => {
+               this.#errors.value.push(message);
+           });
+       }
+   }
+
+   /**
+    * The single store instance shared by the presentation layer.
+    */
+   export const newsStore = new NewsStore();
    ```
    </details>
 
@@ -4195,7 +4380,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    /** @type {import('vue').ComputedRef<Array<unknown>>} */
    const errors = computed(() => newsStore.errors);
    /** @type {import('vue').ComputedRef<import('../../../news/domain/model/article.entity.js').Article[]>} */
-   const articles = computed(() => newsStore.articles || []);
+   const articles = computed(() => newsStore.currentSourceArticles);
 
    /**
     * Selects a source and refreshes article projections.
@@ -5082,7 +5267,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    ```bash
    VITE_NEWS_API_URL=https://newsapi.org/v2
    VITE_NEWS_API_KEY=your_news_api_key
-   VITE_SOURCES_ENDPOINT_PATH=/top-headlines/sources
+   VITE_SOURCES_ENDPOINT_PATH=/sources
    VITE_TOP_HEADLINES_ENDPOINT_PATH=/top-headlines
    VITE_LOGO_API_URL=https://img.logo.dev
    VITE_LOGO_PUBLISHABLE_API_KEY=your_logo_dev_publishable_key
@@ -5099,7 +5284,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    ```text
    src/
      news/
-       application/      # reactive store and use-case orchestration
+       application/      # store and use-case orchestration
        domain/model/     # entities (Article, Source)
        infrastructure/   # API clients and assemblers
        presentation/     # news-related UI components
@@ -5368,7 +5553,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    - **UI state** (`ref`, `reactive`): deep reactivity, `Proxy`.
    - **Domain objects** (`shallowRef`): the real object, untouched.
 
-   In `newsStore`, `sources`, `articles`, and `currentSource` are `shallowRef`, and `errors` is a plain `ref`. The store is a `reactive()` object holding those refs, so components keep reading `newsStore.sources` and `newsStore.errors` with no `.value`. Entities are updated by replacement, `this.sources = [...]`, `this.articles = [...]`, `this.currentSource = source`. Errors are just messages, so `this.errors.push(message)` works as usual.
+   In `NewsStore`, `#sources`, `#articles`, and `#currentSource` are `shallowRef`, and `#errors` is a plain `ref`. The store is a class with private state: components read it through read-only getters (`newsStore.sources`, `newsStore.errors`, `newsStore.currentSourceArticles`) with no `.value`, and the exported instance is never wrapped in `reactive()`. Entities are updated by replacement, `this.#sources.value = [...]`, `this.#articles.value = {...this.#articles.value, [id]: list}`, `this.#currentSource.value = source`. Errors are just messages, so `this.#errors.value.push(message)` works as usual.
 
    ## Consequences
 
@@ -5572,7 +5757,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
    ### Added
    - `news` bounded context (`Article` and `Source` entities) and a `shared` kernel (`Url` and `DateTime` value objects, `StringValidator`).
-   - `newsStore`: a reactive application service that loads sources, selects the active one, and loads its articles.
+   - `newsStore`: an application service with private state that loads sources, selects the active one, and loads its articles.
    - `SourceList`/`SourceItem` components: browse available news sources, the first one selected by default (US001).
    - `ArticleList`/`ArticleItem` components: read articles for the active source, with author, publish date, and a placeholder image when one is missing (US002).
    - `LanguageSwitcher`/`FooterContent` components: switch between English and Spanish, and attribution for NewsAPI.org and Logo.dev (US003).
