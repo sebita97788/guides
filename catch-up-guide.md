@@ -309,15 +309,15 @@
    ```
 
 10. **Get a NewsAPI.org API key.**
-   - Go to [newsapi.org/register](https://newsapi.org/register).
-   - Fill in the form: **First name**, **Email address**, **Choose a password**, **You are...** (pick `Individual`), check the box agreeing to the terms.
-   - Submit the form. Your account page shows your API key, a 32-character string, copy it.
+    - Go to [newsapi.org/register](https://newsapi.org/register).
+    - Fill in the form: **First name**, **Email address**, **Choose a password**, **You are...** (pick `Individual`), check the box agreeing to the terms.
+    - Submit the form. Your account page shows your API key, a 32-character string, copy it.
 
 11. **Get a Logo.dev publishable key.**
-   - Go to [logo.dev](https://logo.dev/) and create a free account.
-   - Open the dashboard's **API Keys** page (`logo.dev/dashboard/api-keys`). Your **publishable key** is the one prefixed `pk_`, copy that one, not the `sk_` secret key next to it.
+    - Go to [logo.dev](https://logo.dev/) and create a free account.
+    - Open the dashboard's **API Keys** page (`logo.dev/dashboard/api-keys`). Your **publishable key** is the one prefixed `pk_`, copy that one, not the `sk_` secret key next to it.
 
-   **Note:** `pk_` keys are meant to sit in client-side code, that is exactly what this app does with it, a browser calling `img.logo.dev` directly. The `sk_` secret key is for server-to-server calls this app never makes, never put it here.
+    **Note:** `pk_` keys are meant to sit in client-side code, that is exactly what this app does with it, a browser calling `img.logo.dev` directly. The `sk_` secret key is for server-to-server calls this app never makes, never put it here.
 
 12. **Get a PrimeVue Community license key.** PrimeVue 22 and up needs a license key even for free use, the library paints a banner over the whole app without one.
     - Go to [primeui.dev/licenses/community](https://primeui.dev/licenses/community) and confirm you're eligible (the free Community license covers individuals, students, non-profits, and small organizations under specific revenue/headcount thresholds listed on that page).
@@ -327,454 +327,491 @@
 
 13. **Add the environment variables.** This project talks to three real external services, NewsAPI.org, Logo.dev, and PrimeVue's own license check. Right-click the project root → `New` → `File` → type `.env.development` → Enter.
 
-   <details>
-   <summary>.env.development</summary>
-
-   ```
-   # Environment: Development
-   # Description: This file contains the environment variables for the development environment.
-   # Note: In real scenarios, this file is not committed to the repository.
-
-   # VITE_NEWS_API_KEY is the API key for the News API.
-   VITE_NEWS_API_KEY="0d5b87d6eed74a768b7f2f7a3ca1bafb"
-   # VITE_NEWS_API_URL is the base URL for the News API.
-   VITE_NEWS_API_URL="https://newsapi.org/v2"
-   # VITE_LOGO_API_URL is the base URL for the Logo.dev API.
-   VITE_LOGO_API_URL="https://img.logo.dev"
-   # VITE_LOGO_PUBLISHABLE_API_KEY is the publishable API key for the Logo.dev API.
-   VITE_LOGO_PUBLISHABLE_API_KEY="pk_bufKzaXPQFeNkMz5gxZWAA"
-   # VITE_SOURCES_ENDPOINT_PATH is the path to the news sources endpoint.
-   VITE_SOURCES_ENDPOINT_PATH="/top-headlines/sources"
-   # VITE_TOP_HEADLINES_ENDPOINT_PATH is the path to the top headlines endpoint.
-   VITE_TOP_HEADLINES_ENDPOINT_PATH="/top-headlines"
-   # VITE_PRIME_UI_LICENSE_KEY is the license key for the Prime UI library.
-   VITE_PRIME_UI_LICENSE_KEY="eyJpZCI6IjZlODA0NjNhLTJkMGMtNGI2ZC1iYmI1LTAwYjk3OWFkMGFmNCIsInByb2R1Y3QiOiJwcmltZXVpIiwidGllciI6ImNvbW11bml0eSIsInR5cGUiOiJkZXYiLCJpYXQiOjE3ODk1NTQ5MzAsImV4cCI6MTgyMTA5MDkzMH0.yvULBRGTn5hRzalLkmTf6BZaJYSwrK2LS6hLxTtO9fI0W2sgsCFpfcVHjfbqEQQe3i84X_KEZQv-WAQbRj9IAg"
-   ```
-   </details>
-
-   Do the same for `.env.production`, same content, different header comment.
-
-   <details>
-   <summary>.env.production</summary>
-
-   ```
-   # Environment: Production
-   # Description: This file contains the environment variables for the production environment.
-   # Note: In real scenarios, this file is not committed to the repository.
-
-   # VITE_NEWS_API_KEY is the API key for the News API.
-   VITE_NEWS_API_KEY="0d5b87d6eed74a768b7f2f7a3ca1bafb"
-   # VITE_NEWS_API_URL is the base URL for the News API.
-   VITE_NEWS_API_URL="https://newsapi.org/v2"
-   # VITE_LOGO_API_URL is the base URL for the Logo.dev API.
-   VITE_LOGO_API_URL="https://img.logo.dev"
-   # VITE_LOGO_PUBLISHABLE_API_KEY is the publishable API key for the Logo.dev API.
-   VITE_LOGO_PUBLISHABLE_API_KEY="pk_bufKzaXPQFeNkMz5gxZWAA"
-   # VITE_SOURCES_ENDPOINT_PATH is the path to the news sources endpoint.
-   VITE_SOURCES_ENDPOINT_PATH="/top-headlines/sources"
-   # VITE_TOP_HEADLINES_ENDPOINT_PATH is the path to the top headlines endpoint.
-   VITE_TOP_HEADLINES_ENDPOINT_PATH="/top-headlines"
-   # VITE_PRIME_UI_LICENSE_KEY is the license key for the Prime UI library.
-   VITE_PRIME_UI_LICENSE_KEY="eyJpZCI6IjZlODA0NjNhLTJkMGMtNGI2ZC1iYmI1LTAwYjk3OWFkMGFmNCIsInByb2R1Y3QiOiJwcmltZXVpIiwidGllciI6ImNvbW11bml0eSIsInR5cGUiOiJkZXYiLCJpYXQiOjE3ODk1NTQ5MzAsImV4cCI6MTgyMTA5MDkzMH0.yvULBRGTn5hRzalLkmTf6BZaJYSwrK2LS6hLxTtO9fI0W2sgsCFpfcVHjfbqEQQe3i84X_KEZQv-WAQbRj9IAg"
-   ```
-   </details>
-
-   All three keys above are disposable demo keys, shown so you see the exact shape each provider issues (NewsAPI.org: 32 lowercase hex characters; Logo.dev: `pk_` followed by a token; PrimeVue: a signed JWT), not something to keep using. Replace all three with the keys from your own accounts, from steps 10, 11, and 12. None of these three services are optional, the app calls all of them, and a demo key shared by the whole class will run out of quota fast.
-
-   **Note:** `.env.development` and `.env.production` hold working keys here because this is a teaching project on a scaffold Vite already ignores real secrets from (`*.local` in `.gitignore` covers `.env.local`, the file meant for a key you do not want committed at all). A real production app would keep every key out of source control; treat these two files the same way you would treat any other credential, once you swap in your own keys, do not paste a key you were not personally issued into a repository other people can see.
-
-   ```
-   git add .
-   git commit -m "chore: add environment variable files."
-   ```
-
-14. **Look at the architecture, then model the system at the C4 Context level.**
-   - Real projects rarely start from a blank slate: the course already sets DDD and this bounded-context split as part of the Definition of Done. What is ahead is learning to read a given architecture and implement it well.
-   - Install the **plantuml4idea** plugin so every diagram in this guide renders: `File` → `Settings` → `Plugins` → `Marketplace` → search `plantuml4idea` → `Install`. Restart the IDE if prompted.
-   - Right-click the `docs` folder → `New` → `Directory` → type `c4` → Enter.
-
-   Two bounded contexts: **`news`** (`Article`/`Source` entities, the store, the API clients, every news-specific component) and a **`shared`** kernel (`Url`/`DateTime`/`StringValidator`, the error interceptor, the components every context could reuse).
-
-   The five steps below draw that architecture at increasing zoom, using the **C4 model** (Context, Container, Component, Code): each level answers a different question about the same system, and stays deliberately silent about anything one level deeper. This first one is the outermost, most zoomed-out view: one box for the whole system, the people who use it, and the other systems it talks to. Nothing about what is inside CatchUp shows up here at all.
-
-   <details>
-   <summary>docs/c4/context.puml</summary>
-
-   ```
-   @startuml "Context"
-   !includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
-
-   title CatchUp - Context Diagram
-
-   Person(user, "User", "A person who browses news sources and reads their articles")
-   System(catchup, "CatchUp", "Lets a user browse news sources, read their top headlines, switch languages, and share articles")
-   System_Ext(newsapi, "NewsAPI.org", "Provides news sources and their top headlines")
-   System_Ext(logodev, "Logo.dev", "Resolves a source's logo from its website domain")
-
-   Rel(user, catchup, "Browses sources and reads articles using [HTTPS]")
-   Rel(catchup, newsapi, "Fetches sources and articles from [HTTPS]")
-   Rel(catchup, logodev, "Fetches source logos from [HTTPS]")
-   @enduml
-   ```
-   </details>
-
-   **Note:** `!includeurl` fetches the C4 macro definitions (`Person`, `System`, `System_Ext`, `Rel`, ...) from a public GitHub URL at render time, this needs internet access, unlike `class-diagram.puml`'s plain PlantUML which needs none. If it shows an error instead of a diagram, see [Appendix: If a PlantUML diagram doesn't render](#if-a-plantuml-diagram-doesnt-render).
-
-   ```
-   git add .
-   git commit -m "docs: add C4 context diagram."
-   ```
-
-15. **Model the system at the C4 Container level.** One level in: the separately runnable pieces inside CatchUp, each one something you could deploy and run on its own. Still nothing about what is inside any one of them.
-
-   <details>
-   <summary>docs/c4/containers.puml</summary>
-
-   ```
-   @startuml "Containers"
-   !includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
-
-   title CatchUp - Container Diagram
-
-   Person(user, "User", "A person who browses news sources and reads their articles")
-   System_Ext(newsapi, "NewsAPI.org", "Provides news sources and their top headlines")
-   System_Ext(logodev, "Logo.dev", "Resolves a source's logo from its website domain")
-
-   System_Boundary(catchup, "CatchUp") {
-       Container(web, "Web Application", "Nginx", "Serves the compiled Single Page Application to the user's browser")
-       Container(spa, "Single Page Application", "Vue, PrimeVue", "Lets the user browse sources, read articles, switch languages, and share articles, all in the browser")
-   }
-
-   Rel(user, web, "Visits catch-up using [HTTPS]")
-   Rel(web, spa, "Delivers to the user's web browser")
-   Rel(user, spa, "Interacts with")
-   Rel(spa, newsapi, "Fetches sources and articles from [HTTPS]")
-   Rel(spa, logodev, "Fetches source logos from [HTTPS]")
-   @enduml
-   ```
-   </details>
-
-   **Note:** two containers, not one, `npm run build` only outputs static files, something still has to serve them over HTTP, that is `Nginx`'s job. The `Single Page Application` container is where every line of JavaScript in this guide ends up running, entirely inside the user's browser.
-
-   ```
-   git add .
-   git commit -m "docs: add C4 container diagram."
-   ```
-
-16. **Model the SPA's components by bounded context (C4).** One level deeper, into a single container: the Single Page Application's major internal building blocks. This view groups them by DDD bounded context, the same news/shared split `class-diagram.puml` uses.
-
-   <details>
-   <summary>docs/c4/components-frontend.puml</summary>
-
-   ```
-   @startuml "Components-Bounded Contexts"
-   !includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
-
-   title CatchUp - Component Diagram (Bounded Contexts)
-
-   Container(web, "Web Application", "Nginx", "Serves the compiled Single Page Application to the user's browser")
-   System_Ext(newsapi, "NewsAPI.org", "Provides news sources and their top headlines")
-   System_Ext(logodev, "Logo.dev", "Resolves a source's logo from its website domain")
-
-   Container_Boundary(spa, "Single Page Application") {
-       Component(news, "News", "Vue", "Browses sources and reads their top headlines")
-       Component(shared, "Shared", "Vue", "Url, DateTime, and StringValidator value objects, the logo gateway, the HTTP error interceptor, and cross-cutting presentation: Layout, LanguageSwitcher, FooterContent")
-   }
-
-   Rel(web, news, "Serves")
-   Rel(news, shared, "Uses")
-   Rel(news, newsapi, "Fetches sources and articles from [HTTPS]")
-   Rel(shared, logodev, "Fetches source logos from [HTTPS]")
-   @enduml
-   ```
-   </details>
-
-   ```
-   git add .
-   git commit -m "docs: add C4 component diagram by bounded context."
-   ```
-
-17. **Model the news bounded context's components (C4).** One level deeper than the previous step, into the `news` box specifically: not "what does the SPA divide into" but "how is `news` itself divided", by layer.
-
-   <details>
-   <summary>docs/c4/components-frontend-news.puml</summary>
-
-   ```
-   @startuml "Components-News"
-   !includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
-
-   title CatchUp - News Component Diagram
-
-   Container(web, "Web Application", "Nginx", "Serves the compiled Single Page Application to the user's browser")
-   System_Ext(newsapi, "NewsAPI.org", "Provides news sources and their top headlines")
-
-   Container_Boundary(news, "News Bounded Context") {
-       Component(presentation, "Presentation", "Vue Components", "ArticleItem, ArticleList, SourceItem, SourceList, SourceSummary, UnavailableContent")
-       Component(application, "Application", "newsStore", "Holds source and article state as a Vue reactive store")
-       Component(domain, "Domain", "Article, Source", "Entities that own the News bounded context's invariants")
-       Component(infrastructure, "Infrastructure", "NewsApi, ArticleAssembler, SourceAssembler", "Maps provider responses into domain entities")
-   }
-
-   Rel(web, presentation, "Serves")
-   Rel(presentation, application, "Reads from")
-   Rel(application, infrastructure, "Reads through")
-   Rel(application, domain, "Reads")
-   Rel(infrastructure, domain, "Builds")
-   Rel(infrastructure, newsapi, "Fetches sources and articles from [HTTPS]")
-   @enduml
-   ```
-   </details>
-
-   **Note:** no C4 diagram for what NewsAPI.org or Logo.dev look like on the inside, they are `System_Ext`, systems this project doesn't own and has no visibility into past their public API. C4 only models what is actually yours to draw.
-
-   ```
-   git add .
-   git commit -m "docs: add C4 news component diagram."
-   ```
-
-18. **Model the shared kernel's components (C4).** The same zoom level as the previous step, the other box from `components-frontend.puml`: how `shared` is divided internally.
-
-   <details>
-   <summary>docs/c4/components-frontend-shared.puml</summary>
-
-   ```
-   @startuml "Components-Shared"
-   !includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
-
-   title CatchUp - Shared Component Diagram
-
-   Container(web, "Web Application", "Nginx", "Serves the compiled Single Page Application to the user's browser")
-   System_Ext(logodev, "Logo.dev", "Resolves a source's logo from its website domain")
-
-   Container_Boundary(shared, "Shared") {
-       Component(presentation, "Presentation", "Vue Components", "Layout, LanguageSwitcher, FooterContent")
-       Component(domain, "Domain", "Url, DateTime, StringValidator", "Value objects any context can use")
-       Component(infrastructure, "Infrastructure", "LogoDevApi, errorInterceptor", "Builds a source's logo URL from its website domain, and normalizes HTTP errors")
-   }
-
-   Rel(web, presentation, "Serves")
-   Rel(infrastructure, logodev, "Fetches source logos from [HTTPS]")
-   @enduml
-   ```
-   </details>
-
-   **Note:** no `Rel` between Shared's own `domain`, `infrastructure`, and `presentation`, because there genuinely isn't one: `LogoDevApi`/`errorInterceptor` don't touch `Url`/`DateTime`/`StringValidator`, and `Layout`/`LanguageSwitcher`/`FooterContent` don't call either. Each is an independent utility the `news` context reaches into on its own (`components-frontend.puml`'s `Rel(news, shared, "Uses")` is that cross-context call, one level up), which is exactly what makes `shared` a shared kernel rather than a bounded context with its own use case.
-
-   ```
-   git add .
-   git commit -m "docs: add C4 shared component diagram."
-   ```
-
-19. **Go one level deeper than C4: the class diagram.** C4 stops at Components on purpose, it never shows individual classes or their members. The actual classes, fields, and methods this guide builds are one level of detail past what C4 draws, in a plain (non-C4) PlantUML class diagram.
-
-   <details>
-   <summary>docs/class-diagram.puml</summary>
-
-   ```plantuml
-   @startuml
-   ' Class diagram for CatchUp Application
-
-   package "news.domain.model" {
-     class Article << Entity >> {
-       - author: string
-       - title: string
-       - description: string
-       - url: Url
-       - urlToImage: Url
-       - publishedAt: DateTime
-       - source: Source
-       + getFormatedPublishedAt(): string
-     }
-     class Source << Entity >> {
-       - id: string
-       - name: string
-       - description: string
-       - url: Url
-       - category: string
-       - language: string
-       - country: string
-       - urlToLogo: string
-     }
-   }
-
-   package "news.application" {
-     class newsStore << Store >> {
-       + sources: Source[]
-       + articles: Article[]
-       + errors: string[]
-       + currentSource: Source
-       + setCurrentSource(source): void
-       + loadSources(): void
-       + loadArticlesForCurrentSource(): void
-     }
-   }
-
-   package "news.infrastructure" {
-     class NewsApi << Adapter >> {
-       + getSources(): Promise
-       + getArticlesForSourceId(sourceId: string): Promise
-     }
-     class ArticleAssembler << Assembler >> {
-       - #source: Source
-       - #sourceAssembler: SourceAssembler
-       + toEntityFromResource(resource: ArticleResource): Article
-       + toEntitiesFromResponse(response: AxiosResponse): Article[]
-     }
-     class SourceAssembler << Assembler >> {
-       - #logoApi: LogoDevApi
-       + toEntitiesFromResponse(response: AxiosResponse): Source[]
-       + toEntityFromResource(resource: SourceResource): Source
-     }
-     interface ArticleResource << Resource >> << (R,#FF7700) >> {
-       + title: string
-       + description: string
-       + url: string
-       + urlToImage: string
-       + publishedAt: string
-       + source: SourceResource
-     }
-     interface SourceResource << Resource >> << (R,#FF7700) >> {
-       + id: string
-       + name: string
-       + description: string
-       + url: string
-       + category: string
-       + language: string
-       + country: string
-     }
-   }
-
-   package "news.presentation.components" {
-     class ArticleItem << Component >> {
-       - article: Article
-       - sourceSummary: SourceSummary
-       + toggleSourceSummary(event): void
-       + shareArticle(): void
-       + articleShared(): void <<event>>
-     }
-     class ArticleList << Component >> {
-       - articles: Article[]
-     }
-     class SourceItem << Component >> {
-       - source: Source
-       + emitSourceSelectedEvent(): void
-       + sourceSelected(): void <<event>>
-     }
-     class SourceList << Component >> {
-       - visible: Boolean
-       - sources: Source[]
-       + emitSourceSelectedEvent(source): void
-       + onUpdateVisible(value): void
-       + sourceSelected(): void <<event>>
-       + updateVisible(): void <<event>>
-     }
-     class SourceSummary << Component >> {
-       - source: Source
-       + toggle(event): void
-     }
-     class UnavailableContent << Component >> {
-       - errors: string[]
-     }
-   }
-
-   package "shared.domain.model" {
-     class DateTime << ValueObject >> {
-       - #date: Date
-       + isFuture(): boolean
-       + format(locale, options): string
-       + toDate(): Date
-       + toISOString(): string
-       + valueOf(): number
-       {static} + now(): DateTime
-     }
-     class Url << ValueObject >> {
-       - #url: string
-       + isEmpty(): boolean
-       + toString(): string
-       + equals(other): boolean
-       {static} + isValidUrl(url): boolean
-     }
-     class StringValidator << ValueObject >> {
-       {static} + isNotEmptyString(value): boolean
-     }
-   }
-
-   package "shared.infrastructure" {
-     class LogoDevApi << Adapter >> {
-       + getUrlToLogo(url): string
-     }
-     class errorInterceptor << HttpInterceptor >> {
-       + onResponse(response): AxiosResponse
-       + onError(error): Promise
-     }
-   }
-
-   package "shared.presentation.components" {
-     class FooterContent << Component >> {
-       ' static content
-     }
-     class LanguageSwitcher << Component >> {
-       ' uses useI18n
-     }
-     class Layout << Component >> {
-       - drawerVisible: boolean
-       - sources: Source[]
-       - errors: string[]
-       - articles: Article[]
-       + toggleDrawer(): void
-       + setSource(source): void
-       + onMounted(): void
-     }
-   }
-
-   class App << Component >>
-
-   ' Relationships outside packages
-   Article --> Source
-   Article --> "shared.domain.model.Url"
-   Article --> "shared.domain.model.DateTime"
-   Source --> "shared.domain.model.Url"
-   newsStore ..> "news.domain.model.Article" : uses
-   newsStore ..> "news.domain.model.Source" : uses
-   newsStore ..> "news.infrastructure.NewsApi" : uses
-   newsStore ..> "news.infrastructure.ArticleAssembler" : uses
-   newsStore ..> "news.infrastructure.SourceAssembler" : uses
-   NewsApi ..> "shared.infrastructure.errorInterceptor" : uses
-   ArticleAssembler ..> "news.domain.model.Article" : creates
-   ArticleAssembler ..> SourceAssembler : uses
-   ArticleAssembler ..> ArticleResource : uses
-   SourceAssembler ..> "news.domain.model.Source" : creates
-   SourceAssembler ..> "shared.infrastructure.LogoDevApi" : uses
-   SourceAssembler ..> SourceResource : uses
-   ArticleResource --> SourceResource
-   ArticleList --> ArticleItem : uses
-   ArticleItem --> Article : uses
-   ArticleItem --> SourceSummary : uses
-   SourceList --> SourceItem : uses
-   SourceItem --> Source : uses
-   SourceSummary --> Source : uses
-   Layout --> FooterContent : uses
-   Layout --> LanguageSwitcher : uses
-   Layout --> "news.presentation.components.SourceList" : uses
-   Layout --> "news.presentation.components.ArticleList" : uses
-   Layout --> "news.presentation.components.UnavailableContent" : uses
-   Layout --> newsStore : uses
-   App --> Layout : uses
-
-   @enduml
-   ```
-   </details>
-
-   **Note:** `Article` and `Source` are entities, not value objects, even though most of their fields never change after construction, they have a real identity concept (`Source.id`, and `Article` is inherently tied to one specific `Source`), which is what tells an entity apart from a value object here.
-
-   If it shows an error instead of a diagram, see [Appendix: If a PlantUML diagram doesn't render](#if-a-plantuml-diagram-doesnt-render).
-
-   ```
-   git add .
-   git commit -m "docs: add class diagram."
-   ```
-
-20. **Connect to GitHub.**
+    <details>
+    <summary>.env.development</summary>
+
+    ```
+    VITE_NEWS_API_KEY="0d5b87d6eed74a768b7f2f7a3ca1bafb"
+    VITE_NEWS_API_URL="https://newsapi.org/v2"
+    VITE_LOGO_API_URL="https://img.logo.dev"
+    VITE_LOGO_PUBLISHABLE_API_KEY="pk_bufKzaXPQFeNkMz5gxZWAA"
+    VITE_SOURCES_ENDPOINT_PATH="/top-headlines/sources"
+    VITE_TOP_HEADLINES_ENDPOINT_PATH="/top-headlines"
+    VITE_PRIME_UI_LICENSE_KEY="eyJpZCI6IjZlODA0NjNhLTJkMGMtNGI2ZC1iYmI1LTAwYjk3OWFkMGFmNCIsInByb2R1Y3QiOiJwcmltZXVpIiwidGllciI6ImNvbW11bml0eSIsInR5cGUiOiJkZXYiLCJpYXQiOjE3ODk1NTQ5MzAsImV4cCI6MTgyMTA5MDkzMH0.yvULBRGTn5hRzalLkmTf6BZaJYSwrK2LS6hLxTtO9fI0W2sgsCFpfcVHjfbqEQQe3i84X_KEZQv-WAQbRj9IAg"
+    ```
+    </details>
+
+    Do the same for `.env.production`, same content.
+
+    <details>
+    <summary>.env.production</summary>
+
+    ```
+    VITE_NEWS_API_KEY="0d5b87d6eed74a768b7f2f7a3ca1bafb"
+    VITE_NEWS_API_URL="https://newsapi.org/v2"
+    VITE_LOGO_API_URL="https://img.logo.dev"
+    VITE_LOGO_PUBLISHABLE_API_KEY="pk_bufKzaXPQFeNkMz5gxZWAA"
+    VITE_SOURCES_ENDPOINT_PATH="/top-headlines/sources"
+    VITE_TOP_HEADLINES_ENDPOINT_PATH="/top-headlines"
+    VITE_PRIME_UI_LICENSE_KEY="eyJpZCI6IjZlODA0NjNhLTJkMGMtNGI2ZC1iYmI1LTAwYjk3OWFkMGFmNCIsInByb2R1Y3QiOiJwcmltZXVpIiwidGllciI6ImNvbW11bml0eSIsInR5cGUiOiJkZXYiLCJpYXQiOjE3ODk1NTQ5MzAsImV4cCI6MTgyMTA5MDkzMH0.yvULBRGTn5hRzalLkmTf6BZaJYSwrK2LS6hLxTtO9fI0W2sgsCFpfcVHjfbqEQQe3i84X_KEZQv-WAQbRj9IAg"
+    ```
+    </details>
+
+    All three keys above are disposable demo keys, shown so you see the exact shape each provider issues (NewsAPI.org: 32 lowercase hex characters; Logo.dev: `pk_` followed by a token; PrimeVue: a signed JWT), not something to keep using. Replace all three with the keys from your own accounts, from steps 10, 11, and 12. None of these three services are optional, the app calls all of them, and a demo key shared by the whole class will run out of quota fast.
+
+    **Note:** `.env.development` and `.env.production` hold working keys here because this is a teaching project on a scaffold Vite already ignores real secrets from (`*.local` in `.gitignore` covers `.env.local`, the file meant for a key you do not want committed at all). A real production app would keep every key out of source control; treat these two files the same way you would treat any other credential, once you swap in your own keys, do not paste a key you were not personally issued into a repository other people can see.
+
+    ```
+    git add .
+    git commit -m "chore: add environment variable files."
+    ```
+
+14. **Declare the environment variable types.** Right-click `src` → `New` → `File` → type `vite-env.d.ts` → Enter. Vite exposes the values from `.env.development` and `.env.production` through `import.meta.env`, and this declaration file tells the editor which `VITE_*` variables exist and that each one is a `string`, so `import.meta.env.VITE_NEWS_API_KEY` autocompletes and a typo gets flagged. It changes nothing at runtime.
+
+    <details>
+    <summary>src/vite-env.d.ts</summary>
+
+    ```typescript
+    /// <reference types="vite/client" />
+    interface ImportMetaEnv {
+      readonly VITE_NEWS_API_KEY: string;
+      readonly VITE_NEWS_API_URL: string;
+      readonly VITE_LOGO_API_URL: string;
+      readonly VITE_LOGO_PUBLISHABLE_API_KEY: string;
+      readonly VITE_SOURCES_ENDPOINT_PATH: string;
+      readonly VITE_TOP_HEADLINES_ENDPOINT_PATH: string;
+      readonly VITE_PRIME_UI_LICENSE_KEY: string;
+    }
+
+    interface ImportMeta {
+      readonly env: ImportMetaEnv;
+    }
+    ```
+    </details>
+
+    **Note:** the seven names match, one to one, the variables in the two `.env` files from the previous step. Add a variable to `.env.*` and you add its line here.
+
+    ```
+    git add .
+    git commit -m "chore: add Vite environment variable types."
+    ```
+
+15. **Look at the architecture, then model the system at the C4 Context level.**
+    - Real projects rarely start from a blank slate: the course already sets DDD and this bounded-context split as part of the Definition of Done. What is ahead is learning to read a given architecture and implement it well.
+    - Install the **plantuml4idea** plugin so every diagram in this guide renders: `File` → `Settings` → `Plugins` → `Marketplace` → search `plantuml4idea` → `Install`. Restart the IDE if prompted.
+    - Right-click the `docs` folder → `New` → `Directory` → type `c4` → Enter.
+
+    Two bounded contexts: **`news`** (`Article`/`Source` entities, the store, the API clients, every news-specific component) and a **`shared`** kernel (`Url`/`DateTime`/`StringValidator`, the error interceptor, the components every context could reuse).
+
+    The five steps below draw that architecture at increasing zoom, using the **C4 model** (Context, Container, Component, Code): each level answers a different question about the same system, and stays deliberately silent about anything one level deeper. This first one is the outermost, most zoomed-out view: one box for the whole system, the people who use it, and the other systems it talks to. Nothing about what is inside CatchUp shows up here at all.
+
+    <details>
+    <summary>docs/c4/context.puml</summary>
+
+    ```
+    @startuml "Context"
+    !includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+    title CatchUp - Context Diagram
+
+    Person(user, "User", "A person who browses news sources and reads their articles")
+    System(catchup, "CatchUp", "Lets a user browse news sources, read their top headlines, switch languages, and share articles")
+    System_Ext(newsapi, "NewsAPI.org", "Provides news sources and their top headlines")
+    System_Ext(logodev, "Logo.dev", "Resolves a source's logo from its website domain")
+
+    Rel(user, catchup, "Browses sources and reads articles using [HTTPS]")
+    Rel(catchup, newsapi, "Fetches sources and articles from [HTTPS]")
+    Rel(catchup, logodev, "Fetches source logos from [HTTPS]")
+    @enduml
+    ```
+    </details>
+
+    **Note:** `!includeurl` fetches the C4 macro definitions (`Person`, `System`, `System_Ext`, `Rel`, ...) from a public GitHub URL at render time, this needs internet access, unlike `class-diagram.puml`'s plain PlantUML which needs none. If it shows an error instead of a diagram, see [Appendix: If a PlantUML diagram doesn't render](#if-a-plantuml-diagram-doesnt-render).
+
+    ```
+    git add .
+    git commit -m "docs: add C4 context diagram."
+    ```
+
+16. **Model the system at the C4 Container level.** One level in: the separately runnable pieces inside CatchUp, each one something you could deploy and run on its own. Still nothing about what is inside any one of them.
+
+    <details>
+    <summary>docs/c4/containers.puml</summary>
+
+    ```
+    @startuml "Containers"
+    !includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+    title CatchUp - Container Diagram
+
+    Person(user, "User", "A person who browses news sources and reads their articles")
+    System_Ext(newsapi, "NewsAPI.org", "Provides news sources and their top headlines")
+    System_Ext(logodev, "Logo.dev", "Resolves a source's logo from its website domain")
+
+    System_Boundary(catchup, "CatchUp") {
+        Container(web, "Web Application", "Nginx", "Serves the compiled Single Page Application to the user's browser")
+        Container(spa, "Single Page Application", "Vue, PrimeVue", "Lets the user browse sources, read articles, switch languages, and share articles, all in the browser")
+    }
+
+    Rel(user, web, "Visits catch-up using [HTTPS]")
+    Rel(web, spa, "Delivers to the user's web browser")
+    Rel(user, spa, "Interacts with")
+    Rel(spa, newsapi, "Fetches sources and articles from [HTTPS]")
+    Rel(spa, logodev, "Fetches source logos from [HTTPS]")
+    @enduml
+    ```
+    </details>
+
+    **Note:** two containers, not one, `npm run build` only outputs static files, something still has to serve them over HTTP, that is `Nginx`'s job. The `Single Page Application` container is where every line of JavaScript in this guide ends up running, entirely inside the user's browser.
+
+    ```
+    git add .
+    git commit -m "docs: add C4 container diagram."
+    ```
+
+17. **Model the SPA's components by bounded context (C4).** One level deeper, into a single container: the Single Page Application's major internal building blocks. This view groups them by DDD bounded context, the same news/shared split `class-diagram.puml` uses, and it is the only diagram where the two contexts appear together: every relation between news and shared is drawn here and nowhere else.
+
+    <details>
+    <summary>docs/c4/components-frontend.puml</summary>
+
+    ```
+    @startuml "Components-Bounded Contexts"
+    !includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+    title CatchUp - Component Diagram (Bounded Contexts)
+
+    Container(web, "Web Application", "Nginx", "Serves the compiled Single Page Application to the user's browser")
+    System_Ext(newsapi, "NewsAPI.org", "Provides news sources and their top headlines")
+    System_Ext(logodev, "Logo.dev", "Resolves a source's logo from its website domain")
+
+    Container_Boundary(spa, "Single Page Application") {
+        Component(news, "News", "Vue", "Browses sources and reads their top headlines")
+        Component(shared, "Shared", "Vue", "Url, DateTime, and StringValidator value objects, LogoDevApi, the HTTP error interceptor, and cross-cutting presentation: Layout, LanguageSwitcher, FooterContent")
+    }
+
+    Rel(web, shared, "Serves")
+    Rel(shared, news, "Renders SourceList, ArticleList, and UnavailableContent from, and reads newsStore from")
+    Rel(news, shared, "Uses Url, DateTime, and StringValidator from, resolves each source's logo with LogoDevApi from, and normalizes HTTP errors with errorInterceptor from")
+    Rel(news, newsapi, "Fetches sources and articles from [HTTPS]")
+    Rel(shared, logodev, "Fetches source logos from [HTTPS]")
+    @enduml
+    ```
+    </details>
+
+    **Note:** the arrows between contexts go both ways. `shared` renders `SourceList`, `ArticleList`, and `UnavailableContent` and reads `newsStore` (that is `Layout`), and `news` uses `Url`, `DateTime`, and `StringValidator`, resolves each source's logo with `LogoDevApi`, and normalizes HTTP errors with `errorInterceptor`. The next two diagrams zoom into one context each and never draw a box that belongs to the other one.
+
+    ```
+    git add .
+    git commit -m "docs: add C4 component diagram by bounded context."
+    ```
+
+18. **Model the news bounded context's components (C4).** One level deeper than the previous step, into the `news` box specifically: not "what does the SPA divide into" but "how is `news` itself divided". It is split by DDD layer. A C4 component is a set of files or classes, never a single class (one class belongs in the class diagram, the last step of this section). So Presentation has one box per Vue component, each one the `.vue` file that holds its script, template, and style, while Application is the single store `newsStore`, and Domain and Infrastructure group the classes that share one responsibility, named after the real folder that holds them (`news/domain/model`, `news/infrastructure`), with their classes listed in the description. Only news components are drawn here, plus NewsAPI.org. The arrows point toward the domain.
+
+    <details>
+    <summary>docs/c4/components-frontend-news.puml</summary>
+
+    ```
+    @startuml "Components-Layers"
+    !includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+    title CatchUp - News Component Diagram (DDD Layers)
+
+    System_Ext(newsapi, "NewsAPI.org", "Provides news sources and their top headlines")
+
+    Container_Boundary(news, "News Bounded Context") {
+        Boundary(presentation, "Presentation") {
+            Component(source_list, "SourceList", "Vue Component", "source-list.vue: lists the sources in a drawer and relays which one was chosen")
+            Component(source_item, "SourceItem", "Vue Component", "source-item.vue: one source, chosen with a click")
+            Component(source_summary, "SourceSummary", "Vue Component", "source-summary.vue: one source in full, opened as a popover")
+            Component(article_list, "ArticleList", "Vue Component", "article-list.vue: lists the articles of the current source")
+            Component(article_item, "ArticleItem", "Vue Component", "article-item.vue: one article, with read more, about the source, and share")
+            Component(unavailable_content, "UnavailableContent", "Vue Component", "unavailable-content.vue: the fallback shown when there are no articles, with the errors behind it")
+        }
+        Boundary(application, "Application") {
+            Component(news_store, "newsStore", "Vue reactive store with shallowRef entities", "newsStore, news.store.js: the sources, the articles of the current source, the errors, and the current source")
+        }
+        Boundary(domain, "Domain") {
+            Component(news_domain_model, "news/domain/model", "Entities", "Source (source.entity.js), Article (article.entity.js): what makes a source and an article valid")
+        }
+        Boundary(infrastructure, "Infrastructure") {
+            Component(news_infrastructure, "news/infrastructure", "HTTP, Assemblers, Resources", "NewsApi (news-api.js), SourceAssembler (source.assembler.js), ArticleAssembler (article.assembler.js), news-resources.js: fetches from the provider, the assemblers turn its resources into entities")
+        }
+    }
+
+    Rel(source_list, source_item, "Renders one per source")
+    Rel(article_list, article_item, "Renders one per article")
+    Rel(article_item, source_summary, "Renders and toggles as a popover")
+    Rel(source_item, news_domain_model, "Displays")
+    Rel(source_summary, news_domain_model, "Displays")
+    Rel(article_item, news_domain_model, "Displays")
+    Rel(news_store, news_domain_model, "Holds")
+    Rel(news_store, news_infrastructure, "Loads sources and articles through")
+    Rel(news_infrastructure, news_domain_model, "Builds")
+    Rel(news_infrastructure, newsapi, "Fetches sources and articles from [HTTPS]")
+    @enduml
+    ```
+    </details>
+
+    **Note:** no C4 diagram for what NewsAPI.org or Logo.dev look like on the inside, they are `System_Ext`, systems this project doesn't own and has no visibility into past their public API. C4 only models what is actually yours to draw.
+
+    **Note:** `newsStore` reaches `NewsApi`, `SourceAssembler`, and `ArticleAssembler` (all in the `news/infrastructure` component) directly, it imports and instantiates the classes with no interface in between. The dependency points from Application to Infrastructure, the opposite of a strict layered design, where Application would declare a port and the API client would implement it. The guide keeps that simplicity, and the diagram shows the dependency as it is.
+
+    ```
+    git add .
+    git commit -m "docs: add C4 news component diagram."
+    ```
+
+19. **Model the shared kernel's components (C4).** The same zoom level as the previous step, the other box from `components-frontend.puml`: how `shared` is divided internally, by DDD layer, with the same rule for what counts as a component. Domain and Infrastructure each group the classes that share one responsibility, named after their real folder. Only shared components are drawn here, plus Logo.dev.
+
+    <details>
+    <summary>docs/c4/components-frontend-shared.puml</summary>
+
+    ```
+    @startuml "Components-Shared"
+    !includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+    title CatchUp - Shared Component Diagram (DDD Layers)
+
+    System_Ext(logodev, "Logo.dev", "Resolves a source's logo from its website domain")
+
+    Container_Boundary(shared, "Shared Kernel") {
+        Boundary(presentation, "Presentation") {
+            Component(layout, "Layout", "Vue Component", "layout.vue (hosted by the root app.vue): the frame every screen lives in")
+            Component(language_switcher, "LanguageSwitcher", "Vue Component", "language-switcher.vue: toggles English and Spanish")
+            Component(footer_content, "FooterContent", "Vue Component", "footer-content.vue: the attribution notice")
+        }
+        Boundary(domain, "Domain") {
+            Component(shared_domain_model, "shared/domain/model", "Value Objects", "Url (url.js), DateTime (date-time.js), StringValidator (string-validator.js): self-validating values and rules any context can use")
+        }
+        Boundary(infrastructure, "Infrastructure") {
+            Component(shared_infrastructure, "shared/infrastructure", "HTTP, Logo URLs", "LogoDevApi (logo-dev-api.js), errorInterceptor (error.interceptor.js): builds a source's logo URL from its website domain, and normalizes HTTP errors")
+        }
+    }
+
+    Rel(layout, language_switcher, "Renders")
+    Rel(layout, footer_content, "Renders")
+    Rel(shared_infrastructure, logodev, "Points logo image URLs at [HTTPS]")
+    @enduml
+    ```
+    </details>
+
+    **Note:** `Layout` is the one component of shared that depends on news: it imports `newsStore`, `SourceList`, `ArticleList`, and `UnavailableContent`, so a dependency goes from the kernel to a bounded context. That relation is drawn in `components-frontend.puml`, not here. A pure shared kernel would not know news exists, `Layout` sits in shared because it is the frame of the whole app, not because it is a reusable utility. `shared/domain/model` and `shared/infrastructure` depend on nothing in news, and `LogoDevApi` receives a `Url` without importing it.
+
+    ```
+    git add .
+    git commit -m "docs: add C4 shared component diagram."
+    ```
+
+20. **Go one level deeper than C4: the class diagram.** C4 stops at Components on purpose, it never shows individual classes or their members. The actual classes, fields, and methods this guide builds are one level of detail past what C4 draws, in a plain (non-C4) PlantUML class diagram.
+
+    <details>
+    <summary>docs/class-diagram.puml</summary>
+
+    ```plantuml
+    @startuml
+    ' Class diagram for CatchUp Application
+
+    package "news.domain.model" {
+      class Article << Entity >> {
+        - author: string
+        - title: string
+        - description: string
+        - url: Url
+        - urlToImage: Url
+        - publishedAt: DateTime
+        - source: Source
+        + getFormatedPublishedAt(): string
+      }
+      class Source << Entity >> {
+        - id: string
+        - name: string
+        - description: string
+        - url: Url
+        - category: string
+        - language: string
+        - country: string
+        - urlToLogo: string
+      }
+    }
+
+    package "news.application" {
+      class newsStore << Store >> {
+        + sources: Source[]
+        + articles: Article[]
+        + errors: string[]
+        + currentSource: Source
+        + setCurrentSource(source): void
+        + loadSources(): void
+        + loadArticlesForCurrentSource(): void
+      }
+    }
+
+    package "news.infrastructure" {
+      class NewsApi << Adapter >> {
+        + getSources(): Promise
+        + getArticlesForSourceId(sourceId: string): Promise
+      }
+      class ArticleAssembler << Assembler >> {
+        - #source: Source
+        - #sourceAssembler: SourceAssembler
+        + toEntityFromResource(resource: ArticleResource): Article
+        + toEntitiesFromResponse(response: AxiosResponse): Article[]
+      }
+      class SourceAssembler << Assembler >> {
+        - #logoApi: LogoDevApi
+        + toEntitiesFromResponse(response: AxiosResponse): Source[]
+        + toEntityFromResource(resource: SourceResource): Source
+      }
+      interface ArticleResource << Resource >> << (R,#FF7700) >> {
+        + title: string
+        + description: string
+        + url: string
+        + urlToImage: string
+        + publishedAt: string
+        + source: SourceResource
+      }
+      interface SourceResource << Resource >> << (R,#FF7700) >> {
+        + id: string
+        + name: string
+        + description: string
+        + url: string
+        + category: string
+        + language: string
+        + country: string
+      }
+    }
+
+    package "news.presentation.components" {
+      class ArticleItem << Component >> {
+        - article: Article
+        - sourceSummary: SourceSummary
+        + toggleSourceSummary(event): void
+        + shareArticle(): void
+        + articleShared(): void <<event>>
+      }
+      class ArticleList << Component >> {
+        - articles: Article[]
+      }
+      class SourceItem << Component >> {
+        - source: Source
+        + emitSourceSelectedEvent(): void
+        + sourceSelected(): void <<event>>
+      }
+      class SourceList << Component >> {
+        - visible: Boolean
+        - sources: Source[]
+        + emitSourceSelectedEvent(source): void
+        + onUpdateVisible(value): void
+        + sourceSelected(): void <<event>>
+        + updateVisible(): void <<event>>
+      }
+      class SourceSummary << Component >> {
+        - source: Source
+        + toggle(event): void
+      }
+      class UnavailableContent << Component >> {
+        - errors: string[]
+      }
+    }
+
+    package "shared.domain.model" {
+      class DateTime << ValueObject >> {
+        - #date: Date
+        + isFuture(): boolean
+        + format(locale, options): string
+        + toDate(): Date
+        + toISOString(): string
+        + valueOf(): number
+        {static} + now(): DateTime
+      }
+      class Url << ValueObject >> {
+        - #url: string
+        + isEmpty(): boolean
+        + toString(): string
+        + equals(other): boolean
+        {static} + isValidUrl(url): boolean
+      }
+      class StringValidator << ValueObject >> {
+        {static} + isNotEmptyString(value): boolean
+      }
+    }
+
+    package "shared.infrastructure" {
+      class LogoDevApi << Adapter >> {
+        + getUrlToLogo(url): string
+      }
+      class errorInterceptor << HttpInterceptor >> {
+        + onResponse(response): AxiosResponse
+        + onError(error): Promise
+      }
+    }
+
+    package "shared.presentation.components" {
+      class FooterContent << Component >> {
+        ' static content
+      }
+      class LanguageSwitcher << Component >> {
+        ' uses useI18n
+      }
+      class Layout << Component >> {
+        - drawerVisible: boolean
+        - sources: Source[]
+        - errors: string[]
+        - articles: Article[]
+        + toggleDrawer(): void
+        + setSource(source): void
+        + onMounted(): void
+      }
+    }
+
+    class App << Component >>
+
+    ' Relationships outside packages
+    Article --> Source
+    Article --> "shared.domain.model.Url"
+    Article --> "shared.domain.model.DateTime"
+    Source --> "shared.domain.model.Url"
+    newsStore ..> "news.domain.model.Article" : uses
+    newsStore ..> "news.domain.model.Source" : uses
+    newsStore ..> "news.infrastructure.NewsApi" : uses
+    newsStore ..> "news.infrastructure.ArticleAssembler" : uses
+    newsStore ..> "news.infrastructure.SourceAssembler" : uses
+    NewsApi ..> "shared.infrastructure.errorInterceptor" : uses
+    ArticleAssembler ..> "news.domain.model.Article" : creates
+    ArticleAssembler ..> SourceAssembler : uses
+    ArticleAssembler ..> ArticleResource : uses
+    SourceAssembler ..> "news.domain.model.Source" : creates
+    SourceAssembler ..> "shared.infrastructure.LogoDevApi" : uses
+    SourceAssembler ..> SourceResource : uses
+    ArticleResource --> SourceResource
+    ArticleList --> ArticleItem : uses
+    ArticleItem --> Article : uses
+    ArticleItem --> SourceSummary : uses
+    SourceList --> SourceItem : uses
+    SourceItem --> Source : uses
+    SourceSummary --> Source : uses
+    Layout --> FooterContent : uses
+    Layout --> LanguageSwitcher : uses
+    Layout --> "news.presentation.components.SourceList" : uses
+    Layout --> "news.presentation.components.ArticleList" : uses
+    Layout --> "news.presentation.components.UnavailableContent" : uses
+    Layout --> newsStore : uses
+    App --> Layout : uses
+
+    @enduml
+    ```
+    </details>
+
+    **Note:** `Article` and `Source` are entities, not value objects, even though most of their fields never change after construction, they have a real identity concept (`Source.id`, and `Article` is inherently tied to one specific `Source`), which is what tells an entity apart from a value object here.
+
+    If it shows an error instead of a diagram, see [Appendix: If a PlantUML diagram doesn't render](#if-a-plantuml-diagram-doesnt-render).
+
+    ```
+    git add .
+    git commit -m "docs: add class diagram."
+    ```
+
+21. **Connect to GitHub.**
 
     ```
     gh repo create <org>/catch-up --private --source=. --remote=origin --push --description "A news app to help you catch up on the latest headlines, illustrating Domain-Driven Design with Vue."
@@ -782,9 +819,9 @@
 
     No `gh`? See [Appendix: Creating the repo without the GitHub CLI](#creating-the-repo-without-the-github-cli).
 
-21. **Install the Git Flow Helper plugin.** WebStorm → `Settings`/`Preferences` → `Plugins` → search **Git Flow Helper** → `Install` → restart if asked.
+22. **Install the Git Flow Helper plugin.** WebStorm → `Settings`/`Preferences` → `Plugins` → search **Git Flow Helper** → `Install` → restart if asked.
 
-22. **Initialize Git Flow.** Git Flow Helper widget (bottom status bar) → `Init`. Accept the default branch prefixes (`feature/`, `release/`, `hotfix/`), main branch `main`, development branch `develop`.
+23. **Initialize Git Flow.** Git Flow Helper widget (bottom status bar) → `Init`. Accept the default branch prefixes (`feature/`, `release/`, `hotfix/`), main branch `main`, development branch `develop`.
 
     **Note:** you have already used Git Flow in earlier guides this course, so from here on this guide keeps every `Feature Start`/`Feature Publish`/`Feature Finish` step to one line, without repeating what each button does or which checkboxes to set. If you need the full walkthrough again (the widget's exact menu path, the `Integrate Immediately` / `Keep remote branch when finished` options), it is unchanged from those earlier guides.
 
@@ -796,95 +833,17 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
 1. **Start the feature `register-source-browsing`.**
 
-2. **Create the `Source` entity, fields only for now.** Right-click `src` → `New` → `JavaScript File` → type `news/domain/model/source.entity` → Enter (WebStorm adds the `.js` and creates the folders). This is the aggregate the whole story is about, everything below gets built as this entity needs it.
-
-   **Note:** file names below carry a type suffix, `.entity.js`, this project's own convention for making the kind of domain object obvious from the file name alone, not a requirement of JavaScript or Vue.
-
-   <details>
-   <summary>src/news/domain/model/source.entity.js (fields only)</summary>
-
-   ```javascript
-   export class Source {
-       _id;
-       _name;
-       _description;
-       _url;
-       _category;
-       _language;
-       _country;
-       _urlToLogo;
-   }
-   ```
-   </details>
-
-   **Note:** `_id`/`_name`/and so on, not `#id`/`#name`. `Source` instances end up inside `newsStore`, a `reactive()` object, which wraps every value it holds in a `Proxy`. Reading a native `#field` through that `Proxy` throws `TypeError`, the read only works against the exact original instance. The `_` prefix marks these internal by convention instead, which the `Proxy` has no trouble with. ADR-0003 in `## Release` has the full reasoning. Every domain class below follows the same `_` convention.
-
-3. **Add `Source`'s constructor.** It validates `id` and `name`, the two fields nothing downstream can work without.
-
-   <details>
-   <summary>src/news/domain/model/source.entity.js (so far)</summary>
-
-   ```javascript
-   export class Source {
-       _id;
-       _name;
-       _description;
-       _url;
-       _category;
-       _language;
-       _country;
-       _urlToLogo;
-
-       constructor({id = "", name = "", description = "", url = "", category = "", language = "", country = "", urlToLogo = ""}) {
-           if (!StringValidator.isNotEmptyString(id)) throw new Error('Source id must be a non-empty string');
-           if (!StringValidator.isNotEmptyString(name)) throw new Error('Source name must be a non-empty string');
-
-           this._id = id;
-           this._name = name;
-           this._description = description;
-           this._url = url instanceof Url ? url : new Url(url);
-           this._category = category;
-           this._language = language;
-           this._country = country;
-           this._urlToLogo = urlToLogo;
-       }
-   }
-   ```
-   </details>
-
-   **Note:** no `import` for `StringValidator` or `Url`, neither file exists yet. WebStorm shows both names unresolved, that clears once each is created below, typing the name again or `Alt+Enter` on it adds the import for you.
-
-   **Note:** no commit here, `Source` does not run yet, `StringValidator` and `Url` don't exist.
-
-4. **Create the `StringValidator` utility.** Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/string-validator` → Enter (WebStorm adds the `.js`). A small, static-only class: no instance ever gets created, it exists purely to hold string-checking rules shared by every entity that validates one.
+2. **Create the `StringValidator` utility.** Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/string-validator` → Enter (WebStorm adds the `.js`). A small, static-only class: no instance ever gets created, it exists purely to hold string-checking rules shared by every entity that validates one.
 
    <details>
    <summary>src/shared/domain/model/string-validator.js</summary>
 
    ```javascript
-   /**
-    * Domain utility for string-based type validation.
-    *
-    * @remarks
-    * Provides static methods to enforce string constraints across the domain.
-    */
    export class StringValidator {
-       /**
-        * Checks if a value is a string primitive or a String object.
-        *
-        * @param {*} value - The value to evaluate.
-        * @returns {boolean} True if the value is a string, false otherwise.
-        */
        static isString(value) {
            return typeof value === 'string' || value instanceof String;
        }
 
-       /**
-        * Checks if a value is a string that contains at least one non-whitespace character.
-        *
-        * @param {*} value - The value to evaluate.
-        * @returns {boolean} True if the value is a non-empty string, false otherwise.
-        */
        static isNotEmptyString(value) {
            return this.isString(value) && value.trim().length > 0;
        }
@@ -892,17 +851,15 @@ A visitor opens the app and sees a drawer listing every available news source, w
    ```
    </details>
 
-   **Note:** this file gets its doc comments right away, unlike the entities. It has no build-up, both methods exist from the start and nothing about it changes later in this guide.
-
    ```
    git add .
    git commit -m "feat(shared): add string validator utility."
    ```
 
-5. **Create the `Url` value object, fields and constructor.** Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/url` → Enter (WebStorm adds the `.js`). A malformed URL never throws, it just becomes an empty `Url`, `""`.
+3. **Create the `Url` value object.** Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/url` → Enter (WebStorm adds the `.js`). A malformed URL never throws, it just becomes an empty `Url`, `""`. `toString()`/`valueOf()` expose the raw string, `isEmpty()` is the check most callers actually need, and `equals()` compares by value.
 
    <details>
-   <summary>src/shared/domain/model/url.js (fields and constructor)</summary>
+   <summary>src/shared/domain/model/url.js</summary>
 
    ```javascript
    export class Url {
@@ -925,89 +882,19 @@ A visitor opens the app and sees a drawer listing every available news source, w
            this.#value = Url.isValidUrl(value) ? value : '';
            Object.freeze(this);
        }
-   }
-   ```
-   </details>
 
-   **Note:** `Url` uses a native `#value` private field, not `_value`. It is never itself the direct value of a `reactive()` property, only ever read through an already-`reactive()`-wrapped `Article`/`Source`, so the `Proxy` problem from step 2 does not apply here. `Object.freeze(this)` in the constructor is what makes that safe: Vue only wraps a value in a reactive `Proxy` the first time something reads it off a reactive object, and by then `Url` has already frozen itself into its final shape.
-
-   **Note:** no commit here, `Url` cannot yet be printed, compared, or checked for emptiness, that's next.
-
-6. **Add the read methods and equality.** `toString()`/`valueOf()` expose the raw string; `isEmpty()` is the check most callers actually need; `equals()` compares by value.
-
-   <details>
-   <summary>src/shared/domain/model/url.js (Full file with doc comments)</summary>
-
-   ```javascript
-   /**
-    * Value object representing a URL within the domain.
-    *
-    * @remarks
-    * This value object ensures that URL values are well-formed according to
-    * RFC standards and provides a consistent way to handle URLs. It is immutable.
-    */
-   export class Url {
-       /** @type {string} */
-       #value;
-
-       /**
-        * Validates if a string is a well-formed URL.
-        *
-        * @param {string} url - The URL string to validate.
-        * @returns {boolean} True if the URL is valid, false otherwise.
-        */
-       static isValidUrl(url) {
-           if (typeof url !== 'string' && !(url instanceof String)) return false;
-           if (URL.canParse) {
-               return URL.canParse(url);
-           }
-           try {
-               new URL(url);
-               return true;
-           } catch (_) {
-               return false;
-           }
-       }
-
-       /**
-        * Creates a new Url instance.
-        *
-        * @param {string} value - The URL string.
-        */
-       constructor(value) {
-           this.#value = Url.isValidUrl(value) ? value : '';
-           Object.freeze(this);
-       }
-
-       /**
-        * Returns the string representation of the URL.
-        * @returns {string}
-        */
        toString() {
            return this.#value;
        }
 
-       /**
-        * Checks if the URL is empty.
-        * @returns {boolean}
-        */
        isEmpty() {
            return this.#value === '';
        }
 
-       /**
-        * Returns the primitive value of the Url.
-        * @returns {string}
-        */
        valueOf() {
            return this.#value;
        }
 
-       /**
-        * Checks for equality with another Url instance.
-        * @param {Url} other - The other Url to compare.
-        * @returns {boolean}
-        */
        equals(other) {
            return other instanceof Url && this.#value === other.toString();
        }
@@ -1015,201 +902,124 @@ A visitor opens the app and sees a drawer listing every available news source, w
    ```
    </details>
 
+   **Note:** `Url` uses a native `#value` private field, not `_value`, same as `Source` and `Article`. It never goes into Vue on its own: it only lives inside a `Source` or an `Article`, and those enter `newsStore` in a `shallowRef`, so Vue never wraps them in a `Proxy`. ADR-0003 in `## Release` has the full reasoning.
+
    ```
    git add .
    git commit -m "feat(shared): add Url value object."
    ```
 
-7. **Add `Source`'s read accessors.** One getter per field, exposing exactly what the constructor validated and stored.
+4. **Create the `Source` entity, fields and constructor.** Right-click `src` → `New` → `JavaScript File` → type `news/domain/model/source.entity` → Enter (WebStorm adds the `.js` and creates the folders). This is the aggregate the whole story is about, it validates `id` and `name`, the two fields nothing downstream can work without, and stores both trimmed, so `"  bbc-news "` and `"bbc-news"` end up as the same source.
 
    <details>
    <summary>src/news/domain/model/source.entity.js (so far)</summary>
 
    ```javascript
-   import {StringValidator} from "@/shared/domain/model/string-validator.js";
-   import {Url} from "@/shared/domain/model/url.js";
+   import {StringValidator} from "../../../shared/domain/model/string-validator.js";
+   import {Url} from "../../../shared/domain/model/url.js";
 
    export class Source {
-       _id;
-       _name;
-       _description;
-       _url;
-       _category;
-       _language;
-       _country;
-       _urlToLogo;
+       #id;
+       #name;
+       #description;
+       #url;
+       #category;
+       #language;
+       #country;
+       #urlToLogo;
 
        constructor({id = "", name = "", description = "", url = "", category = "", language = "", country = "", urlToLogo = ""}) {
            if (!StringValidator.isNotEmptyString(id)) throw new Error('Source id must be a non-empty string');
            if (!StringValidator.isNotEmptyString(name)) throw new Error('Source name must be a non-empty string');
 
-           this._id = id;
-           this._name = name;
-           this._description = description;
-           this._url = url instanceof Url ? url : new Url(url);
-           this._category = category;
-           this._language = language;
-           this._country = country;
-           this._urlToLogo = urlToLogo;
-       }
-
-       get id() {
-           return this._id;
-       }
-
-       get name() {
-           return this._name;
-       }
-
-       get description() {
-           return this._description;
-       }
-
-       get url() {
-           return this._url;
-       }
-
-       get category() {
-           return this._category;
-       }
-
-       get language() {
-           return this._language;
-       }
-
-       get country() {
-           return this._country;
-       }
-
-       get urlToLogo() {
-           return this._urlToLogo;
+           this.#id = id.trim();
+           this.#name = name.trim();
+           this.#description = description;
+           this.#url = url instanceof Url ? url : new Url(url);
+           this.#category = category;
+           this.#language = language;
+           this.#country = country;
+           this.#urlToLogo = urlToLogo;
+           Object.freeze(this);
        }
    }
    ```
    </details>
 
-   **Note:** no commit here, `Source` is not frozen yet, and nothing outside this file can construct one with a resolved `urlToLogo` yet, that comes with the assembler.
+   **Note:** file names below carry a type suffix, `.entity.js`, this project's own convention for making the kind of domain object obvious from the file name alone, not a requirement of JavaScript or Vue.
 
-8. **Freeze `Source` once built.** The last line of the constructor.
+   **Note:** real private fields, `#id`/`#name`/and so on, same as `Url` and `DateTime`. `Source` instances end up inside `newsStore`, and a deep `reactive()` or `ref()` would wrap them in a `Proxy`, so a `#field` read would throw against that `Proxy`. `newsStore` keeps them in a `shallowRef` instead of giving up `#`: Vue tracks the replacement of the list, never the entities inside it. ADR-0003 in `## Release` has the full reasoning.
 
-   <details>
-   <summary>src/news/domain/model/source.entity.js (constructor)</summary>
+   **Note:** `urlToLogo` is a constructor parameter, not a field you set after the fact. The temptation is `const source = new Source({...}); source.urlToLogo = theRealUrl;`, construct first, patch after, but `Source` has no setter for `urlToLogo`, so the assignment throws in strict mode (ES modules are always strict) and is silently ignored otherwise. Whoever creates a `Source` resolves the logo URL first, then passes everything into one constructor call. ADR-0004 in `## Release` covers why.
 
-   ```javascript
-   constructor({id = "", name = "", description = "", url = "", category = "", language = "", country = "", urlToLogo = ""}) {
-       if (!StringValidator.isNotEmptyString(id)) throw new Error('Source id must be a non-empty string');
-       if (!StringValidator.isNotEmptyString(name)) throw new Error('Source name must be a non-empty string');
+   **Note:** `Source` is already immutable by design: private fields, only getters, no operation that changes them. `Object.freeze(this)`, the last line of the constructor, adds a guard against adding or reassigning public properties from outside; it does not cover the `#` private fields.
 
-       this._id = id;
-       this._name = name;
-       this._description = description;
-       this._url = url instanceof Url ? url : new Url(url);
-       this._category = category;
-       this._language = language;
-       this._country = country;
-       this._urlToLogo = urlToLogo;
-       Object.freeze(this);
-   }
-   ```
-   </details>
+   **Note:** no commit here, `Source` has no read accessors yet.
 
-   **Note:** `urlToLogo` is a constructor parameter, not a field you set after the fact. The temptation is `const source = new Source({...}); source.urlToLogo = theRealUrl;`, construct first, patch after, but a frozen instance rejects that silently in non-strict mode and throws in strict mode (ES modules are always strict). Whoever creates a `Source` resolves the logo URL first, then passes everything into one constructor call. ADR-0004 in `## Release` covers why.
-
-9. **Add `Source`'s doc comments.**
+5. **Add the read accessors.** One getter per field, exposing exactly what the constructor validated and stored.
 
    <details>
-   <summary>src/news/domain/model/source.entity.js (Full file with doc comments)</summary>
+   <summary>src/news/domain/model/source.entity.js (Full file)</summary>
 
    ```javascript
-   import {StringValidator} from "@/shared/domain/model/string-validator.js";
-   import {Url} from "@/shared/domain/model/url.js";
+   import {StringValidator} from "../../../shared/domain/model/string-validator.js";
+   import {Url} from "../../../shared/domain/model/url.js";
 
-   /**
-    * Domain entity representing a news provider.
-    *
-    * @remarks
-    * This model belongs to the domain layer and encapsulates the identity and
-    * attributes of a news source. It remains independent of external API structures.
-    * Every field is set once, in the constructor, then frozen: `urlToLogo` is
-    * resolved by the assembler before the entity is built, never assigned after.
-    */
    export class Source {
-       _id;
-       _name;
-       _description;
-       _url;
-       _category;
-       _language;
-       _country;
-       _urlToLogo;
+       #id;
+       #name;
+       #description;
+       #url;
+       #category;
+       #language;
+       #country;
+       #urlToLogo;
 
-       /**
-        * Creates a new Source entity instance.
-        *
-        * @param {Object} source - The source's identity, name, and optional details.
-        * @param {string} [source.id] - Unique identifier for the source (e.g., 'bbc-news').
-        * @param {string} [source.name] - Display name of the news source.
-        * @param {string} [source.description] - A short description of the news source.
-        * @param {string|Url} [source.url] - The website URL of the news source.
-        * @param {string} [source.category] - The category the news source belongs to.
-        * @param {string} [source.language] - The primary language of the source (ISO code).
-        * @param {string} [source.country] - The country of origin (ISO code).
-        * @param {string|Url} [source.urlToLogo] - The logo image URL, already resolved by the assembler.
-        * @throws {Error} If id or name is empty.
-        */
        constructor({id = "", name = "", description = "", url = "", category = "", language = "", country = "", urlToLogo = ""}) {
            if (!StringValidator.isNotEmptyString(id)) throw new Error('Source id must be a non-empty string');
            if (!StringValidator.isNotEmptyString(name)) throw new Error('Source name must be a non-empty string');
 
-           this._id = id;
-           this._name = name;
-           this._description = description;
-           this._url = url instanceof Url ? url : new Url(url);
-           this._category = category;
-           this._language = language;
-           this._country = country;
-           this._urlToLogo = urlToLogo;
+           this.#id = id.trim();
+           this.#name = name.trim();
+           this.#description = description;
+           this.#url = url instanceof Url ? url : new Url(url);
+           this.#category = category;
+           this.#language = language;
+           this.#country = country;
+           this.#urlToLogo = urlToLogo;
            Object.freeze(this);
        }
 
-       /** @returns {string} */
        get id() {
-           return this._id;
+           return this.#id;
        }
 
-       /** @returns {string} */
        get name() {
-           return this._name;
+           return this.#name;
        }
 
-       /** @returns {string} */
        get description() {
-           return this._description;
+           return this.#description;
        }
 
-       /** @returns {Url} */
        get url() {
-           return this._url;
+           return this.#url;
        }
 
-       /** @returns {string} */
        get category() {
-           return this._category;
+           return this.#category;
        }
 
-       /** @returns {string} */
        get language() {
-           return this._language;
+           return this.#language;
        }
 
-       /** @returns {string} */
        get country() {
-           return this._country;
+           return this.#country;
        }
 
-       /** @returns {string} */
        get urlToLogo() {
-           return this._urlToLogo;
+           return this.#urlToLogo;
        }
    }
    ```
@@ -1220,7 +1030,9 @@ A visitor opens the app and sees a drawer listing every available news source, w
    git commit -m "feat(news): add Source entity."
    ```
 
-10. **Create the `LogoDevApi` helper.** Right-click `src` → `New` → `JavaScript File` → type `shared/infrastructure/logo-dev-api` → Enter. It builds a Logo.dev image URL from a source's website host, nothing more.
+6. **Create the `LogoDevApi` helper.** Right-click `src` → `New` → `JavaScript File` → type `shared/infrastructure/logo-dev-api` → Enter. It builds a Logo.dev image URL from a source's website host, nothing more.
+
+   **Tip:** open [`https://img.logo.dev/bbc.co.uk?token=pk_bufKzaXPQFeNkMz5gxZWAA`](https://img.logo.dev/bbc.co.uk?token=pk_bufKzaXPQFeNkMz5gxZWAA) in the browser first, this is exactly the URL `LogoDevApi` builds and hands to an `<img>` tag.
 
    <details>
    <summary>src/shared/infrastructure/logo-dev-api.js</summary>
@@ -1229,20 +1041,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
    const logoApiUrl = import.meta.env.VITE_LOGO_API_URL;
    const apiKey = import.meta.env.VITE_LOGO_PUBLISHABLE_API_KEY;
 
-   /**
-    * Infrastructure helper for building Logo.dev image URLs.
-    *
-    * @remarks
-    * Encapsulates the logic for constructing URLs to retrieve source logos
-    * from the Logo.dev external service.
-    */
    export class LogoDevApi {
-       /**
-        * Constructs a logo URL based on a news source's website host.
-        *
-        * @param {import('@/shared/domain/model/url.js').Url} url - The website URL of the source.
-        * @returns {string} The fully qualified URL to the source's logo image.
-        */
        getUrlToLogo = url => `${logoApiUrl}/${new URL(url.toString()).host}?token=${apiKey}`;
    }
    ```
@@ -1255,210 +1054,150 @@ A visitor opens the app and sees a drawer listing every available news source, w
    git commit -m "feat(shared): add Logo.dev API helper."
    ```
 
-11. **Create the news API response shapes.** Right-click `src` → `New` → `JavaScript File` → type `news/infrastructure/news-resources` → Enter. Plain JSDoc `@typedef`s describing what NewsAPI actually returns, no runtime code, just types the assemblers below reference.
+7. **Create the news API response shapes.** Right-click `src` → `New` → `JavaScript File` → type `news/infrastructure/news-resources` → Enter. Plain JSDoc `@typedef`s describing what NewsAPI actually returns, no runtime code, just the types the assemblers and the store below reference. They are the one exception to "comments go last": the editor reads them for autocompletion and checking, so the code depends on them and they are written here, not in the final comments step.
 
-    <details>
-    <summary>src/news/infrastructure/news-resources.js</summary>
+   **Tip:** open [`https://newsapi.org/v2/top-headlines/sources?apiKey=0d5b87d6eed74a768b7f2f7a3ca1bafb`](https://newsapi.org/v2/top-headlines/sources?apiKey=0d5b87d6eed74a768b7f2f7a3ca1bafb) in the browser, this raw JSON is exactly what `SourceResource` and `SourcesResponse` model below.
 
-    ```javascript
-    /**
-     * Source data structure as returned by the NewsAPI.
-     *
-     * @typedef {Object} SourceResource
-     * @property {string} [id] - The unique identifier for the source.
-     * @property {string} [name] - The name of the source.
-     * @property {string} [description] - A description of the source.
-     * @property {string} [url] - The website URL of the source.
-     * @property {string} [category] - The category of the source.
-     * @property {string} [language] - The language the source is written in.
-     * @property {string} [country] - The country the source originates from.
-     */
+   **Tip:** open [`https://newsapi.org/v2/top-headlines?sources=bbc-news&apiKey=0d5b87d6eed74a768b7f2f7a3ca1bafb`](https://newsapi.org/v2/top-headlines?sources=bbc-news&apiKey=0d5b87d6eed74a768b7f2f7a3ca1bafb) in the browser, this raw JSON is exactly what `ArticleResource` and `ArticlesResponse` model below.
 
-    /**
-     * API response structure for news sources.
-     *
-     * @typedef {Object} SourcesResponse
-     * @property {string} status - The status of the response ('ok' or 'error').
-     * @property {SourceResource[]} sources - The list of sources returned.
-     */
+   <details>
+   <summary>src/news/infrastructure/news-resources.js</summary>
 
-    /**
-     * Article data structure as returned by the NewsAPI.
-     *
-     * @typedef {Object} ArticleResource
-     * @property {string} [title] - The title of the article.
-     * @property {string} [description] - The description or summary of the article.
-     * @property {string} [url] - The URL to the article.
-     * @property {string} [urlToImage] - The URL to the article's image.
-     * @property {string} [publishedAt] - The ISO 8601 timestamp of publication.
-     * @property {SourceResource} [source] - The source of the article.
-     */
+   ```javascript
+   /**
+    * @typedef {Object} SourceResource
+    * @property {string} [id]
+    * @property {string} [name]
+    * @property {string} [description]
+    * @property {string} [url]
+    * @property {string} [category]
+    * @property {string} [language]
+    * @property {string} [country]
+    */
 
-    /**
-     * API response structure for news articles.
-     *
-     * @typedef {Object} ArticlesResponse
-     * @property {string} status - The status of the response ('ok' or 'error').
-     * @property {ArticleResource[]} articles - The list of articles returned.
-     */
+   /**
+    * @typedef {Object} SourcesResponse
+    * @property {string} status
+    * @property {SourceResource[]} sources
+    */
 
-    export {}
-    ```
-    </details>
+   /**
+    * @typedef {Object} ArticleResource
+    * @property {string} [title]
+    * @property {string} [description]
+    * @property {string} [url]
+    * @property {string} [urlToImage]
+    * @property {string} [publishedAt]
+    * @property {SourceResource} [source]
+    */
 
-    **Note:** `export {}` at the end is what makes this a module instead of a global script, JSDoc `@typedef`s alone do not require one, but an explicit empty export keeps `import "@/news/infrastructure/news-resources.js"` meaningful elsewhere.
+   /**
+    * @typedef {Object} ArticlesResponse
+    * @property {string} status
+    * @property {ArticleResource[]} articles
+    */
 
-    ```
-    git add .
-    git commit -m "feat(news): add API response type definitions."
-    ```
+   export {}
+   ```
+   </details>
 
-12. **Create the `errorInterceptor`.** Right-click `src` → `New` → `JavaScript File` → type `shared/infrastructure/error.interceptor` → Enter. A pair of Axios interceptor functions: one for a successful response, one that turns any kind of Axios error into a single, user-facing message string.
+   **Note:** `export {}` at the end is what makes this a module instead of a global script, JSDoc `@typedef`s alone do not require one, but an explicit empty export keeps `import "./news-resources.js"` meaningful elsewhere.
 
-    <details>
-    <summary>src/shared/infrastructure/error.interceptor.js</summary>
+   ```
+   git add .
+   git commit -m "feat(news): add API response type definitions."
+   ```
 
-    ```javascript
-    /**
-     * Axios interceptor for centralized error handling.
-     *
-     * @remarks
-     * This object contains the success and error handlers for Axios response interceptors.
-     * It simplifies error messages from the server and provides fallback messages for
-     * network errors.
-     */
-    export const errorInterceptor = {
-        /**
-         * Handles successful responses.
-         * @param {import('axios').AxiosResponse} response - The Axios response.
-         * @returns {import('axios').AxiosResponse} The same response.
-         */
-        onResponse: (response) => response,
+8. **Create the `errorInterceptor`.** Right-click `src` → `New` → `JavaScript File` → type `shared/infrastructure/error.interceptor` → Enter. A pair of Axios interceptor functions: one for a successful response, one that turns any kind of Axios error into a single, user-facing message string.
 
-        /**
-         * Handles error responses.
-         * @param {import('axios').AxiosError} error - The Axios error.
-         * @returns {Promise<never>} A rejected promise with a user-friendly error message.
-         */
-        onError: (error) => {
-            let message;
+   <details>
+   <summary>src/shared/infrastructure/error.interceptor.js</summary>
 
-            if (error.response) {
-                // The request was made, and the server responded with a status code
-                // that falls out of the range of 2xx
-                console.error("Data:", error.response.data);
-                console.error("Status:", error.response.status);
-                console.error("Headers:", error.response.headers);
+   ```javascript
+   export const errorInterceptor = {
+       onResponse: (response) => response,
 
-                message = error.response.data["message"] || `Error ${error.response.status}: ${error.response.statusText}`;
-            } else if (error.request) {
-                // The request was made but no response was received
-                console.error("Request:", error.request);
-                message = "No response received from the server. Please check your internet connection.";
-            } else {
-                // Something happened in setting up the request that triggered an Error
-                console.error("Error Message:", error.message);
-                message = error.message;
-            }
+       onError: (error) => {
+           let message;
 
-            return Promise.reject(message);
-        }
-    };
-    ```
-    </details>
+           if (error.response) {
+               console.error("Data:", error.response.data);
+               console.error("Status:", error.response.status);
+               console.error("Headers:", error.response.headers);
 
-    **Note:** three branches inside `onError`, in order: `error.response` means the server answered with an error status (a `404`, a `401`), `error.request` means the request went out but nothing came back (offline, a dropped connection), and the last branch means the request was never even sent (a bug in how it was built). Each one produces a message meant for a person, not a stack trace.
+               message = error.response.data["message"] || `Error ${error.response.status}: ${error.response.statusText}`;
+           } else if (error.request) {
+               console.error("Request:", error.request);
+               message = "No response received from the server. Please check your internet connection.";
+           } else {
+               console.error("Error Message:", error.message);
+               message = error.message;
+           }
 
-    ```
-    git add .
-    git commit -m "feat(shared): add Axios error interceptor."
-    ```
+           return Promise.reject(message);
+       }
+   };
+   ```
+   </details>
 
-13. **Create the `NewsApi` client.** Right-click `src` → `New` → `JavaScript File` → type `news/infrastructure/news-api` → Enter. One `axios` instance, configured once, shared by both of its methods.
+   **Note:** three branches inside `onError`, in order: `error.response` means the server answered with an error status (a `404`, a `401`), `error.request` means the request went out but nothing came back (offline, a dropped connection), and the last branch means the request was never even sent (a bug in how it was built). Each one produces a message meant for a person, not a stack trace.
 
-    <details>
-    <summary>src/news/infrastructure/news-api.js</summary>
+   ```
+   git add .
+   git commit -m "feat(shared): add Axios error interceptor."
+   ```
 
-    ```javascript
-    import axios from "axios";
-    import "@/news/infrastructure/news-resources.js";
-    import {errorInterceptor} from "@/shared/infrastructure/error.interceptor.js";
+9. **Create the `NewsApi` client.** Right-click `src` → `New` → `JavaScript File` → type `news/infrastructure/news-api` → Enter. One `axios` instance, configured once, shared by both of its methods.
 
-    /**
-     * Infrastructure adapter for NewsAPI HTTP endpoints.
-     *
-     * @remarks
-     * This class isolates external transport concerns from the application and
-     * domain layers.
-     */
-    const newsApi               = import.meta.env.VITE_NEWS_API_URL;
-    const apiKey                = import.meta.env.VITE_NEWS_API_KEY;
-    const sourcesEndpoint       = import.meta.env.VITE_SOURCES_ENDPOINT_PATH;
-    const topHeadlinesEndpoint  = import.meta.env.VITE_TOP_HEADLINES_ENDPOINT_PATH;
+   <details>
+   <summary>src/news/infrastructure/news-api.js</summary>
 
-    /**
-     * Axios instance configured for NewsAPI requests.
-     *
-     * @remarks
-     * This instance is configured with the base URL and API key for the NewsAPI.
-     *
-     * @type {axios.AxiosInstance}
-     */
-    const http = axios.create({
-        baseURL: newsApi,
-        params: {
-            apiKey: apiKey,
-        },
-    })
+   ```javascript
+   import axios from "axios";
+   import "./news-resources.js";
+   import {errorInterceptor} from "../../shared/infrastructure/error.interceptor.js";
 
-    // Add a response interceptor
-    http.interceptors.response.use(errorInterceptor.onResponse, errorInterceptor.onError);
+   const newsApi               = import.meta.env.VITE_NEWS_API_URL;
+   const apiKey                = import.meta.env.VITE_NEWS_API_KEY;
+   const sourcesEndpoint       = import.meta.env.VITE_SOURCES_ENDPOINT_PATH;
+   const topHeadlinesEndpoint  = import.meta.env.VITE_TOP_HEADLINES_ENDPOINT_PATH;
 
-    /**
-     * Infrastructure adapter for interacting with the NewsAPI HTTP service.
-     *
-     * @remarks
-     * This class isolates external transport concerns, providing a clean interface
-     * for the application layer to fetch news data.
-     */
-    export class NewsApi {
+   const http = axios.create({
+       baseURL: newsApi,
+       params: {
+           apiKey: apiKey,
+       },
+   })
 
-        /**
-         * Retrieves all available news sources from the provider.
-         *
-         * @returns {Promise<import('axios').AxiosResponse<SourcesResponse>>} A promise resolving to the Axios response containing sources.
-         */
-        getSources = () => http.get(`${sourcesEndpoint}`);
+   http.interceptors.response.use(errorInterceptor.onResponse, errorInterceptor.onError);
 
-        /**
-         * Retrieves top headlines for a specific news source.
-         *
-         * @param {string} sourceId - The unique identifier of the news source (e.g., 'cnn').
-         * @returns {Promise<import('axios').AxiosResponse<ArticlesResponse>>} A promise resolving to the Axios response containing articles.
-         */
-        getArticlesForSourceId = sourceId => http.get(`${topHeadlinesEndpoint}`, {params: {sources: sourceId}});
+   export class NewsApi {
 
-    }
-    ```
-    </details>
+       getSources = () => http.get(`${sourcesEndpoint}`);
 
-    **Note:** `apiKey` travels as a query parameter on every request (`http.create({..., params: {apiKey}})`), because that is how NewsAPI's free tier expects it. `getArticlesForSourceId` is not used yet, US002 is the first to call it, it is written now because it lives on the same class and the same Axios instance as `getSources`.
+       getArticlesForSourceId = sourceId => http.get(`${topHeadlinesEndpoint}`, {params: {sources: sourceId}});
 
-    ```
-    git add .
-    git commit -m "feat(news): add NewsApi client."
-    ```
+   }
+   ```
+   </details>
 
-14. **Create the `SourceAssembler`, undocumented.** Right-click `src` → `New` → `JavaScript File` → type `news/infrastructure/source.assembler` → Enter. Turns a raw API resource into a `Source`, resolving its logo URL first, since `Source` only ever accepts an already-known `urlToLogo`.
+   **Note:** `apiKey` travels as a query parameter on every request (`http.create({..., params: {apiKey}})`), because that is how NewsAPI's free tier expects it. `getArticlesForSourceId` is not used yet, US002 is the first to call it, it is written now because it lives on the same class and the same Axios instance as `getSources`.
+
+   ```
+   git add .
+   git commit -m "feat(news): add NewsApi client."
+   ```
+
+10. **Create the `SourceAssembler`.** Right-click `src` → `New` → `JavaScript File` → type `news/infrastructure/source.assembler` → Enter. Turns a raw API resource into a `Source`, resolving its logo URL first, since `Source` only ever accepts an already-known `urlToLogo`.
 
     <details>
     <summary>src/news/infrastructure/source.assembler.js (so far)</summary>
 
     ```javascript
-    import {Source} from "@/news/domain/model/source.entity.js";
-    import {Url} from "@/shared/domain/model/url.js";
-    import {LogoDevApi} from "@/shared/infrastructure/logo-dev-api.js";
-    import "@/news/infrastructure/news-resources.js";
+    import {Source} from "../domain/model/source.entity.js";
+    import {Url} from "../../shared/domain/model/url.js";
+    import {LogoDevApi} from "../../shared/infrastructure/logo-dev-api.js";
+    import "./news-resources.js";
 
     export class SourceAssembler {
         #logoApi;
@@ -1496,95 +1235,32 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     **Note:** one invalid source in the response does not sink the whole list, `toEntitiesFromResponse` catches the error per item and filters the failed ones out, logging why.
 
-    **Note:** no commit here, `SourceAssembler` is undocumented, the next step adds that.
-
-15. **Add `SourceAssembler`'s doc comments.**
-
-    <details>
-    <summary>src/news/infrastructure/source.assembler.js (Full file with doc comments)</summary>
-
-    ```javascript
-    import {Source} from "@/news/domain/model/source.entity.js";
-    import {Url} from "@/shared/domain/model/url.js";
-    import {LogoDevApi} from "@/shared/infrastructure/logo-dev-api.js";
-    import "@/news/infrastructure/news-resources.js";
-
-    /**
-     * Infrastructure service that maps source data from API responses into Domain Entities.
-     *
-     * @remarks
-     * Following DDD patterns, this assembler acts as a Data Mapper between the
-     * infrastructure-specific source format and the Source domain entity.
-     */
-    export class SourceAssembler {
-        #logoApi;
-
-        /**
-         * Initializes the SourceAssembler.
-         */
-        constructor() {
-            this.#logoApi = new LogoDevApi();
-        }
-
-        /**
-         * Maps a full Axios response containing source resources into an array of Source entities.
-         *
-         * @param {import('axios').AxiosResponse<SourcesResponse>} response - The HTTP response from the news provider.
-         * @returns {Source[]} An array of Source domain entities. Returns an empty array if the status is not 'ok'.
-         */
-        toEntitiesFromResponse(response) {
-            if (response.data.status !== "ok") {
-                console.error(`${response.data["status"]},  ${response.data["code"]}, ${response.data["message"]}`);
-                return [];
-            }
-            const sourcesResponse = response.data;
-            return sourcesResponse.sources.map((source) => {
-                try {
-                    return this.toEntityFromResource(source);
-                } catch (error) {
-                    console.error('Validation error for source:', error.message, source);
-                    return null;
-                }
-            }).filter(source => source !== null);
-        }
-
-        /**
-         * Maps a single source resource into a Source domain entity, including logo URL resolution.
-         *
-         * @param {SourceResource} resource - The source data as received from the external API.
-         * @returns {Source} The assembled Source domain entity.
-         */
-        toEntityFromResource(resource) {
-            const url = resource.url instanceof Url ? resource.url : new Url(resource.url);
-            const urlToLogo = !url.isEmpty() ? this.#logoApi.getUrlToLogo(url) : '';
-            return new Source({...resource, url, urlToLogo});
-        }
-    }
-    ```
-    </details>
-
     ```
     git add .
     git commit -m "feat(news): add SourceAssembler."
     ```
 
-16. **Create the `newsStore`, sources only for now.** Right-click `src` → `New` → `JavaScript File` → type `news/application/news.store` → Enter. A `reactive()` object, not a class, this is what every component below reads from and calls into.
+11. **Create the `newsStore`, sources only for now.** Right-click `src` → `New` → `JavaScript File` → type `news/application/news.store` → Enter. A `reactive()` object, not a class, this is what every component below reads from and calls into. Domain entities go in `shallowRef`, so Vue never wraps them in a `Proxy`; plain UI state, like the error messages, goes in a normal `ref`.
 
     <details>
     <summary>src/news/application/news.store.js (so far)</summary>
 
     ```javascript
-    import {reactive} from "vue";
-    import {NewsApi} from "@/news/infrastructure/news-api.js";
-    import {SourceAssembler} from "@/news/infrastructure/source.assembler.js";
+    import {reactive, ref, shallowRef} from "vue";
+    import {NewsApi} from "../infrastructure/news-api.js";
+    import {SourceAssembler} from "../infrastructure/source.assembler.js";
 
     const newsApi = new NewsApi();
     const sourceAssembler = new SourceAssembler();
 
+    const sources = shallowRef([]);
+    const currentSource = shallowRef(null);
+    const errors = ref([]);
+
     export const newsStore = reactive({
-            sources: [],
-            errors: [],
-            currentSource: null,
+            sources,
+            errors,
+            currentSource,
             setCurrentSource(source) {
                 this.currentSource = source;
             },
@@ -1611,39 +1287,39 @@ A visitor opens the app and sees a drawer listing every available news source, w
     git commit -m "feat(news): add newsStore, sources only."
     ```
 
-17. **Create the `SourceItem` component's template.** Right-click `src` → `New` → `Vue Single-File Component`. A dropdown asks `Composition API` or `Options API`, pick `Composition API`. Type the full path starting from the bounded context, `news/presentation/components/source-item` → Enter. An avatar with the source's logo, and its name next to it; clicking anywhere in the row selects it.
+12. **Create the `SourceItem` component's template.** Right-click `src` → `New` → `Vue Single-File Component`. A dropdown asks `Composition API` or `Options API`, pick `Composition API`. Type the full path starting from the bounded context, `news/presentation/components/source-item` → Enter. An avatar with the source's logo, and its name next to it; clicking anywhere in the row selects it.
 
-   <details>
-   <summary>src/news/presentation/components/source-item.vue (template)</summary>
+    <details>
+    <summary>src/news/presentation/components/source-item.vue (template)</summary>
 
-   ```vue
-   <template>
-     <div class="m-4">
-       <div @click="emitSourceSelectedEvent" class="flex align-content-start flex-wrap cursor-pointer hover:bg-emphasis p-2 border-round transition-colors transition-duration-150">
-       <span  class="flex align-items-center justify-content-center mr-2">
-             <pv-avatar :aria-label="source.name"
-                        :image="source.urlToLogo"
-                        shape="circle"/>
-       </span>
-         <span  class="flex align-items-center justify-content-center font-medium">
-             {{source.name}}
-       </span>
-       </div>
-     </div>
-   </template>
-   ```
-   </details>
+    ```vue
+    <template>
+      <div class="m-4">
+        <div @click="emitSourceSelectedEvent" class="flex align-content-start flex-wrap cursor-pointer hover:bg-emphasis p-2 border-round transition-colors transition-duration-150">
+        <span  class="flex align-items-center justify-content-center mr-2">
+              <pv-avatar :aria-label="source.name"
+                         :image="source.urlToLogo"
+                         shape="circle"/>
+        </span>
+          <span  class="flex align-items-center justify-content-center font-medium">
+              {{source.name}}
+        </span>
+        </div>
+      </div>
+    </template>
+    ```
+    </details>
 
-   **Note:** `source` and `emitSourceSelectedEvent` do not exist anywhere yet, WebStorm shows both unresolved in the template. That is expected, script and template are separate concerns in a `<script setup>` component: nothing here compiles against the other the way a strictly-typed Angular template would. They get defined next, one at a time.
+    **Note:** `source` and `emitSourceSelectedEvent` do not exist anywhere yet, WebStorm shows both unresolved in the template. That is expected, script and template are separate concerns in a `<script setup>` component: nothing here compiles against the other the way a strictly-typed Angular template would. They get defined next, one at a time.
 
-18. **Add the `source` prop.**
+13. **Add the `source` prop.**
 
     <details>
     <summary>src/news/presentation/components/source-item.vue (so far)</summary>
 
     ```vue
     <script setup lang="js">
-      import {Source} from "@/news/domain/model/source.entity.js";
+      import {Source} from "../../domain/model/source.entity.js";
 
       const { source } = defineProps({ source: { type: Source, required: true } });
     </script>
@@ -1671,7 +1347,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     **Note:** `{{source.name}}` and `:image="source.urlToLogo"` in the template now resolve, `source` exists. `emitSourceSelectedEvent` is still unresolved, that's the last piece.
 
-19. **Add `emitSourceSelectedEvent()`.**
+14. **Add `emitSourceSelectedEvent()`.**
 
     <details>
     <summary>src/news/presentation/components/source-item.vue (script)</summary>
@@ -1687,46 +1363,18 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     **Note:** everything in the template now resolves. No styles for this component, the classes on the `<div>`s are PrimeFlex utility classes, applied inline, there is nothing left for `<style scoped>` to add.
 
-20. **Put `SourceItem` together, with its doc comments.**
+15. **Put `SourceItem` together.**
 
     <details>
-    <summary>src/news/presentation/components/source-item.vue</summary>
+    <summary>src/news/presentation/components/source-item.vue (Full file)</summary>
 
     ```vue
     <script setup lang="js">
-      import {Source} from "@/news/domain/model/source.entity.js";
+      import {Source} from "../../domain/model/source.entity.js";
 
-      /**
-       * Presentation component for a single news source item.
-       *
-       * @remarks
-       * Displays source details and emits a selection event when clicked.
-       */
-
-      /**
-       * Properties for the SourceItem component.
-       *
-       * @typedef {Object} SourceItemProps
-       * @property {Source} source - The source entity to display.
-       */
-
-      /**
-       * Emitted events for the SourceItem component.
-       *
-       * @typedef {Object} SourceItemEmits
-       * @property {(event: 'source-selected', source: Source) => void} source-selected - Emitted when the source is clicked.
-       */
-
-      /** @type {SourceItemProps} */
       const { source } = defineProps({ source: { type: Source, required: true } });
-      /** @type {SourceItemEmits['emit']} */
       const emit  = defineEmits(['source-selected']);
 
-      /**
-       * Emits a selected source to the parent component.
-       *
-       * @returns {void}
-       */
       const emitSourceSelectedEvent = () => {
         emit('source-selected', source);
       };
@@ -1758,7 +1406,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     git commit -m "feat(news): add SourceItem component."
     ```
 
-21. **Create the `SourceList` component's template.** A PrimeVue drawer, listing one `SourceItem` per source.
+16. **Create the `SourceList` component's template.** A PrimeVue drawer, listing one `SourceItem` per source.
 
     <details>
     <summary>src/news/presentation/components/source-list.vue (template)</summary>
@@ -1775,14 +1423,14 @@ A visitor opens the app and sees a drawer listing every available news source, w
     ```
     </details>
 
-22. **Add the `visible` and `sources` props.**
+17. **Add the `visible` and `sources` props.**
 
     <details>
     <summary>src/news/presentation/components/source-list.vue (so far)</summary>
 
     ```vue
     <script setup lang="js">
-      import {Source} from "@/news/domain/model/source.entity.js";
+      import {Source} from "../../domain/model/source.entity.js";
       import SourceItem from "./source-item.vue";
 
       const { visible, sources } = defineProps({ visible: Boolean, sources: Array });
@@ -1805,7 +1453,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     **Note:** `sources: Array`, plain and simple, not `Array[Source]`. `Array[Source]` reads like "an array of `Source`", but it is not valid Vue prop syntax, `Source` there would be read as a property key on the `Array` constructor function, which does not exist, so it silently resolves to `undefined` and validates nothing.
 
-23. **Add the two emitted events.**
+18. **Add the two emitted events.**
 
     <details>
     <summary>src/news/presentation/components/source-list.vue (script)</summary>
@@ -1825,59 +1473,23 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     **Note:** `update:visible` is Vue's naming convention for `v-model:visible` support, whoever uses `<source-list v-model:visible="...">` gets two-way binding for free, Vue wires the `visible` prop and the `update:visible` event together.
 
-24. **Put `SourceList` together, with its doc comments.**
+19. **Put `SourceList` together.**
 
     <details>
-    <summary>src/news/presentation/components/source-list.vue</summary>
+    <summary>src/news/presentation/components/source-list.vue (Full file)</summary>
 
     ```vue
     <script setup lang="js">
-      import {Source} from "@/news/domain/model/source.entity.js";
+      import {Source} from "../../domain/model/source.entity.js";
       import SourceItem from "./source-item.vue";
 
-      /**
-       * Presentation component for displaying a list of selectable news sources.
-       *
-       * @remarks
-       * Renders news sources within a navigation drawer and handles source selection.
-       */
-
-      /**
-       * Properties for the SourceList component.
-       *
-       * @typedef {Object} SourceListProps
-       * @property {boolean} visible - Controls the visibility of the source drawer.
-       * @property {Source[]} sources - An array of news source entities to display.
-       */
-
-      /**
-       * Emitted events for the SourceList component.
-       *
-       * @typedef {Object} SourceListEmits
-       * @property {(event: 'source-selected', source: Source) => void} source-selected - Emitted when a source is selected from the list.
-       * @property {(event: 'update:visible', visible: boolean) => void} update:visible - Emitted when the visibility of the drawer changes.
-       */
-
-      /** @type {SourceListProps} */
       const { visible, sources } = defineProps({ visible: Boolean, sources: Array });
-      /** @type {SourceListEmits['emit']} */
       const emit  = defineEmits(['source-selected', 'update:visible']);
 
-      /**
-       * Emits the update:visible event for the container component.
-       *
-       * @param {boolean} value
-       */
       const emitVisibilityUpdatedEvent = (value) => {
         emit('update:visible', value);
       };
 
-      /**
-       * Bubbles the selected source to the parent container.
-       *
-       * @param {Source} source
-       * @returns {void}
-       */
       const emitSourceSelectedEvent = source => {
         emit('source-selected', source);
       };
@@ -1903,7 +1515,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     git commit -m "feat(news): add SourceList component."
     ```
 
-25. **Register PrimeVue in `main.js`.** Right-click `src` → the `main.js` file already exists from Project Setup, open it. This is the one place the whole app's global plugins and components get wired up.
+20. **Register PrimeVue in `main.js`.** Right-click `src` → the `main.js` file already exists from Project Setup, open it. This is the one place the whole app's global plugins and components get wired up.
 
     <details>
     <summary>src/main.js (so far)</summary>
@@ -1943,7 +1555,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     git commit -m "feat: register PrimeVue globally."
     ```
 
-26. **Wire `SourceList` into `Layout`, template only for now.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `shared/presentation/components/layout` → Enter. A menu bar with a button that opens the source drawer.
+21. **Wire `SourceList` into `Layout`, template only for now.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `shared/presentation/components/layout` → Enter. A menu bar with a button that opens the source drawer.
 
     <details>
     <summary>src/shared/presentation/components/layout.vue (template)</summary>
@@ -1981,15 +1593,15 @@ A visitor opens the app and sees a drawer listing every available news source, w
     ```
     </details>
 
-27. **Add the drawer state and the sources view.**
+22. **Add the drawer state and the sources view.**
 
     <details>
     <summary>src/shared/presentation/components/layout.vue (so far)</summary>
 
     ```vue
     <script lang="js" setup>
-    import {newsStore} from "@/news/application/news.store.js";
-    import SourceList from "@/news/presentation/components/source-list.vue";
+    import {newsStore} from "../../../news/application/news.store.js";
+    import SourceList from "../../../news/presentation/components/source-list.vue";
     import {ref, computed} from "vue";
 
     const drawerVisible = ref(false);
@@ -2035,14 +1647,12 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     **Note:** `sources` reads `newsStore.sources` through a `computed()`, not directly. `Layout` never reaches into `newsStore` from the template, it always goes through a `computed()` view or a method, the same discipline every component below follows.
 
-28. **Add `setSource()` and load the sources on mount.**
+23. **Add `setSource()` and load the sources on mount.**
 
     <details>
     <summary>src/shared/presentation/components/layout.vue (script)</summary>
 
     ```javascript
-    import {ref, computed, onMounted} from "vue";
-
     const setSource = source => {
       newsStore.setCurrentSource(source);
       toggleDrawer();
@@ -2056,7 +1666,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     **Note:** choosing a source also closes the drawer (`toggleDrawer()` right after `setCurrentSource`), so the visible list is not left covering the page once a choice is made. `onMounted` is what actually starts the whole app, nothing loads until `Layout` exists on the page.
 
-29. **Show `Layout` from `app.vue`.**
+24. **Show `Layout` from `app.vue`.**
 
     <details>
     <summary>src/app.vue</summary>
@@ -2065,13 +1675,6 @@ A visitor opens the app and sees a drawer listing every available news source, w
     <script setup>
       import Layout from "./shared/presentation/components/layout.vue";
 
-      /**
-       * Presentation shell component.
-       *
-       * @remarks
-       * Hosts the application layout and keeps bootstrapping concerns out of
-       * feature components.
-       */
     </script>
 
     <template>
@@ -2089,7 +1692,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     git commit -m "feat: add Layout component, wired into app.vue."
     ```
 
-30. **Run it.**
+25. **Run it.**
 
     ```
     npm run dev
@@ -2097,7 +1700,34 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     Open the local URL Vite prints. A "CatchUp" button opens a drawer with a real list of news sources, fetched live from NewsAPI. Click one, the drawer closes. Nothing else on the page changes yet, that's US002. Stop the server with `Ctrl+C`.
 
-31. **Publish and finish the feature.**
+26. **Publish and finish the feature.**
+
+27. **See the component tree so far.** Every component built in this story, who owns what state, and how data flows between parent and child: `:prop` binds an input down, `@event` binds an output back up.
+
+    ```
+    +-----+
+    | App |
+    +-----+
+        |
+        +----------------------------------+
+        | Layout                           |
+        | State (from newsStore):          |
+        |   sources: ComputedRef<Source[]> |
+        |   drawerVisible: Ref<boolean>    |
+        +----------------------------------+
+            |
+            +-------------------------------------------+
+            | SourceList                                |
+            | Input:  :visible (v-model), :sources      |
+            | Output: @source-selected, @update:visible |
+            +-------------------------------------------+
+                |
+                +--------------------------+
+                | SourceItem               |
+                | Input:  :source          |
+                | Output: @source-selected |
+                +--------------------------+
+    ```
 
 ---
 
@@ -2107,76 +1737,10 @@ Choosing a source now only marks it active. This story makes it load and show re
 
 1. **Start the feature `view-articles`.**
 
-2. **Create the `Article` entity, fields only for now.** Right-click `src` → `New` → `JavaScript File` → type `news/domain/model/article.entity` → Enter. Everything below gets built as this entity needs it.
+2. **Create the `DateTime` value object.** Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/date-time` → Enter. An invalid date throws immediately, unlike `Url`'s "fall back to empty" approach, a date-time is either real or it is a bug in the caller. It also answers `isFuture()`, formats itself, hands out a copy of its `Date`, and has a `now()` factory.
 
    <details>
-   <summary>src/news/domain/model/article.entity.js (fields only)</summary>
-
-   ```javascript
-   export class Article {
-       _author;
-       _title;
-       _description;
-       _url;
-       _urlToImage;
-       _source;
-       _publishedAt;
-   }
-   ```
-   </details>
-
-3. **Add `Article`'s constructor.** It validates the title and the source, resolves a `DateTime` from whatever it was given, and falls back to a placeholder image when none was provided.
-
-   <details>
-   <summary>src/news/domain/model/article.entity.js (so far)</summary>
-
-   ```javascript
-   import {Source} from "@/news/domain/model/source.entity.js";
-   import {StringValidator} from "@/shared/domain/model/string-validator.js";
-   import {Url} from "@/shared/domain/model/url.js";
-
-   export class Article {
-       _author;
-       _title;
-       _description;
-       _url;
-       _urlToImage;
-       _source;
-       _publishedAt;
-
-       constructor({author = '', title = '', description = '', url = '', urlToImage = '', source = null, publishedAt = ''}) {
-           if (!StringValidator.isNotEmptyString(title)) throw new Error('Article title must be a non-empty string');
-           if (!(source instanceof Source)) throw new Error('Article must have a resolved Source entity');
-
-           let dateTime;
-           try {
-               dateTime = publishedAt instanceof DateTime ? publishedAt : new DateTime(publishedAt);
-           } catch (e) {
-               throw new Error('Article publishedAt must be a valid date');
-           }
-           if (dateTime.isFuture()) throw new Error('Article publishedAt cannot be in the future');
-
-           this._author = author;
-           this._title = title;
-           this._description = description;
-           this._url = url instanceof Url ? url : new Url(url);
-           const resolvedImage = urlToImage instanceof Url ? urlToImage : new Url(urlToImage);
-           this._urlToImage = resolvedImage.isEmpty() ? new Url('https://placehold.co/600x400?text=No+Image') : resolvedImage;
-           this._source = source;
-           this._publishedAt = dateTime;
-       }
-   }
-   ```
-   </details>
-
-   **Note:** no `import` for `DateTime`, the file does not exist yet. WebStorm shows it unresolved, that clears once it is created below.
-
-   **Note:** no commit here, `Article` does not run yet, `DateTime` doesn't exist.
-
-4. **Create the `DateTime` value object, fields and constructor.** Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/date-time` → Enter. An invalid date throws immediately, unlike `Url`'s "fall back to empty" approach, a date-time is either real or it is a bug in the caller.
-
-   <details>
-   <summary>src/shared/domain/model/date-time.js (fields and constructor)</summary>
+   <summary>src/shared/domain/model/date-time.js</summary>
 
    ```javascript
    export class DateTime {
@@ -2190,62 +1754,11 @@ Choosing a source now only marks it active. This story makes it load and show re
            this.#date = date;
            Object.freeze(this);
        }
-   }
-   ```
-   </details>
 
-   **Note:** `#date`, native private, not `_date`. `DateTime` is never itself the direct value of a reactive property, only ever read through an already-reactive `Article`, the same reasoning as `Url` in US001.
-
-   **Note:** no commit here, nothing can read, format, or compare a `DateTime` from outside the class yet, that's next.
-
-5. **Add the read methods, the future check, and the factory.**
-
-   <details>
-   <summary>src/shared/domain/model/date-time.js (Full file with doc comments)</summary>
-
-   ```javascript
-   /**
-    * Value object representing a date and time within the domain.
-    *
-    * @remarks
-    * This value object ensures that date-time values are valid and provides
-    * consistent formatting and comparison logic. It is immutable.
-    */
-   export class DateTime {
-       /** @type {Date} */
-       #date;
-
-       /**
-        * Creates a new DateTime instance.
-        *
-        * @param {string|Date|number} value - The value to initialize the date with.
-        * @throws {Error} If the provided value results in an invalid date.
-        */
-       constructor(value) {
-           const date = new Date(value);
-           if (isNaN(date.getTime())) {
-               throw new Error('Invalid date-time value');
-           }
-           this.#date = date;
-           Object.freeze(this);
-       }
-
-       /**
-        * Checks if this date-time is in the future relative to the current time.
-        *
-        * @returns {boolean} True if the date-time is in the future.
-        */
        isFuture() {
            return this.#date > new Date();
        }
 
-       /**
-        * Formats the date-time for display.
-        *
-        * @param {string} [locale='en-US'] - The locale to use for formatting.
-        * @param {Intl.DateTimeFormatOptions} [options] - Formatting options.
-        * @returns {string} The formatted date-time string.
-        */
        format(locale = 'en-US', options = {
            year: 'numeric',
            month: '2-digit',
@@ -2256,40 +1769,26 @@ Choosing a source now only marks it active. This story makes it load and show re
            return this.#date.toLocaleDateString(locale, options);
        }
 
-       /**
-        * Returns the underlying Date object.
-        * @returns {Date}
-        */
        toDate() {
            return new Date(this.#date.getTime());
        }
 
-       /**
-        * Returns the ISO string representation of the date-time.
-        * @returns {string}
-        */
        toISOString() {
            return this.#date.toISOString();
        }
 
-       /**
-        * Returns the primitive value of the DateTime (the timestamp).
-        * @returns {number}
-        */
        valueOf() {
            return this.#date.getTime();
        }
 
-       /**
-        * Static factory method to create a DateTime from the current time.
-        * @returns {DateTime}
-        */
        static now() {
            return new DateTime(new Date());
        }
    }
    ```
    </details>
+
+   **Note:** `#date`, native private, not `_date`. `DateTime` is never itself the direct value of a reactive property, only ever read through an already-reactive `Article`, the same reasoning as `Url` in US001.
 
    **Note:** `toDate()` returns `new Date(this.#date.getTime())`, a copy, never the internal `#date` itself. Handing out the real one would let a caller call a mutating method on it (`setFullYear()`, for instance) and silently corrupt a value object that is supposed to be immutable.
 
@@ -2298,25 +1797,27 @@ Choosing a source now only marks it active. This story makes it load and show re
    git commit -m "feat(shared): add DateTime value object."
    ```
 
-6. **Add `Article`'s read accessors.**
+3. **Create the `Article` entity, fields and constructor.** Right-click `src` → `New` → `JavaScript File` → type `news/domain/model/article.entity` → Enter. It validates the title, the source, and the url, stores the title trimmed, resolves a `DateTime` from whatever it was given, and falls back to a placeholder image when none was provided. The placeholder is a named constant, `NO_IMAGE_URL`, not a literal buried in the middle of the constructor.
 
    <details>
    <summary>src/news/domain/model/article.entity.js (so far)</summary>
 
    ```javascript
-   import {Source} from "@/news/domain/model/source.entity.js";
-   import {StringValidator} from "@/shared/domain/model/string-validator.js";
-   import {DateTime} from "@/shared/domain/model/date-time.js";
-   import {Url} from "@/shared/domain/model/url.js";
+   import {Source} from "./source.entity.js";
+   import {StringValidator} from "../../../shared/domain/model/string-validator.js";
+   import {DateTime} from "../../../shared/domain/model/date-time.js";
+   import {Url} from "../../../shared/domain/model/url.js";
+
+   const NO_IMAGE_URL = 'https://placehold.co/600x400?text=No+Image';
 
    export class Article {
-       _author;
-       _title;
-       _description;
-       _url;
-       _urlToImage;
-       _source;
-       _publishedAt;
+       #author;
+       #title;
+       #description;
+       #url;
+       #urlToImage;
+       #source;
+       #publishedAt;
 
        constructor({author = '', title = '', description = '', url = '', urlToImage = '', source = null, publishedAt = ''}) {
            if (!StringValidator.isNotEmptyString(title)) throw new Error('Article title must be a non-empty string');
@@ -2330,90 +1831,51 @@ Choosing a source now only marks it active. This story makes it load and show re
            }
            if (dateTime.isFuture()) throw new Error('Article publishedAt cannot be in the future');
 
-           this._author = author;
-           this._title = title;
-           this._description = description;
-           this._url = url instanceof Url ? url : new Url(url);
+           const resolvedUrl = url instanceof Url ? url : new Url(url);
+           if (resolvedUrl.isEmpty()) throw new Error('Article url must be a valid, non-empty URL');
+
+           this.#author = author;
+           this.#title = title.trim();
+           this.#description = description;
+           this.#url = resolvedUrl;
            const resolvedImage = urlToImage instanceof Url ? urlToImage : new Url(urlToImage);
-           this._urlToImage = resolvedImage.isEmpty() ? new Url('https://placehold.co/600x400?text=No+Image') : resolvedImage;
-           this._source = source;
-           this._publishedAt = dateTime;
-       }
-
-       get author() {
-           return this._author;
-       }
-
-       get title() {
-           return this._title;
-       }
-
-       get description() {
-           return this._description;
-       }
-
-       get url() {
-           return this._url;
-       }
-
-       get urlToImage() {
-           return this._urlToImage;
-       }
-
-       get source() {
-           return this._source;
-       }
-
-       get publishedAt() {
-           return this._publishedAt;
+           this.#urlToImage = resolvedImage.isEmpty() ? new Url(NO_IMAGE_URL) : resolvedImage;
+           this.#source = source;
+           this.#publishedAt = dateTime;
+           Object.freeze(this);
        }
    }
    ```
    </details>
 
-   **Note:** no commit here, `Article` is not frozen yet, and it does not have `getFormatedPublishedAt()` yet either.
+   **Note:** `Url` never throws, an invalid string falls back to an empty `Url` (ADR-0002), so "the article has a url" cannot be checked by whether `new Url(url)` throws. The guard checks the result instead: `resolvedUrl.isEmpty()` means the provider sent nothing usable, and the constructor throws. `ArticleAssembler` already builds every item inside a `try`/`catch` and drops the ones that fail, so an article without a url never reaches the list with a dead "Read more" button.
 
-7. **Freeze `Article` once built, and add `getFormatedPublishedAt()`.**
+   **Note:** like `Source`, `Article` is immutable by design; `Object.freeze(this)` at the end of the constructor only guards its public properties and does not cover the `#` private fields.
+
+   **Note:** no commit here, `Article` has no read accessors yet.
+
+4. **Add the read accessors.** One getter per field, plus `getFormatedPublishedAt()`, the derived view the presentation layer needs.
 
    <details>
-   <summary>src/news/domain/model/article.entity.js (Full file with doc comments)</summary>
+   <summary>src/news/domain/model/article.entity.js (Full file)</summary>
 
    ```javascript
-   import {Source} from "@/news/domain/model/source.entity.js";
-   import {StringValidator} from "@/shared/domain/model/string-validator.js";
-   import {DateTime} from "@/shared/domain/model/date-time.js";
-   import {Url} from "@/shared/domain/model/url.js";
+   import {Source} from "./source.entity.js";
+   import {StringValidator} from "../../../shared/domain/model/string-validator.js";
+   import {DateTime} from "../../../shared/domain/model/date-time.js";
+   import {Url} from "../../../shared/domain/model/url.js";
 
-   /**
-    * Domain entity representing a news article.
-    *
-    * @remarks
-    * This entity encapsulates the core attributes and behavior of a news article
-    * within the domain. It ensures data integrity through validation in its
-    * constructor, and every field is set once, then frozen.
-    */
+   const NO_IMAGE_URL = 'https://placehold.co/600x400?text=No+Image';
+
    export class Article {
-       _author;
-       _title;
-       _description;
-       _url;
-       _urlToImage;
-       _source;
-       _publishedAt;
+       #author;
+       #title;
+       #description;
+       #url;
+       #urlToImage;
+       #source;
+       #publishedAt;
 
-       /**
-        * Creates a new Article instance.
-        *
-        * @param {Object} article - The article's content and the fully resolved source that published it.
-        * @param {string} [article.author] - The article's byline, empty when unattributed.
-        * @param {string} [article.title] - The title of the article.
-        * @param {string} [article.description] - A brief summary of the article content.
-        * @param {string|Url} [article.url] - The canonical URL of the article.
-        * @param {string|Url} [article.urlToImage] - The URL to the main image of the article.
-        * @param {Source} article.source - The fully resolved source that published the article.
-        * @param {string|Date|DateTime} [article.publishedAt] - The publication timestamp.
-        * @throws {Error} If title is empty, source is not a resolved Source entity, or publishedAt is invalid/in the future.
-        */
        constructor({author = '', title = '', description = '', url = '', urlToImage = '', source = null, publishedAt = ''}) {
            if (!StringValidator.isNotEmptyString(title)) throw new Error('Article title must be a non-empty string');
            if (!(source instanceof Source)) throw new Error('Article must have a resolved Source entity');
@@ -2426,59 +1888,50 @@ Choosing a source now only marks it active. This story makes it load and show re
            }
            if (dateTime.isFuture()) throw new Error('Article publishedAt cannot be in the future');
 
-           this._author = author;
-           this._title = title;
-           this._description = description;
-           this._url = url instanceof Url ? url : new Url(url);
+           const resolvedUrl = url instanceof Url ? url : new Url(url);
+           if (resolvedUrl.isEmpty()) throw new Error('Article url must be a valid, non-empty URL');
+
+           this.#author = author;
+           this.#title = title.trim();
+           this.#description = description;
+           this.#url = resolvedUrl;
            const resolvedImage = urlToImage instanceof Url ? urlToImage : new Url(urlToImage);
-           this._urlToImage = resolvedImage.isEmpty() ? new Url('https://placehold.co/600x400?text=No+Image') : resolvedImage;
-           this._source = source;
-           this._publishedAt = dateTime;
+           this.#urlToImage = resolvedImage.isEmpty() ? new Url(NO_IMAGE_URL) : resolvedImage;
+           this.#source = source;
+           this.#publishedAt = dateTime;
            Object.freeze(this);
        }
 
-       /** @returns {string} */
        get author() {
-           return this._author;
+           return this.#author;
        }
 
-       /** @returns {string} */
        get title() {
-           return this._title;
+           return this.#title;
        }
 
-       /** @returns {string} */
        get description() {
-           return this._description;
+           return this.#description;
        }
 
-       /** @returns {Url} */
        get url() {
-           return this._url;
+           return this.#url;
        }
 
-       /** @returns {Url} */
        get urlToImage() {
-           return this._urlToImage;
+           return this.#urlToImage;
        }
 
-       /** @returns {Source} */
        get source() {
-           return this._source;
+           return this.#source;
        }
 
-       /** @returns {DateTime} */
        get publishedAt() {
-           return this._publishedAt;
+           return this.#publishedAt;
        }
 
-       /**
-        * Formats the publication date for display purposes.
-        *
-        * @returns {string} The formatted date string (e.g., MM/DD/YYYY, HH:MM AM/PM).
-        */
        getFormatedPublishedAt() {
-           return this._publishedAt.format();
+           return this.#publishedAt.format();
        }
    }
    ```
@@ -2489,15 +1942,15 @@ Choosing a source now only marks it active. This story makes it load and show re
    git commit -m "feat(news): add Article entity."
    ```
 
-8. **Create the `ArticleAssembler`, undocumented.** Right-click `src` → `New` → `JavaScript File` → type `news/infrastructure/article.assembler` → Enter. Resolves the matching `Source` before constructing the `Article`, the same "resolve first, construct once" shape `SourceAssembler` already uses.
+5. **Create the `ArticleAssembler`.** Right-click `src` → `New` → `JavaScript File` → type `news/infrastructure/article.assembler` → Enter. Resolves the matching `Source` before constructing the `Article`, the same "resolve first, construct once" shape `SourceAssembler` already uses.
 
    <details>
    <summary>src/news/infrastructure/article.assembler.js (so far)</summary>
 
    ```javascript
-   import {SourceAssembler} from "@/news/infrastructure/source.assembler.js";
-   import {Article} from "@/news/domain/model/article.entity.js";
-   import "@/news/infrastructure/news-resources.js";
+   import {SourceAssembler} from "./source.assembler.js";
+   import {Article} from "../domain/model/article.entity.js";
+   import "./news-resources.js";
 
    export class ArticleAssembler {
        #source;
@@ -2536,325 +1989,204 @@ Choosing a source now only marks it active. This story makes it load and show re
 
    **Note:** the constructor takes an optional `source`, the one already active in `newsStore` when articles are being loaded *for* that source. `toEntityFromResource` reuses that exact instance when the resource's own embedded source matches it by `id` or `name`, instead of building a second, separate `Source` for the same news provider.
 
-   **Note:** no commit here, `ArticleAssembler` is undocumented, the next step adds that.
-
-9. **Add `ArticleAssembler`'s doc comments.**
-
-   <details>
-   <summary>src/news/infrastructure/article.assembler.js (Full file with doc comments)</summary>
-
-   ```javascript
-   import {SourceAssembler} from "@/news/infrastructure/source.assembler.js";
-   import {Article} from "@/news/domain/model/article.entity.js";
-   import "@/news/infrastructure/news-resources.js";
-
-   /**
-    * Infrastructure service that maps article data from API responses into Domain Entities.
-    *
-    * @remarks
-    * Following DDD patterns, this assembler acts as a Data Mapper between the
-    * infrastructure-specific article format and the Article domain entity.
-    */
-   export class ArticleAssembler {
-       #source;
-       #sourceAssembler;
-
-       /**
-        * Initializes the ArticleAssembler.
-        *
-        * @param {import('@/news/domain/model/source.entity.js').Source | null} [source=null] - An optional Source entity to associate with assembled articles.
-        */
-       constructor(source = null) {
-           this.#source = source;
-           this.#sourceAssembler = new SourceAssembler();
-       }
-
-       /**
-        * Maps a full Axios response containing article resources into an array of Article entities.
-        *
-        * @param {import('axios').AxiosResponse<ArticlesResponse>} response - The HTTP response from the news provider.
-        * @returns {Article[]} An array of Article domain entities. Returns an empty array if the status is not 'ok'.
-        */
-       toEntitiesFromResponse(response) {
-           if (response.data.status !== "ok") {
-               console.error(`${response.data["status"]},  ${response.data["code"]}, ${response.data["message"]}`);
-               return [];
-           }
-           const articlesResponse = response.data;
-           return articlesResponse["articles"].map((article) => {
-               try {
-                   return this.toEntityFromResource(article);
-               } catch (error) {
-                   console.error('Validation error for article:', error.message, article);
-                   return null;
-               }
-           }).filter(article => article !== null);
-       }
-
-       /**
-        * Maps a single article resource into an Article domain entity.
-        *
-        * @param {ArticleResource} resource - The article data as received from the external API.
-        * @returns {Article} The assembled Article domain entity, with its source already resolved.
-        */
-       toEntityFromResource(resource) {
-           const resolvedSource = this.#source && (this.#source.id === resource.source?.id || this.#source.name === resource.source?.name)
-               ? this.#source
-               : this.#sourceAssembler.toEntityFromResource(resource.source || {id: 'unknown', name: 'Unknown Source'});
-           return new Article({...resource, source: resolvedSource});
-       }
-   }
-   ```
-   </details>
-
    ```
    git add .
    git commit -m "feat(news): add ArticleAssembler."
    ```
 
-10. **Extend `newsStore` to load articles for the current source.**
+6. **Extend `newsStore` to load articles for the current source.**
 
-    <details>
-    <summary>src/news/application/news.store.js (Full file with doc comments)</summary>
+   <details>
+   <summary>src/news/application/news.store.js (Full file)</summary>
 
-    ```javascript
-    import {reactive} from "vue";
-    import {Source} from "@/news/domain/model/source.entity.js";
-    import {NewsApi} from "@/news/infrastructure/news-api.js";
-    import {SourceAssembler} from "@/news/infrastructure/source.assembler.js";
-    import {ArticleAssembler} from "@/news/infrastructure/article.assembler.js";
+   ```javascript
+   import {reactive, ref, shallowRef} from "vue";
+   import {Source} from "../domain/model/source.entity.js";
+   import {NewsApi} from "../infrastructure/news-api.js";
+   import {SourceAssembler} from "../infrastructure/source.assembler.js";
+   import {ArticleAssembler} from "../infrastructure/article.assembler.js";
 
-    /**
-     * Application state and service orchestrator for news-related operations.
-     *
-     * @typedef {Object} NewsStore
-     * @property {import('@/news/domain/model/source.entity.js').Source[]} sources - List of available news sources.
-     * @property {import('@/news/domain/model/article.entity.js').Article[]} articles - List of articles for the current source.
-     * @property {Array<string>} errors - List of error messages encountered during operations.
-     * @property {import('@/news/domain/model/source.entity.js').Source | null} currentSource - The currently selected news source.
-     * @property {(source: import('@/news/domain/model/source.entity.js').Source) => void} setCurrentSource - Sets the current source and triggers article loading.
-     * @property {() => void} loadSources - Orchestrates fetching and assembling news sources.
-     * @property {() => void} loadArticlesForCurrentSource - Orchestrates fetching and assembling articles for the active source.
-     */
+   const newsApi = new NewsApi();
+   const sourceAssembler = new SourceAssembler();
 
-    const newsApi = new NewsApi();
-    const sourceAssembler = new SourceAssembler();
+   const sources = shallowRef([]);
+   const articles = shallowRef([]);
+   const currentSource = shallowRef(null);
+   const errors = ref([]);
 
-    /**
-     * Reactive application store that coordinates use cases for news management.
-     *
-     * @remarks
-     * In DDD, this serves as an Application Service, managing the interaction
-     * between UI components and infrastructure-driven data acquisition.
-     *
-     * @type {NewsStore}
-     */
-    export const newsStore = reactive({
-            sources: [],
-            articles: [],
-            errors: [],
-            currentSource: null,
-            /**
-             * Sets the active source and triggers article retrieval.
-             *
-             * @param {Source} source
-             * @returns {void}
-             */
-            setCurrentSource(source) {
-                this.currentSource = source;
-                this.loadArticlesForCurrentSource();
-            },
-            /**
-             * Loads the source list from the provider and selects the first source.
-             *
-             * @returns {void}
-             */
-            loadSources() {
-                this.errors = [];
-                newsApi.getSources().then(response => {
-                    this.sources = sourceAssembler.toEntitiesFromResponse(response);
-                    if (this.sources.length > 0 && !this.currentSource) this.setCurrentSource(this.sources[0]);
-                }).catch(message => {
-                    this.errors.push(message);
-                    this.sources = [];
-                });
-            },
-            /**
-             * Loads articles for the current source.
-             *
-             * @returns {void}
-             */
-            loadArticlesForCurrentSource() {
-                if (this.currentSource === null) return;
-                newsApi.getArticlesForSourceId(this.currentSource.id).then(response => {
-                    const articleAssembler = new ArticleAssembler(this.currentSource);
-                    this.articles = articleAssembler.toEntitiesFromResponse(response);
-                }).catch(message => {
-                    this.errors.push(message);
-                    this.articles = [];
-                });
-            }
-        });
-    ```
-    </details>
+   export const newsStore = reactive({
+           sources,
+           articles,
+           errors,
+           currentSource,
+           setCurrentSource(source) {
+               this.currentSource = source;
+               this.loadArticlesForCurrentSource();
+           },
+           loadSources() {
+               this.errors = [];
+               newsApi.getSources().then(response => {
+                   this.sources = sourceAssembler.toEntitiesFromResponse(response);
+                   if (this.sources.length > 0 && !this.currentSource) this.setCurrentSource(this.sources[0]);
+               }).catch(message => {
+                   this.errors.push(message);
+                   this.sources = [];
+               });
+           },
+           loadArticlesForCurrentSource() {
+               if (this.currentSource === null) return;
+               newsApi.getArticlesForSourceId(this.currentSource.id).then(response => {
+                   const articleAssembler = new ArticleAssembler(this.currentSource);
+                   this.articles = articleAssembler.toEntitiesFromResponse(response);
+               }).catch(message => {
+                   this.errors.push(message);
+                   this.articles = [];
+               });
+           }
+       });
+   ```
+   </details>
 
-    **Note:** `setCurrentSource` now calls `this.loadArticlesForCurrentSource()` as its last line, choosing a source and loading its articles are one action from the caller's side, never two separate steps to remember. `loadArticlesForCurrentSource` builds a *fresh* `ArticleAssembler(this.currentSource)` every time, not a shared one, so the source it resolves articles against is always the one active right now.
+   **Note:** `setCurrentSource` now calls `this.loadArticlesForCurrentSource()` as its last line, choosing a source and loading its articles are one action from the caller's side, never two separate steps to remember. `loadArticlesForCurrentSource` builds a *fresh* `ArticleAssembler(this.currentSource)` every time, not a shared one, so the source it resolves articles against is always the one active right now.
 
-    ```
-    git add .
-    git commit -m "feat(news): load articles for the current source."
-    ```
+   ```
+   git add .
+   git commit -m "feat(news): load articles for the current source."
+   ```
 
-11. **Create the `ArticleList` component's template.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/article-list` → Enter. One `ArticleItem` per article.
+7. **Create the `ArticleList` component's template.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/article-list` → Enter. One `ArticleItem` per article.
 
-    <details>
-    <summary>src/news/presentation/components/article-list.vue (template)</summary>
+   <details>
+   <summary>src/news/presentation/components/article-list.vue (template)</summary>
 
-    ```vue
-    <template>
-      <div v-for="article in articles" :key="article.url.toString()">
-        <article-item :article="article"/>
-      </div>
-    </template>
-    ```
-    </details>
+   ```vue
+   <template>
+     <div v-for="article in articles" :key="article.url.toString()">
+       <article-item :article="article"/>
+     </div>
+   </template>
+   ```
+   </details>
 
-12. **Add the `articles` prop.**
+8. **Add the `articles` prop.**
 
-    <details>
-    <summary>src/news/presentation/components/article-list.vue</summary>
+   <details>
+   <summary>src/news/presentation/components/article-list.vue (Full file)</summary>
 
-    ```vue
-    <script setup lang="js">
-    import ArticleItem from "./article-item.vue";
-    import {Article} from "@/news/domain/model/article.entity.js";
+   ```vue
+   <script setup lang="js">
+   import ArticleItem from "./article-item.vue";
+   import {Article} from "../../domain/model/article.entity.js";
 
-    /**
-     * Presentation component for rendering a collection of article cards.
-     *
-     * @remarks
-     * Iterates over an array of Article entities and renders an ArticleItem for each.
-     */
+   const { articles } = defineProps({ articles: { type: Array, required: true } });
 
-    /**
-     * Properties for the ArticleList component.
-     *
-     * @typedef {Object} ArticleListProps
-     * @property {Article[]} articles - An array of Article entities to be displayed.
-     */
-    const { articles } = defineProps({ articles: { type: Array, required: true } });
+   </script>
 
-    </script>
+   <template>
+     <div v-for="article in articles" :key="article.url.toString()">
+       <article-item :article="article"/>
+     </div>
+   </template>
 
-    <template>
-      <div v-for="article in articles" :key="article.url.toString()">
-        <article-item :article="article"/>
-      </div>
-    </template>
+   <style scoped>
 
-    <style scoped>
+   </style>
+   ```
+   </details>
 
-    </style>
-    ```
-    </details>
+   **Note:** `ArticleList` is complete after this one addition, there is only ever going to be this one prop.
 
-    **Note:** `ArticleList` is complete after this one addition, its doc comments go on now instead of a separate final step, there is only ever going to be this one prop.
+   ```
+   git add .
+   git commit -m "feat(news): add ArticleList component."
+   ```
 
-    ```
-    git add .
-    git commit -m "feat(news): add ArticleList component."
-    ```
+9. **Create the `ArticleItem` component's template.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/article-item` → Enter. A card: image, title, source row, author and date, description, then a footer with a read-more link and a share button.
 
-13. **Create the `ArticleItem` component's template.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/article-item` → Enter. A card: image, title, source row, author and date, description, then a footer with a read-more link and a share button.
+   <details>
+   <summary>src/news/presentation/components/article-item.vue (template)</summary>
 
-    <details>
-    <summary>src/news/presentation/components/article-item.vue (template)</summary>
+   ```vue
+   <template>
+     <pv-card class="m-2">
+       <template #header>
+         <img :alt="article.title" :src="article.urlToImage.toString()" class="image-fit"/>
+       </template>
+       <template #title>
+         <p class="flex align-content-start flex-wrap">
+           {{ article.title }}
+         </p>
+       </template>
+       <template #subtitle>
+         <div class="flex flex-column gap-2">
+           <p class="flex align-content-start flex-wrap cursor-pointer" @click="toggleSourceSummary">
+             <span class="flex align-items-center justify-content-center mr-2">
+               <pv-avatar :aria-label="article.source.name"
+                          :image="article.source.urlToLogo"
+                          shape="circle"/>
+             </span>
+             <span class="flex align-items-center justify-content-center font-bold">
+               {{ article.source.name }}
+             </span>
+           </p>
+           <p v-if="article.author" class="flex align-content-start flex-wrap">
+             <span class="text-sm">By {{ article.author }}</span>
+           </p>
+           <p class="flex align-content-start flex-wrap">
+             <span class="text-sm">Published on {{ article.getFormatedPublishedAt() }}</span>
+           </p>
+         </div>
+       </template>
+       <template #content>
+         <p class="flex align-content-start flex-wrap mt-4">
+           {{ article.description }}
+         </p>
+       </template>
+       <template #footer>
+         <div class="flex justify-content-between align-items-center">
+           <pv-button v-if="!article.url.isEmpty()" as="a" :href="article.url.toString()" target="_blank"
+                      label="Read more" link class="p-0" />
+           <pv-button
+               v-if="!article.url.isEmpty()"
+               label="Share"
+               aria-label="Share article"
+               text
+               size="small"
+               icon="pi pi-share-alt"
+               @click="shareArticle"/>
+         </div>
+       </template>
+     </pv-card>
+   </template>
 
-    ```vue
-    <template>
-      <pv-card class="m-2">
-        <template #header>
-          <img :alt="article.title" :src="article.urlToImage.toString()" class="image-fit"/>
-        </template>
-        <template #title>
-          <p class="flex align-content-start flex-wrap">
-            {{ article.title }}
-          </p>
-        </template>
-        <template #subtitle>
-          <div class="flex flex-column gap-2">
-            <p class="flex align-content-start flex-wrap cursor-pointer" @click="toggleSourceSummary">
-              <span class="flex align-items-center justify-content-center mr-2">
-                <pv-avatar :aria-label="article.source.name"
-                           :image="article.source.urlToLogo"
-                           shape="circle"/>
-              </span>
-              <span class="flex align-items-center justify-content-center font-bold">
-                {{ article.source.name }}
-              </span>
-            </p>
-            <p v-if="article.author" class="flex align-content-start flex-wrap">
-              <span class="text-sm">By {{ article.author }}</span>
-            </p>
-            <p class="flex align-content-start flex-wrap">
-              <span class="text-sm">Published on {{ article.getFormatedPublishedAt() }}</span>
-            </p>
-          </div>
-        </template>
-        <template #content>
-          <p class="flex align-content-start flex-wrap mt-4">
-            {{ article.description }}
-          </p>
-        </template>
-        <template #footer>
-          <div class="flex justify-content-between align-items-center">
-            <pv-button v-if="!article.url.isEmpty()" as="a" :href="article.url.toString()" target="_blank"
-                       label="Read more" link class="p-0" />
-            <pv-button
-                v-if="!article.url.isEmpty()"
-                label="Share"
-                aria-label="Share article"
-                text
-                size="small"
-                icon="pi pi-share-alt"
-                @click="shareArticle"/>
-          </div>
-        </template>
-      </pv-card>
-    </template>
+   <style scoped>
+   .image-fit {
+     width: 100%;
+     height: 100%;
+     object-fit: cover;
+   }
+   </style>
+   ```
+   </details>
 
-    <style scoped>
-    .image-fit {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    </style>
-    ```
-    </details>
+   **Note:** `toggleSourceSummary` and `shareArticle` are still unresolved, `"By "` and `"Published on "` are plain English text for now, not yet translated, US003 replaces both with `t(...)` calls once i18n exists. Building the template with real, readable copy first, then swapping it for translation keys, is easier to follow than starting from `{{ t('article.by') }}` with no English text to compare it against yet.
 
-    **Note:** `toggleSourceSummary` and `shareArticle` are still unresolved, `"By "` and `"Published on "` are plain English text for now, not yet translated, US003 replaces both with `t(...)` calls once i18n exists. Building the template with real, readable copy first, then swapping it for translation keys, is easier to follow than starting from `{{ t('article.by') }}` with no English text to compare it against yet.
-
-14. **Add the `article` prop.**
+10. **Add the `article` prop.**
 
     <details>
     <summary>src/news/presentation/components/article-item.vue (script)</summary>
 
     ```javascript
-    import {Article} from "@/news/domain/model/article.entity.js";
-
     const { article } = defineProps({article: {type: Article, required: true}});
     ```
     </details>
 
-15. **Add the `SourceSummary` popover trigger.** `SourceSummary` itself does not exist yet, US004 builds it, this component only needs a `ref` to call `.toggle()` on it.
+11. **Add the `SourceSummary` popover trigger.** `SourceSummary` itself does not exist yet, US004 builds it, this component only needs a `ref` to call `.toggle()` on it.
 
     <details>
     <summary>src/news/presentation/components/article-item.vue (script)</summary>
 
     ```javascript
-    import {ref} from "vue";
-
     const sourceSummary = ref();
 
     const toggleSourceSummary = event => {
@@ -2865,7 +2197,7 @@ Choosing a source now only marks it active. This story makes it load and show re
 
     **Note:** no commit here, `<source-summary>` is not in the template yet either, that and this piece land together once `SourceSummary` exists, in US004.
 
-16. **Add `shareArticle()`.** Web Share API first, clipboard as the fallback.
+12. **Add `shareArticle()`.** Web Share API first, clipboard as the fallback.
 
     <details>
     <summary>src/news/presentation/components/article-item.vue (script)</summary>
@@ -2902,49 +2234,28 @@ Choosing a source now only marks it active. This story makes it load and show re
     git commit -m "feat(news): add ArticleItem component."
     ```
 
-17. **Wire `ArticleList` into `Layout`.**
+13. **Wire `ArticleList` into `Layout`.**
 
     <details>
-    <summary>src/shared/presentation/components/layout.vue (Full file with doc comments)</summary>
+    <summary>src/shared/presentation/components/layout.vue (Full file)</summary>
 
     ```vue
     <script lang="js" setup>
 
-    import {newsStore} from "@/news/application/news.store.js";
-    import SourceList from "@/news/presentation/components/source-list.vue";
-    import ArticleList from "@/news/presentation/components/article-list.vue";
+    import {newsStore} from "../../../news/application/news.store.js";
+    import SourceList from "../../../news/presentation/components/source-list.vue";
+    import ArticleList from "../../../news/presentation/components/article-list.vue";
     import {ref, computed, onMounted} from "vue";
-
-    /**
-     * Root presentation layout for the news application.
-     *
-     * @remarks
-     * Coordinates the display of the menubar, news source drawer, and the main
-     * content area. It bridges the UI with the `newsStore` application service.
-     */
 
     const drawerVisible = ref(false);
 
-    /**
-     * Toggles the source drawer visibility.
-     *
-     * @returns {void}
-     */
     const toggleDrawer = () => {
       drawerVisible.value = !drawerVisible.value;
     };
 
-    /** @type {import('vue').ComputedRef<import('@/news/domain/model/source.entity.js').Source[]>} */
     const sources = computed(() => newsStore.sources);
-    /** @type {import('vue').ComputedRef<import('@/news/domain/model/article.entity.js').Article[]>} */
     const articles = computed(() => newsStore.articles || []);
 
-    /**
-     * Selects a source and refreshes article projections.
-     *
-     * @param {import('@/news/domain/model/source.entity.js').Source} source
-     * @returns {void}
-     */
     const setSource = source => {
       newsStore.setCurrentSource(source);
       toggleDrawer();
@@ -3009,7 +2320,7 @@ Choosing a source now only marks it active. This story makes it load and show re
     git commit -m "feat: show ArticleList in Layout."
     ```
 
-18. **Run it.**
+14. **Run it.**
 
     ```
     npm run dev
@@ -3017,7 +2328,46 @@ Choosing a source now only marks it active. This story makes it load and show re
 
     Choosing a source now loads real articles for it: title, image (or the placeholder), author when one exists, and a formatted publish date. Click **Share** on an article, its URL lands on your clipboard (or your device's native share sheet opens, if it supports the Web Share API). Stop the server with `Ctrl+C`.
 
-19. **Publish and finish the feature.**
+15. **Publish and finish the feature.**
+
+16. **See the component tree so far.** `ArticleList`/`ArticleItem` joined the tree, and `Layout` now also exposes `articles`.
+
+    ```
+    +-----+
+    | App |
+    +-----+
+        |
+        +------------------------------------+
+        | Layout                             |
+        | State (from newsStore):            |
+        |   sources: ComputedRef<Source[]>   |
+        |   drawerVisible: Ref<boolean>      |
+        |   articles: ComputedRef<Article[]> |
+        +------------------------------------+
+            |
+            +-------------------------------------------+
+            | SourceList                                |
+            | Input:  :visible (v-model), :sources      |
+            | Output: @source-selected, @update:visible |
+            +-------------------------------------------+
+                |
+                +--------------------------+
+                | SourceItem               |
+                | Input:  :source          |
+                | Output: @source-selected |
+                +--------------------------+
+            |
+            +-------------------+
+            | ArticleList       |
+            | Input:  :articles |
+            +-------------------+
+                |
+                +-------------------------+
+                | ArticleItem             |
+                | Input:  :article        |
+                | Output: @article-shared |
+                +-------------------------+
+    ```
 
 ---
 
@@ -3101,9 +2451,6 @@ Every string shown so far is hardcoded English. This story adds real internation
 
    import {createI18n} from "vue-i18n";
 
-   /**
-    * Shared internationalization service used across presentation modules.
-    */
    const i18n = createI18n({
        legacy: false,
        locale: "en",
@@ -3120,7 +2467,7 @@ Every string shown so far is hardcoded English. This story adds real internation
 5. **Register i18n in `main.js`.**
 
    <details>
-   <summary>src/main.js (Full file with doc comments)</summary>
+   <summary>src/main.js (Full file)</summary>
 
    ```javascript
    import { createApp } from 'vue'
@@ -3134,12 +2481,6 @@ Every string shown so far is hardcoded English. This story adds real internation
    import {Avatar, Button, Card, Drawer, Menu, Menubar, Popover, SelectButton, Toolbar, Tooltip} from "primevue";
 
    const primeUiLicenseKey = import.meta.env.VITE_PRIME_UI_LICENSE_KEY;
-   /**
-    * Application composition root.
-    *
-    * @remarks
-    * Specifies the main entry point of the Vue application, configuring global plugins, components, and mounting the app to the DOM.
-    */
 
    createApp(App)
        .use(i18n)
@@ -3172,12 +2513,6 @@ Every string shown so far is hardcoded English. This story adds real internation
    <script setup lang="js">
    import { useI18n } from 'vue-i18n';
 
-   /**
-    * Presentation component for switching the application's locale.
-    *
-    * @remarks
-    * Uses the vue-i18n instance to display and update the current language.
-    */
    const { locale, availableLocales } = useI18n();
    </script>
 
@@ -3211,12 +2546,6 @@ Every string shown so far is hardcoded English. This story adds real internation
    <script setup lang="js">
      import {useI18n} from "vue-i18n";
 
-     /**
-      * Presentation component for the application footer.
-      *
-      * @remarks
-      * Displays attribution links, copyright information, and supports localization.
-      */
      const { t } = useI18n();
    </script>
 
@@ -3247,7 +2576,9 @@ Every string shown so far is hardcoded English. This story adds real internation
    git commit -m "feat(shared): add FooterContent component."
    ```
 
-8. **Wire `LanguageSwitcher` and `FooterContent` into `Layout`.**
+8. **Wire `LanguageSwitcher` and `FooterContent` into `Layout`.** `LanguageSwitcher` and `FooterContent` join the script's imports.
+
+   The template puts the switcher in the menubar and the footer below the main content:
 
    <details>
    <summary>src/shared/presentation/components/layout.vue (template)</summary>
@@ -3280,15 +2611,6 @@ Every string shown so far is hardcoded English. This story adds real internation
    ```
    </details>
 
-   <details>
-   <summary>src/shared/presentation/components/layout.vue (script)</summary>
-
-   ```javascript
-   import LanguageSwitcher from "./language-switcher.vue";
-   import FooterContent from "./footer-content.vue";
-   ```
-   </details>
-
    ```
    git add .
    git commit -m "feat: show LanguageSwitcher and FooterContent in Layout."
@@ -3303,24 +2625,8 @@ Every string shown so far is hardcoded English. This story adds real internation
    <script setup lang="js">
      import {useI18n} from "vue-i18n";
 
-     /**
-      * Presentation component for displaying error messages or fallback content.
-      *
-      * @remarks
-      * This component is rendered when no articles are available or an error occurs
-      * during data fetching.
-      */
-
-     /**
-      * Properties for the UnavailableContent component.
-      *
-      * @typedef {Object} UnavailableContentProps
-      * @property {Array<string>} errors - A list of error message strings to display.
-      */
-
      const { t } = useI18n();
 
-     /** @type {UnavailableContentProps} */
      const { errors } = defineProps({ errors: { type: Array, default: () => [] } });
    </script>
 
@@ -3348,53 +2654,29 @@ Every string shown so far is hardcoded English. This story adds real internation
 10. **Show `UnavailableContent` in `Layout` when there is nothing to display.**
 
     <details>
-    <summary>src/shared/presentation/components/layout.vue (Full file with doc comments)</summary>
+    <summary>src/shared/presentation/components/layout.vue (Full file)</summary>
 
     ```vue
     <script lang="js" setup>
 
-    import {newsStore} from "@/news/application/news.store.js";
-    import SourceList from "@/news/presentation/components/source-list.vue";
+    import {newsStore} from "../../../news/application/news.store.js";
+    import SourceList from "../../../news/presentation/components/source-list.vue";
     import LanguageSwitcher from "./language-switcher.vue";
-    import ArticleList from "@/news/presentation/components/article-list.vue";
-    import UnavailableContent from "@/news/presentation/components/unavailable-content.vue";
+    import ArticleList from "../../../news/presentation/components/article-list.vue";
+    import UnavailableContent from "../../../news/presentation/components/unavailable-content.vue";
     import FooterContent from "./footer-content.vue";
     import {ref, computed, onMounted} from "vue";
 
-    /**
-     * Root presentation layout for the news application.
-     *
-     * @remarks
-     * Coordinates the display of the menubar, news source drawer, and the main
-     * content area (article list or error view). It bridges the UI with the
-     * `newsStore` application service.
-     */
-
     const drawerVisible = ref(false);
 
-    /**
-     * Toggles the source drawer visibility.
-     *
-     * @returns {void}
-     */
     const toggleDrawer = () => {
       drawerVisible.value = !drawerVisible.value;
     };
 
-
-    /** @type {import('vue').ComputedRef<import('@/news/domain/model/source.entity.js').Source[]>} */
     const sources = computed(() => newsStore.sources);
-    /** @type {import('vue').ComputedRef<Array<unknown>>} */
     const errors = computed(() => newsStore.errors);
-    /** @type {import('vue').ComputedRef<import('@/news/domain/model/article.entity.js').Article[]>} */
     const articles = computed(() => newsStore.articles || []);
 
-    /**
-     * Selects a source and refreshes article projections.
-     *
-     * @param {import('@/news/domain/model/source.entity.js').Source} source
-     * @returns {void}
-     */
     const setSource = source => {
       newsStore.setCurrentSource(source);
       toggleDrawer();
@@ -3403,7 +2685,6 @@ Every string shown so far is hardcoded English. This story adds real internation
     onMounted(() => {
       newsStore.loadSources();
     });
-
 
     </script>
 
@@ -3470,61 +2751,26 @@ Every string shown so far is hardcoded English. This story adds real internation
 11. **Revisit `ArticleItem`, translate its text.** `"By "`, `"Published on "`, `"Read more"`, `"Share"`, and the tooltip were plain English, written before i18n existed.
 
     <details>
-    <summary>src/news/presentation/components/article-item.vue</summary>
+    <summary>src/news/presentation/components/article-item.vue (Full file)</summary>
 
     ```vue
     <script lang="js" setup>
     import {useI18n} from "vue-i18n";
-    import {Article} from "@/news/domain/model/article.entity.js";
+    import {Article} from "../../domain/model/article.entity.js";
     import {ref} from "vue";
-
-    /**
-     * Presentation component for rendering a single article card.
-     *
-     * @remarks
-     * This component is responsible for displaying article data and handling
-     * UI-level interactions like sharing or copying the article URL.
-     */
-
-    /**
-     * Properties for the ArticleItem component.
-     *
-     * @typedef {Object} ArticleItemProps
-     * @property {Article} article - The article entity to display.
-     */
-
-    /**
-     * Emitted events for the ArticleItem component.
-     *
-     * @typedef {Object} ArticleItemEmits
-     * @property {(event: 'article-shared', articleUrl: string) => void} article-shared - Emitted when the article URL is copied to the clipboard.
-     */
 
     const {t} = useI18n();
 
-    /** @type {ArticleItemProps} */
     const { article } = defineProps({article: {type: Article, required: true}});
 
-
-    /** @type {ArticleItemEmits['emit']} */
     const emit = defineEmits(['article-shared']);
 
     const sourceSummary = ref();
 
-    /**
-     * Toggles the source popover.
-     *
-     * @param {Event} event - The click event.
-     */
     const toggleSourceSummary = event => {
       sourceSummary.value.toggle(event);
     };
 
-    /**
-     * Uses Web Share API when available; otherwise copies article URL.
-     *
-     * @returns {Promise<void>}
-     */
     const shareArticle = async () => {
       const shareData = {title: article.title, url: article.url.toString()};
       if (navigator.share) {
@@ -3627,6 +2873,61 @@ Every string shown so far is hardcoded English. This story adds real internation
 
 13. **Publish and finish the feature.**
 
+14. **See the component tree so far.** `LanguageSwitcher`, `UnavailableContent`, and `FooterContent` joined the tree; `LanguageSwitcher` and `FooterContent` take no input (they read `useI18n()` directly), `UnavailableContent` takes `:errors` and replaces `ArticleList` through `v-else` when there are no articles. `Layout` now also exposes `errors`.
+
+    ```
+    +-----+
+    | App |
+    +-----+
+        |
+        +------------------------------------+
+        | Layout                             |
+        | State (from newsStore):            |
+        |   sources: ComputedRef<Source[]>   |
+        |   drawerVisible: Ref<boolean>      |
+        |   articles: ComputedRef<Article[]> |
+        |   errors: ComputedRef<string[]>    |
+        +------------------------------------+
+            |
+            +-------------------------------------------+
+            | SourceList                                |
+            | Input:  :visible (v-model), :sources      |
+            | Output: @source-selected, @update:visible |
+            +-------------------------------------------+
+                |
+                +--------------------------+
+                | SourceItem               |
+                | Input:  :source          |
+                | Output: @source-selected |
+                +--------------------------+
+            |
+            +--------------------------------------------+
+            | LanguageSwitcher                           |
+            | (no Input/Output, uses useI18n() directly) |
+            +--------------------------------------------+
+            |
+            +-------------------------------------+
+            | ArticleList  (v-if articles.length) |
+            | Input:  :articles                   |
+            +-------------------------------------+
+                |
+                +-------------------------+
+                | ArticleItem             |
+                | Input:  :article        |
+                | Output: @article-shared |
+                +-------------------------+
+            |
+            +------------------------------+
+            | UnavailableContent  (v-else) |
+            | Input:  :errors              |
+            +------------------------------+
+            |
+            +--------------------------------------------+
+            | FooterContent                              |
+            | (no Input/Output, uses useI18n() directly) |
+            +--------------------------------------------+
+    ```
+
 ---
 
 ## Interact with Articles and Sources (US004)
@@ -3690,7 +2991,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
    ```vue
    <script setup lang="js">
-   import {Source} from "@/news/domain/model/source.entity.js";
+   import {Source} from "../../domain/model/source.entity.js";
    import {useI18n} from "vue-i18n";
 
    const {t} = useI18n();
@@ -3748,54 +3049,26 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 4. **Add `toggle()` and expose it.** `ArticleItem`'s own `sourceSummary.value.toggle(event)`, from US002, calls exactly this method.
 
    <details>
-   <summary>src/news/presentation/components/source-summary.vue (Full file with doc comments)</summary>
+   <summary>src/news/presentation/components/source-summary.vue (Full file)</summary>
 
    ```vue
    <script setup lang="js">
-   import {Source} from "@/news/domain/model/source.entity.js";
+   import {Source} from "../../domain/model/source.entity.js";
    import {useI18n} from "vue-i18n";
    import {ref} from "vue";
 
-   /**
-    * Presentation component for rendering news source details in a popover.
-    *
-    * @remarks
-    * This component displays information about a news source, like its name, description, category, etc.
-    * and provides a link to the source's website.
-    */
-
-   /**
-    * Properties for the SourceSummary component.
-    *
-    * @typedef {Object} SourceSummaryProps
-    * @property {Source} source - The source entity to display.
-    */
-
    const {t} = useI18n();
 
-   /** @type {SourceSummaryProps} */
    const {source} = defineProps({
      source: {type: Source, required: true}
    });
 
-   /**
-    * Reference to the popover component for toggling visibility.
-    *
-    */
    const sourceSummary = ref();
 
-   /**
-    * Toggles the popover visibility.
-    *
-    * @param {Event} event - The click event that triggered the popover.
-    */
    const toggle = (event) => {
      sourceSummary.value.toggle(event);
    };
 
-   /**
-    * Exposes the toggle method to parent components.
-    */
    defineExpose({toggle});
    </script>
 
@@ -3852,13 +3125,1467 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 5. **Wire `SourceSummary` into `ArticleItem`.**
 
    <details>
+   <summary>src/news/presentation/components/article-item.vue (Full file)</summary>
+
+   ```vue
+   <script lang="js" setup>
+   import {useI18n} from "vue-i18n";
+   import {Article} from "../../domain/model/article.entity.js";
+   import SourceSummary from "./source-summary.vue";
+   import {ref} from "vue";
+
+   const {t} = useI18n();
+
+   const { article } = defineProps({article: {type: Article, required: true}});
+
+   const emit = defineEmits(['article-shared']);
+
+   const sourceSummary = ref();
+
+   const toggleSourceSummary = event => {
+     sourceSummary.value.toggle(event);
+   };
+
+   const shareArticle = async () => {
+     const shareData = {title: article.title, url: article.url.toString()};
+     if (navigator.share) {
+       try {
+         await navigator.share(shareData);
+         console.log('Article shared successfully');
+       } catch (err) {
+         console.error('Error sharing the article:', err);
+       }
+     } else {
+       try {
+         await navigator.clipboard.writeText(shareData.url);
+         emit('article-shared', shareData.url);
+         console.log('Article URL copied to clipboard');
+       } catch (err) {
+         console.error('Failed to copy the article URL:', err);
+       }
+     }
+   };
+
+   </script>
+
+   <template>
+     <pv-card class="m-2">
+       <template #header>
+         <img :alt="article.title" :src="article.urlToImage.toString()" class="image-fit"/>
+       </template>
+       <template #title>
+         <p class="flex align-content-start flex-wrap">
+           {{ article.title }}
+         </p>
+       </template>
+       <template #subtitle>
+         <div class="flex flex-column gap-2">
+           <p class="flex align-content-start flex-wrap cursor-pointer" @click="toggleSourceSummary">
+             <span class="flex align-items-center justify-content-center mr-2">
+               <pv-avatar :aria-label="article.source.name"
+                          :image="article.source.urlToLogo"
+                          shape="circle"/>
+             </span>
+             <span class="flex align-items-center justify-content-center font-bold">
+               {{ article.source.name }}
+             </span>
+           </p>
+           <p v-if="article.author" class="flex align-content-start flex-wrap">
+             <span class="text-sm">{{ t('article.by') }} {{ article.author }}</span>
+           </p>
+           <p class="flex align-content-start flex-wrap">
+             <span class="text-sm">{{ t('article.published-on') }} {{ article.getFormatedPublishedAt() }}</span>
+           </p>
+         </div>
+         <source-summary ref="sourceSummary" :source="article.source" />
+       </template>
+       <template #content>
+         <p class="flex align-content-start flex-wrap mt-4">
+           {{ article.description }}
+         </p>
+       </template>
+       <template #footer>
+         <div class="flex justify-content-between align-items-center">
+           <pv-button v-if="!article.url.isEmpty()" as="a" :href="article.url.toString()" target="_blank"
+                      :label="t('read-more')" link class="p-0" />
+           <pv-button
+               v-if="!article.url.isEmpty()"
+               v-tooltip="t('article.copy-to-clipboard')"
+               :label="t('article.share')"
+               aria-label="Share article"
+               text
+               size="small"
+               icon="pi pi-share-alt"
+               @click="shareArticle"/>
+         </div>
+       </template>
+     </pv-card>
+   </template>
+
+   <style scoped>
+   .image-fit {
+     width: 100%;
+     height: 100%;
+     object-fit: cover;
+   }
+   </style>
+   ```
+   </details>
+
+   **Note:** `ref="sourceSummary"` on `<source-summary>` here is `ArticleItem`'s own handle onto the *whole* `SourceSummary` component instance, specifically the `{toggle}` object it exposed with `defineExpose` in the previous step. `sourceSummary.value.toggle(event)` in `toggleSourceSummary` (from US002) was always calling forward to this, waiting for `SourceSummary` to exist.
+
+   ```
+   git add .
+   git commit -m "feat(news): show SourceSummary from ArticleItem."
+   ```
+
+6. **Run it.**
+
+   ```
+   npm run dev
+   ```
+
+   Click a source's name or avatar on any article card, a popover opens with its description, category, language, country, and a link to its website. Stop the server with `Ctrl+C`.
+
+7. **Publish and finish the feature.**
+
+8. **See the finished component tree.** `SourceSummary` joined the tree, nested under `ArticleItem` in the template itself (a `pv-popover` toggled via an exposed `toggle()`, not a dynamically-opened dialog).
+
+   ```
+   +-----+
+   | App |
+   +-----+
+       |
+       +------------------------------------+
+       | Layout                             |
+       | State (from newsStore):            |
+       |   sources: ComputedRef<Source[]>   |
+       |   drawerVisible: Ref<boolean>      |
+       |   articles: ComputedRef<Article[]> |
+       |   errors: ComputedRef<string[]>    |
+       +------------------------------------+
+           |
+           +-------------------------------------------+
+           | SourceList                                |
+           | Input:  :visible (v-model), :sources      |
+           | Output: @source-selected, @update:visible |
+           +-------------------------------------------+
+               |
+               +--------------------------+
+               | SourceItem               |
+               | Input:  :source          |
+               | Output: @source-selected |
+               +--------------------------+
+           |
+           +--------------------------------------------+
+           | LanguageSwitcher                           |
+           | (no Input/Output, uses useI18n() directly) |
+           +--------------------------------------------+
+           |
+           +-------------------------------------+
+           | ArticleList  (v-if articles.length) |
+           | Input:  :articles                   |
+           +-------------------------------------+
+               |
+               +-------------------------+
+               | ArticleItem             |
+               | Input:  :article        |
+               | Output: @article-shared |
+               +-------------------------+
+                   |
+                   +-------------------+
+                   | SourceSummary     |
+                   | Input:  :source   |
+                   | Exposes: toggle() |
+                   +-------------------+
+           |
+           +------------------------------+
+           | UnavailableContent  (v-else) |
+           | Input:  :errors              |
+           +------------------------------+
+           |
+           +--------------------------------------------+
+           | FooterContent                              |
+           | (no Input/Output, uses useI18n() directly) |
+           +--------------------------------------------+
+   ```
+
+---
+
+## Prepare the First Release
+
+**Still on `develop`.** All four user stories are merged. Every real public repo ships a `LICENSE.md`, a `README.md`, and a `CONTRIBUTING.md`, but none of them belonged earlier, back then there was nothing to describe yet.
+
+1. **Run every scenario end to end.** `npm run dev`, then in the browser: confirm the drawer lists real sources with the first one active (US001); choosing a different source loads its articles, each with a title, author when present, and a formatted date (US002); switch the language and watch every string change, including the articles (US003); click a source's name and confirm the popover shows its details (US004). Then check every scenario in `docs/user-stories.md` against what the app actually does. No automated test drives these end to end, so this manual run is the acceptance check. Stop the server with `Ctrl+C`.
+
+2. **Add doc comments to every class.** Every class and file built across the four user stories gets its JSDoc pass here, in one place, instead of interrupting the flow of each story to document a single file.
+
+   <details>
+   <summary>.env.development (Full file with doc comments)</summary>
+
+   ```
+   # Environment: Development
+   # Description: This file contains the environment variables for the development environment.
+   # Note: In real scenarios, this file is not committed to the repository.
+
+   # VITE_NEWS_API_KEY is the API key for the News API.
+   VITE_NEWS_API_KEY="0d5b87d6eed74a768b7f2f7a3ca1bafb"
+   # VITE_NEWS_API_URL is the base URL for the News API.
+   VITE_NEWS_API_URL="https://newsapi.org/v2"
+   # VITE_LOGO_API_URL is the base URL for the Logo.dev API.
+   VITE_LOGO_API_URL="https://img.logo.dev"
+   # VITE_LOGO_PUBLISHABLE_API_KEY is the publishable API key for the Logo.dev API.
+   VITE_LOGO_PUBLISHABLE_API_KEY="pk_bufKzaXPQFeNkMz5gxZWAA"
+   # VITE_SOURCES_ENDPOINT_PATH is the path to the news sources endpoint.
+   VITE_SOURCES_ENDPOINT_PATH="/top-headlines/sources"
+   # VITE_TOP_HEADLINES_ENDPOINT_PATH is the path to the top headlines endpoint.
+   VITE_TOP_HEADLINES_ENDPOINT_PATH="/top-headlines"
+   # VITE_PRIME_UI_LICENSE_KEY is the license key for the Prime UI library.
+   VITE_PRIME_UI_LICENSE_KEY="eyJpZCI6IjZlODA0NjNhLTJkMGMtNGI2ZC1iYmI1LTAwYjk3OWFkMGFmNCIsInByb2R1Y3QiOiJwcmltZXVpIiwidGllciI6ImNvbW11bml0eSIsInR5cGUiOiJkZXYiLCJpYXQiOjE3ODk1NTQ5MzAsImV4cCI6MTgyMTA5MDkzMH0.yvULBRGTn5hRzalLkmTf6BZaJYSwrK2LS6hLxTtO9fI0W2sgsCFpfcVHjfbqEQQe3i84X_KEZQv-WAQbRj9IAg"
+   ```
+   </details>
+
+   <details>
+   <summary>.env.production (Full file with doc comments)</summary>
+
+   ```
+   # Environment: Production
+   # Description: This file contains the environment variables for the production environment.
+   # Note: In real scenarios, this file is not committed to the repository.
+
+   # VITE_NEWS_API_KEY is the API key for the News API.
+   VITE_NEWS_API_KEY="0d5b87d6eed74a768b7f2f7a3ca1bafb"
+   # VITE_NEWS_API_URL is the base URL for the News API.
+   VITE_NEWS_API_URL="https://newsapi.org/v2"
+   # VITE_LOGO_API_URL is the base URL for the Logo.dev API.
+   VITE_LOGO_API_URL="https://img.logo.dev"
+   # VITE_LOGO_PUBLISHABLE_API_KEY is the publishable API key for the Logo.dev API.
+   VITE_LOGO_PUBLISHABLE_API_KEY="pk_bufKzaXPQFeNkMz5gxZWAA"
+   # VITE_SOURCES_ENDPOINT_PATH is the path to the news sources endpoint.
+   VITE_SOURCES_ENDPOINT_PATH="/top-headlines/sources"
+   # VITE_TOP_HEADLINES_ENDPOINT_PATH is the path to the top headlines endpoint.
+   VITE_TOP_HEADLINES_ENDPOINT_PATH="/top-headlines"
+   # VITE_PRIME_UI_LICENSE_KEY is the license key for the Prime UI library.
+   VITE_PRIME_UI_LICENSE_KEY="eyJpZCI6IjZlODA0NjNhLTJkMGMtNGI2ZC1iYmI1LTAwYjk3OWFkMGFmNCIsInByb2R1Y3QiOiJwcmltZXVpIiwidGllciI6ImNvbW11bml0eSIsInR5cGUiOiJkZXYiLCJpYXQiOjE3ODk1NTQ5MzAsImV4cCI6MTgyMTA5MDkzMH0.yvULBRGTn5hRzalLkmTf6BZaJYSwrK2LS6hLxTtO9fI0W2sgsCFpfcVHjfbqEQQe3i84X_KEZQv-WAQbRj9IAg"
+   ```
+   </details>
+
+   <details>
+   <summary>src/vite-env.d.ts (Full file with doc comments)</summary>
+
+   ```typescript
+   /**
+    * Custom type definitions for the Vite environment variables.
+    *
+    * @remarks
+    * This allows for better type checking and autocompletion when using the environment variables in the code.
+    */
+
+   /// <reference types="vite/client" />
+   interface ImportMetaEnv {
+     readonly VITE_NEWS_API_KEY: string;
+     readonly VITE_NEWS_API_URL: string;
+     readonly VITE_LOGO_API_URL: string;
+     readonly VITE_LOGO_PUBLISHABLE_API_KEY: string;
+     readonly VITE_SOURCES_ENDPOINT_PATH: string;
+     readonly VITE_TOP_HEADLINES_ENDPOINT_PATH: string;
+     readonly VITE_PRIME_UI_LICENSE_KEY: string;
+   }
+
+   interface ImportMeta {
+     readonly env: ImportMetaEnv;
+   }
+   ```
+   </details>
+
+   <details>
+   <summary>src/main.js (Full file with doc comments)</summary>
+
+   ```javascript
+   import { createApp } from 'vue'
+   import './style.css'
+   import App from './app.vue'
+   import i18n from "./i18n.js";
+   import PrimeVue from 'primevue/config';
+   import Material from '@primeuix/themes/material';
+   import 'primeicons/primeicons.css';
+   import 'primeflex/primeflex.css';
+   import {Avatar, Button, Card, Drawer, Menu, Menubar, Popover, SelectButton, Toolbar, Tooltip} from "primevue";
+
+   const primeUiLicenseKey = import.meta.env.VITE_PRIME_UI_LICENSE_KEY;
+   /**
+    * Application composition root.
+    *
+    * @remarks
+    * Specifies the main entry point of the Vue application, configuring global plugins, components, and mounting the app to the DOM.
+    */
+
+   createApp(App)
+       .use(i18n)
+       .use(PrimeVue, { ripple: true, theme: { preset: Material }, license: primeUiLicenseKey })
+       .component('pv-button', Button)
+       .component('pv-select-button', SelectButton)
+       .component('pv-avatar', Avatar)
+       .component('pv-drawer', Drawer)
+       .component('pv-card', Card)
+       .component('pv-toolbar', Toolbar)
+       .component('pv-menu', Menu)
+       .component('pv-menubar', Menubar)
+       .component('pv-popover', Popover)
+       .directive('tooltip', Tooltip)
+       .mount('#app')
+   ```
+   </details>
+
+   <details>
+   <summary>src/app.vue (Full file with doc comments)</summary>
+
+   ```vue
+   <script setup>
+     import Layout from "./shared/presentation/components/layout.vue";
+
+     /**
+      * Presentation shell component.
+      *
+      * @remarks
+      * Hosts the application layout and keeps bootstrapping concerns out of
+      * feature components.
+      */
+   </script>
+
+   <template>
+     <layout/>
+   </template>
+
+   <style scoped>
+
+   </style>
+   ```
+   </details>
+
+   <details>
+   <summary>src/shared/domain/model/string-validator.js (Full file with doc comments)</summary>
+
+   ```javascript
+   /**
+    * Domain utility for string-based type validation.
+    *
+    * @remarks
+    * Provides static methods to enforce string constraints across the domain.
+    */
+   export class StringValidator {
+       /**
+        * Checks if a value is a string primitive or a String object.
+        *
+        * @param {*} value - The value to evaluate.
+        * @returns {boolean} True if the value is a string, false otherwise.
+        */
+       static isString(value) {
+           return typeof value === 'string' || value instanceof String;
+       }
+
+       /**
+        * Checks if a value is a string that contains at least one non-whitespace character.
+        *
+        * @param {*} value - The value to evaluate.
+        * @returns {boolean} True if the value is a non-empty string, false otherwise.
+        */
+       static isNotEmptyString(value) {
+           return this.isString(value) && value.trim().length > 0;
+       }
+   }
+   ```
+   </details>
+
+   <details>
+   <summary>src/shared/domain/model/url.js (Full file with doc comments)</summary>
+
+   ```javascript
+   /**
+    * Value object representing a URL within the domain.
+    *
+    * @remarks
+    * This value object ensures that URL values are well-formed according to
+    * RFC standards and provides a consistent way to handle URLs. It is immutable.
+    */
+   export class Url {
+       /** @type {string} */
+       #value;
+
+       /**
+        * Validates if a string is a well-formed URL.
+        *
+        * @param {string} url - The URL string to validate.
+        * @returns {boolean} True if the URL is valid, false otherwise.
+        */
+       static isValidUrl(url) {
+           if (typeof url !== 'string' && !(url instanceof String)) return false;
+           if (URL.canParse) {
+               return URL.canParse(url);
+           }
+           try {
+               new URL(url);
+               return true;
+           } catch (_) {
+               return false;
+           }
+       }
+
+       /**
+        * Creates a new Url instance.
+        *
+        * @param {string} value - The URL string.
+        */
+       constructor(value) {
+           this.#value = Url.isValidUrl(value) ? value : '';
+           Object.freeze(this);
+       }
+
+       /**
+        * Returns the string representation of the URL.
+        * @returns {string}
+        */
+       toString() {
+           return this.#value;
+       }
+
+       /**
+        * Checks if the URL is empty.
+        * @returns {boolean}
+        */
+       isEmpty() {
+           return this.#value === '';
+       }
+
+       /**
+        * Returns the primitive value of the Url.
+        * @returns {string}
+        */
+       valueOf() {
+           return this.#value;
+       }
+
+       /**
+        * Checks for equality with another Url instance.
+        * @param {Url} other - The other Url to compare.
+        * @returns {boolean}
+        */
+       equals(other) {
+           return other instanceof Url && this.#value === other.toString();
+       }
+   }
+   ```
+   </details>
+
+   <details>
+   <summary>src/news/domain/model/source.entity.js (Full file with doc comments)</summary>
+
+   ```javascript
+   import {StringValidator} from "../../../shared/domain/model/string-validator.js";
+   import {Url} from "../../../shared/domain/model/url.js";
+
+   /**
+    * Domain entity representing a news provider.
+    *
+    * @remarks
+    * This model belongs to the domain layer and encapsulates the identity and
+    * attributes of a news source. It remains independent of external API structures.
+    * Every field is set once, in the constructor, then frozen: `urlToLogo` is
+    * resolved by the assembler before the entity is built, never assigned after.
+    */
+   export class Source {
+       #id;
+       #name;
+       #description;
+       #url;
+       #category;
+       #language;
+       #country;
+       #urlToLogo;
+
+       /**
+        * Creates a new Source entity instance.
+        *
+        * @param {Object} source - The source's identity, name, and optional details.
+        * @param {string} [source.id] - Unique identifier for the source (e.g., 'bbc-news').
+        * @param {string} [source.name] - Display name of the news source.
+        * @param {string} [source.description] - A short description of the news source.
+        * @param {string|Url} [source.url] - The website URL of the news source.
+        * @param {string} [source.category] - The category the news source belongs to.
+        * @param {string} [source.language] - The primary language of the source (ISO code).
+        * @param {string} [source.country] - The country of origin (ISO code).
+        * @param {string|Url} [source.urlToLogo] - The logo image URL, already resolved by the assembler.
+        * @throws {Error} If id or name is empty.
+        */
+       constructor({id = "", name = "", description = "", url = "", category = "", language = "", country = "", urlToLogo = ""}) {
+           if (!StringValidator.isNotEmptyString(id)) throw new Error('Source id must be a non-empty string');
+           if (!StringValidator.isNotEmptyString(name)) throw new Error('Source name must be a non-empty string');
+
+           this.#id = id.trim();
+           this.#name = name.trim();
+           this.#description = description;
+           this.#url = url instanceof Url ? url : new Url(url);
+           this.#category = category;
+           this.#language = language;
+           this.#country = country;
+           this.#urlToLogo = urlToLogo;
+           Object.freeze(this);
+       }
+
+       /** @returns {string} */
+       get id() {
+           return this.#id;
+       }
+
+       /** @returns {string} */
+       get name() {
+           return this.#name;
+       }
+
+       /** @returns {string} */
+       get description() {
+           return this.#description;
+       }
+
+       /** @returns {Url} */
+       get url() {
+           return this.#url;
+       }
+
+       /** @returns {string} */
+       get category() {
+           return this.#category;
+       }
+
+       /** @returns {string} */
+       get language() {
+           return this.#language;
+       }
+
+       /** @returns {string} */
+       get country() {
+           return this.#country;
+       }
+
+       /** @returns {string} */
+       get urlToLogo() {
+           return this.#urlToLogo;
+       }
+   }
+   ```
+   </details>
+
+   <details>
+   <summary>src/shared/infrastructure/logo-dev-api.js (Full file with doc comments)</summary>
+
+   ```javascript
+   const logoApiUrl = import.meta.env.VITE_LOGO_API_URL;
+   const apiKey = import.meta.env.VITE_LOGO_PUBLISHABLE_API_KEY;
+
+   /**
+    * Infrastructure helper for building Logo.dev image URLs.
+    *
+    * @remarks
+    * Encapsulates the logic for constructing URLs to retrieve source logos
+    * from the Logo.dev external service.
+    */
+   export class LogoDevApi {
+       /**
+        * Constructs a logo URL based on a news source's website host.
+        *
+        * @param {import('../domain/model/url.js').Url} url - The website URL of the source.
+        * @returns {string} The fully qualified URL to the source's logo image.
+        */
+       getUrlToLogo = url => `${logoApiUrl}/${new URL(url.toString()).host}?token=${apiKey}`;
+   }
+   ```
+   </details>
+
+   <details>
+   <summary>src/news/infrastructure/news-resources.js (Full file with doc comments)</summary>
+
+   ```javascript
+   /**
+    * Source data structure as returned by the NewsAPI.
+    *
+    * @typedef {Object} SourceResource
+    * @property {string} [id] - The unique identifier for the source.
+    * @property {string} [name] - The name of the source.
+    * @property {string} [description] - A description of the source.
+    * @property {string} [url] - The website URL of the source.
+    * @property {string} [category] - The category of the source.
+    * @property {string} [language] - The language the source is written in.
+    * @property {string} [country] - The country the source originates from.
+    */
+
+   /**
+    * API response structure for news sources.
+    *
+    * @typedef {Object} SourcesResponse
+    * @property {string} status - The status of the response ('ok' or 'error').
+    * @property {SourceResource[]} sources - The list of sources returned.
+    */
+
+   /**
+    * Article data structure as returned by the NewsAPI.
+    *
+    * @typedef {Object} ArticleResource
+    * @property {string} [title] - The title of the article.
+    * @property {string} [description] - The description or summary of the article.
+    * @property {string} [url] - The URL to the article.
+    * @property {string} [urlToImage] - The URL to the article's image.
+    * @property {string} [publishedAt] - The ISO 8601 timestamp of publication.
+    * @property {SourceResource} [source] - The source of the article.
+    */
+
+   /**
+    * API response structure for news articles.
+    *
+    * @typedef {Object} ArticlesResponse
+    * @property {string} status - The status of the response ('ok' or 'error').
+    * @property {ArticleResource[]} articles - The list of articles returned.
+    */
+
+   export {}
+   ```
+   </details>
+
+   <details>
+   <summary>src/shared/infrastructure/error.interceptor.js (Full file with doc comments)</summary>
+
+   ```javascript
+   /**
+    * Axios interceptor for centralized error handling.
+    *
+    * @remarks
+    * This object contains the success and error handlers for Axios response interceptors.
+    * It simplifies error messages from the server and provides fallback messages for
+    * network errors.
+    */
+   export const errorInterceptor = {
+       /**
+        * Handles successful responses.
+        * @param {import('axios').AxiosResponse} response - The Axios response.
+        * @returns {import('axios').AxiosResponse} The same response.
+        */
+       onResponse: (response) => response,
+
+       /**
+        * Handles error responses.
+        * @param {import('axios').AxiosError} error - The Axios error.
+        * @returns {Promise<never>} A rejected promise with a user-friendly error message.
+        */
+       onError: (error) => {
+           let message;
+
+           if (error.response) {
+               // The request was made, and the server responded with a status code
+               // that falls out of the range of 2xx
+               console.error("Data:", error.response.data);
+               console.error("Status:", error.response.status);
+               console.error("Headers:", error.response.headers);
+
+               message = error.response.data["message"] || `Error ${error.response.status}: ${error.response.statusText}`;
+           } else if (error.request) {
+               // The request was made but no response was received
+               console.error("Request:", error.request);
+               message = "No response received from the server. Please check your internet connection.";
+           } else {
+               // Something happened in setting up the request that triggered an Error
+               console.error("Error Message:", error.message);
+               message = error.message;
+           }
+
+           return Promise.reject(message);
+       }
+   };
+   ```
+   </details>
+
+   <details>
+   <summary>src/news/infrastructure/news-api.js (Full file with doc comments)</summary>
+
+   ```javascript
+   import axios from "axios";
+   import "./news-resources.js";
+   import {errorInterceptor} from "../../shared/infrastructure/error.interceptor.js";
+
+   /**
+    * Infrastructure adapter for NewsAPI HTTP endpoints.
+    *
+    * @remarks
+    * This class isolates external transport concerns from the application and
+    * domain layers.
+    */
+   const newsApi               = import.meta.env.VITE_NEWS_API_URL;
+   const apiKey                = import.meta.env.VITE_NEWS_API_KEY;
+   const sourcesEndpoint       = import.meta.env.VITE_SOURCES_ENDPOINT_PATH;
+   const topHeadlinesEndpoint  = import.meta.env.VITE_TOP_HEADLINES_ENDPOINT_PATH;
+
+   /**
+    * Axios instance configured for NewsAPI requests.
+    *
+    * @remarks
+    * This instance is configured with the base URL and API key for the NewsAPI.
+    *
+    * @type {axios.AxiosInstance}
+    */
+   const http = axios.create({
+       baseURL: newsApi,
+       params: {
+           apiKey: apiKey,
+       },
+   })
+
+   // Add a response interceptor
+   http.interceptors.response.use(errorInterceptor.onResponse, errorInterceptor.onError);
+
+   /**
+    * Infrastructure adapter for interacting with the NewsAPI HTTP service.
+    *
+    * @remarks
+    * This class isolates external transport concerns, providing a clean interface
+    * for the application layer to fetch news data.
+    */
+   export class NewsApi {
+
+       /**
+        * Retrieves all available news sources from the provider.
+        *
+        * @returns {Promise<import('axios').AxiosResponse<SourcesResponse>>} A promise resolving to the Axios response containing sources.
+        */
+       getSources = () => http.get(`${sourcesEndpoint}`);
+
+       /**
+        * Retrieves top headlines for a specific news source.
+        *
+        * @param {string} sourceId - The unique identifier of the news source (e.g., 'cnn').
+        * @returns {Promise<import('axios').AxiosResponse<ArticlesResponse>>} A promise resolving to the Axios response containing articles.
+        */
+       getArticlesForSourceId = sourceId => http.get(`${topHeadlinesEndpoint}`, {params: {sources: sourceId}});
+
+   }
+   ```
+   </details>
+
+   <details>
+   <summary>src/news/infrastructure/source.assembler.js (Full file with doc comments)</summary>
+
+   ```javascript
+   import {Source} from "../domain/model/source.entity.js";
+   import {Url} from "../../shared/domain/model/url.js";
+   import {LogoDevApi} from "../../shared/infrastructure/logo-dev-api.js";
+   import "./news-resources.js";
+
+   /**
+    * Infrastructure service that maps source data from API responses into Domain Entities.
+    *
+    * @remarks
+    * Following DDD patterns, this assembler acts as a Data Mapper between the
+    * infrastructure-specific source format and the Source domain entity.
+    */
+   export class SourceAssembler {
+       #logoApi;
+
+       /**
+        * Initializes the SourceAssembler.
+        */
+       constructor() {
+           this.#logoApi = new LogoDevApi();
+       }
+
+       /**
+        * Maps a full Axios response containing source resources into an array of Source entities.
+        *
+        * @param {import('axios').AxiosResponse<SourcesResponse>} response - The HTTP response from the news provider.
+        * @returns {Source[]} An array of Source domain entities. Returns an empty array if the status is not 'ok'.
+        */
+       toEntitiesFromResponse(response) {
+           if (response.data.status !== "ok") {
+               console.error(`${response.data["status"]},  ${response.data["code"]}, ${response.data["message"]}`);
+               return [];
+           }
+           const sourcesResponse = response.data;
+           return sourcesResponse.sources.map((source) => {
+               try {
+                   return this.toEntityFromResource(source);
+               } catch (error) {
+                   console.error('Validation error for source:', error.message, source);
+                   return null;
+               }
+           }).filter(source => source !== null);
+       }
+
+       /**
+        * Maps a single source resource into a Source domain entity, including logo URL resolution.
+        *
+        * @param {SourceResource} resource - The source data as received from the external API.
+        * @returns {Source} The assembled Source domain entity.
+        */
+       toEntityFromResource(resource) {
+           const url = resource.url instanceof Url ? resource.url : new Url(resource.url);
+           const urlToLogo = !url.isEmpty() ? this.#logoApi.getUrlToLogo(url) : '';
+           return new Source({...resource, url, urlToLogo});
+       }
+   }
+   ```
+   </details>
+
+   <details>
+   <summary>src/news/application/news.store.js (Full file with doc comments)</summary>
+
+   ```javascript
+   import {reactive, ref, shallowRef} from "vue";
+   import {Source} from "../domain/model/source.entity.js";
+   import {NewsApi} from "../infrastructure/news-api.js";
+   import {SourceAssembler} from "../infrastructure/source.assembler.js";
+   import {ArticleAssembler} from "../infrastructure/article.assembler.js";
+
+   /**
+    * Application state and service orchestrator for news-related operations.
+    *
+    * @typedef {Object} NewsStore
+    * @property {import('../domain/model/source.entity.js').Source[]} sources - List of available news sources.
+    * @property {import('../domain/model/article.entity.js').Article[]} articles - List of articles for the current source.
+    * @property {Array<string>} errors - List of error messages encountered during operations.
+    * @property {import('../domain/model/source.entity.js').Source | null} currentSource - The currently selected news source.
+    * @property {(source: import('../domain/model/source.entity.js').Source) => void} setCurrentSource - Sets the current source and triggers article loading.
+    * @property {() => void} loadSources - Orchestrates fetching and assembling news sources.
+    * @property {() => void} loadArticlesForCurrentSource - Orchestrates fetching and assembling articles for the active source.
+    */
+
+   const newsApi = new NewsApi();
+   const sourceAssembler = new SourceAssembler();
+
+   const sources = shallowRef([]);
+   const articles = shallowRef([]);
+   const currentSource = shallowRef(null);
+   const errors = ref([]);
+
+   /**
+    * Reactive application store that coordinates use cases for news management.
+    *
+    * @remarks
+    * In DDD, this serves as an Application Service, managing the interaction
+    * between UI components and infrastructure-driven data acquisition.
+    *
+    * @type {NewsStore}
+    */
+   export const newsStore = reactive({
+           sources,
+           articles,
+           errors,
+           currentSource,
+           /**
+            * Sets the active source and triggers article retrieval.
+            *
+            * @param {Source} source
+            * @returns {void}
+            */
+           setCurrentSource(source) {
+               this.currentSource = source;
+               this.loadArticlesForCurrentSource();
+           },
+           /**
+            * Loads the source list from the provider and selects the first source.
+            *
+            * @returns {void}
+            */
+           loadSources() {
+               this.errors = [];
+               newsApi.getSources().then(response => {
+                   this.sources = sourceAssembler.toEntitiesFromResponse(response);
+                   if (this.sources.length > 0 && !this.currentSource) this.setCurrentSource(this.sources[0]);
+               }).catch(message => {
+                   this.errors.push(message);
+                   this.sources = [];
+               });
+           },
+           /**
+            * Loads articles for the current source.
+            *
+            * @returns {void}
+            */
+           loadArticlesForCurrentSource() {
+               if (this.currentSource === null) return;
+               newsApi.getArticlesForSourceId(this.currentSource.id).then(response => {
+                   const articleAssembler = new ArticleAssembler(this.currentSource);
+                   this.articles = articleAssembler.toEntitiesFromResponse(response);
+               }).catch(message => {
+                   this.errors.push(message);
+                   this.articles = [];
+               });
+           }
+       });
+   ```
+   </details>
+
+   <details>
+   <summary>src/news/presentation/components/source-item.vue (Full file with doc comments)</summary>
+
+   ```vue
+   <script setup lang="js">
+     import {Source} from "../../domain/model/source.entity.js";
+
+     /**
+      * Presentation component for a single news source item.
+      *
+      * @remarks
+      * Displays source details and emits a selection event when clicked.
+      */
+
+     /**
+      * Properties for the SourceItem component.
+      *
+      * @typedef {Object} SourceItemProps
+      * @property {Source} source - The source entity to display.
+      */
+
+     /**
+      * Emitted events for the SourceItem component.
+      *
+      * @typedef {Object} SourceItemEmits
+      * @property {(event: 'source-selected', source: Source) => void} source-selected - Emitted when the source is clicked.
+      */
+
+     /** @type {SourceItemProps} */
+     const { source } = defineProps({ source: { type: Source, required: true } });
+     /** @type {SourceItemEmits['emit']} */
+     const emit  = defineEmits(['source-selected']);
+
+     /**
+      * Emits a selected source to the parent component.
+      *
+      * @returns {void}
+      */
+     const emitSourceSelectedEvent = () => {
+       emit('source-selected', source);
+     };
+   </script>
+
+   <template>
+     <div class="m-4">
+       <div @click="emitSourceSelectedEvent" class="flex align-content-start flex-wrap cursor-pointer hover:bg-emphasis p-2 border-round transition-colors transition-duration-150">
+       <span  class="flex align-items-center justify-content-center mr-2">
+             <pv-avatar :aria-label="source.name"
+                        :image="source.urlToLogo"
+                        shape="circle"/>
+       </span>
+         <span  class="flex align-items-center justify-content-center font-medium">
+             {{source.name}}
+       </span>
+       </div>
+     </div>
+   </template>
+
+   <style scoped>
+
+   </style>
+   ```
+   </details>
+
+   <details>
+   <summary>src/news/presentation/components/source-list.vue (Full file with doc comments)</summary>
+
+   ```vue
+   <script setup lang="js">
+     import {Source} from "../../domain/model/source.entity.js";
+     import SourceItem from "./source-item.vue";
+
+     /**
+      * Presentation component for displaying a list of selectable news sources.
+      *
+      * @remarks
+      * Renders news sources within a navigation drawer and handles source selection.
+      */
+
+     /**
+      * Properties for the SourceList component.
+      *
+      * @typedef {Object} SourceListProps
+      * @property {boolean} visible - Controls the visibility of the source drawer.
+      * @property {Source[]} sources - An array of news source entities to display.
+      */
+
+     /**
+      * Emitted events for the SourceList component.
+      *
+      * @typedef {Object} SourceListEmits
+      * @property {(event: 'source-selected', source: Source) => void} source-selected - Emitted when a source is selected from the list.
+      * @property {(event: 'update:visible', visible: boolean) => void} update:visible - Emitted when the visibility of the drawer changes.
+      */
+
+     /** @type {SourceListProps} */
+     const { visible, sources } = defineProps({ visible: Boolean, sources: Array });
+     /** @type {SourceListEmits['emit']} */
+     const emit  = defineEmits(['source-selected', 'update:visible']);
+
+     /**
+      * Emits the update:visible event for the container component.
+      *
+      * @param {boolean} value
+      */
+     const emitVisibilityUpdatedEvent = (value) => {
+       emit('update:visible', value);
+     };
+
+     /**
+      * Bubbles the selected source to the parent container.
+      *
+      * @param {Source} source
+      * @returns {void}
+      */
+     const emitSourceSelectedEvent = source => {
+       emit('source-selected', source);
+     };
+   </script>
+
+   <template>
+     <pv-drawer :visible="visible" @update:visible="emitVisibilityUpdatedEvent">
+       <source-item v-for="source in sources"
+                    :key="source.id"
+                    :source="source"
+                    @source-selected="emitSourceSelectedEvent(source)"/>
+     </pv-drawer>
+   </template>
+
+   <style scoped>
+
+   </style>
+   ```
+   </details>
+
+   <details>
+   <summary>src/shared/presentation/components/layout.vue (Full file with doc comments)</summary>
+
+   ```vue
+   <script lang="js" setup>
+
+   import {newsStore} from "../../../news/application/news.store.js";
+   import SourceList from "../../../news/presentation/components/source-list.vue";
+   import LanguageSwitcher from "./language-switcher.vue";
+   import ArticleList from "../../../news/presentation/components/article-list.vue";
+   import UnavailableContent from "../../../news/presentation/components/unavailable-content.vue";
+   import FooterContent from "./footer-content.vue";
+   import {ref, computed, onMounted} from "vue";
+
+   /**
+    * Root presentation layout for the news application.
+    *
+    * @remarks
+    * Coordinates the display of the menubar, news source drawer, and the main
+    * content area (article list or error view). It bridges the UI with the
+    * `newsStore` application service.
+    */
+
+   const drawerVisible = ref(false);
+
+   /**
+    * Toggles the source drawer visibility.
+    *
+    * @returns {void}
+    */
+   const toggleDrawer = () => {
+     drawerVisible.value = !drawerVisible.value;
+   };
+
+
+   /** @type {import('vue').ComputedRef<import('../../../news/domain/model/source.entity.js').Source[]>} */
+   const sources = computed(() => newsStore.sources);
+   /** @type {import('vue').ComputedRef<Array<unknown>>} */
+   const errors = computed(() => newsStore.errors);
+   /** @type {import('vue').ComputedRef<import('../../../news/domain/model/article.entity.js').Article[]>} */
+   const articles = computed(() => newsStore.articles || []);
+
+   /**
+    * Selects a source and refreshes article projections.
+    *
+    * @param {import('../../../news/domain/model/source.entity.js').Source} source
+    * @returns {void}
+    */
+   const setSource = source => {
+     newsStore.setCurrentSource(source);
+     toggleDrawer();
+   };
+
+   onMounted(() => {
+     newsStore.loadSources();
+   });
+
+
+   </script>
+
+   <template>
+     <div class="layout-container">
+       <header class="sticky-header">
+         <pv-menubar>
+           <template #start>
+             <pv-button icon="pi pi-bars" label="CatchUp"
+                        text @click="toggleDrawer" class="mr-2"/>
+             <source-list :sources="sources"
+                          v-model:visible="drawerVisible"
+                          @source-selected="setSource"/>
+           </template>
+           <template #end>
+             <language-switcher/>
+           </template>
+         </pv-menubar>
+       </header>
+       <main class="content-padding">
+         <article-list v-if="articles.length" :articles="articles"/>
+         <unavailable-content v-else :errors="errors"/>
+       </main>
+       <footer>
+         <footer-content/>
+       </footer>
+     </div>
+   </template>
+
+   <style scoped>
+   .layout-container {
+     display: flex;
+     flex-direction: column;
+     min-height: 100vh;
+   }
+
+   .sticky-header {
+     position: sticky;
+     top: 0;
+     z-index: 1000;
+   }
+
+   .content-padding {
+     padding: 1rem;
+     flex: 1;
+   }
+
+   @media screen and (min-width: 768px) {
+     .content-padding {
+       padding: 2rem;
+     }
+   }
+   </style>
+   ```
+   </details>
+
+   <details>
+   <summary>src/shared/domain/model/date-time.js (Full file with doc comments)</summary>
+
+   ```javascript
+   /**
+    * Value object representing a date and time within the domain.
+    *
+    * @remarks
+    * This value object ensures that date-time values are valid and provides
+    * consistent formatting and comparison logic. It is immutable.
+    */
+   export class DateTime {
+       /** @type {Date} */
+       #date;
+
+       /**
+        * Creates a new DateTime instance.
+        *
+        * @param {string|Date|number} value - The value to initialize the date with.
+        * @throws {Error} If the provided value results in an invalid date.
+        */
+       constructor(value) {
+           const date = new Date(value);
+           if (isNaN(date.getTime())) {
+               throw new Error('Invalid date-time value');
+           }
+           this.#date = date;
+           Object.freeze(this);
+       }
+
+       /**
+        * Checks if this date-time is in the future relative to the current time.
+        *
+        * @returns {boolean} True if the date-time is in the future.
+        */
+       isFuture() {
+           return this.#date > new Date();
+       }
+
+       /**
+        * Formats the date-time for display.
+        *
+        * @param {string} [locale='en-US'] - The locale to use for formatting.
+        * @param {Intl.DateTimeFormatOptions} [options] - Formatting options.
+        * @returns {string} The formatted date-time string.
+        */
+       format(locale = 'en-US', options = {
+           year: 'numeric',
+           month: '2-digit',
+           day: '2-digit',
+           hour: '2-digit',
+           minute: '2-digit'
+       }) {
+           return this.#date.toLocaleDateString(locale, options);
+       }
+
+       /**
+        * Returns the underlying Date object.
+        * @returns {Date}
+        */
+       toDate() {
+           return new Date(this.#date.getTime());
+       }
+
+       /**
+        * Returns the ISO string representation of the date-time.
+        * @returns {string}
+        */
+       toISOString() {
+           return this.#date.toISOString();
+       }
+
+       /**
+        * Returns the primitive value of the DateTime (the timestamp).
+        * @returns {number}
+        */
+       valueOf() {
+           return this.#date.getTime();
+       }
+
+       /**
+        * Static factory method to create a DateTime from the current time.
+        * @returns {DateTime}
+        */
+       static now() {
+           return new DateTime(new Date());
+       }
+   }
+   ```
+   </details>
+
+   <details>
+   <summary>src/news/domain/model/article.entity.js (Full file with doc comments)</summary>
+
+   ```javascript
+   import {Source} from "./source.entity.js";
+   import {StringValidator} from "../../../shared/domain/model/string-validator.js";
+   import {DateTime} from "../../../shared/domain/model/date-time.js";
+   import {Url} from "../../../shared/domain/model/url.js";
+
+   /** Image shown when the provider sends none. */
+   const NO_IMAGE_URL = 'https://placehold.co/600x400?text=No+Image';
+
+   /**
+    * Domain entity representing a news article.
+    *
+    * @remarks
+    * This entity encapsulates the core attributes and behavior of a news article
+    * within the domain. It ensures data integrity through validation in its
+    * constructor, and every field is set once, then frozen.
+    */
+   export class Article {
+       #author;
+       #title;
+       #description;
+       #url;
+       #urlToImage;
+       #source;
+       #publishedAt;
+
+       /**
+        * Creates a new Article instance.
+        *
+        * @param {Object} article - The article's content and the fully resolved source that published it.
+        * @param {string} [article.author] - The article's byline, empty when unattributed.
+        * @param {string} [article.title] - The title of the article.
+        * @param {string} [article.description] - A brief summary of the article content.
+        * @param {string|Url} [article.url] - The canonical URL of the article.
+        * @param {string|Url} [article.urlToImage] - The URL to the main image of the article.
+        * @param {Source} article.source - The fully resolved source that published the article.
+        * @param {string|Date|DateTime} [article.publishedAt] - The publication timestamp.
+        * @throws {Error} If title is empty, source is not a resolved Source entity, url is empty or invalid, or publishedAt is invalid/in the future.
+        */
+       constructor({author = '', title = '', description = '', url = '', urlToImage = '', source = null, publishedAt = ''}) {
+           if (!StringValidator.isNotEmptyString(title)) throw new Error('Article title must be a non-empty string');
+           if (!(source instanceof Source)) throw new Error('Article must have a resolved Source entity');
+
+           let dateTime;
+           try {
+               dateTime = publishedAt instanceof DateTime ? publishedAt : new DateTime(publishedAt);
+           } catch (e) {
+               throw new Error('Article publishedAt must be a valid date');
+           }
+           if (dateTime.isFuture()) throw new Error('Article publishedAt cannot be in the future');
+
+           const resolvedUrl = url instanceof Url ? url : new Url(url);
+           if (resolvedUrl.isEmpty()) throw new Error('Article url must be a valid, non-empty URL');
+
+           this.#author = author;
+           this.#title = title.trim();
+           this.#description = description;
+           this.#url = resolvedUrl;
+           const resolvedImage = urlToImage instanceof Url ? urlToImage : new Url(urlToImage);
+           this.#urlToImage = resolvedImage.isEmpty() ? new Url(NO_IMAGE_URL) : resolvedImage;
+           this.#source = source;
+           this.#publishedAt = dateTime;
+           Object.freeze(this);
+       }
+
+       /** @returns {string} */
+       get author() {
+           return this.#author;
+       }
+
+       /** @returns {string} */
+       get title() {
+           return this.#title;
+       }
+
+       /** @returns {string} */
+       get description() {
+           return this.#description;
+       }
+
+       /** @returns {Url} */
+       get url() {
+           return this.#url;
+       }
+
+       /** @returns {Url} */
+       get urlToImage() {
+           return this.#urlToImage;
+       }
+
+       /** @returns {Source} */
+       get source() {
+           return this.#source;
+       }
+
+       /** @returns {DateTime} */
+       get publishedAt() {
+           return this.#publishedAt;
+       }
+
+       /**
+        * Formats the publication date for display purposes.
+        *
+        * @returns {string} The formatted date string (e.g., MM/DD/YYYY, HH:MM AM/PM).
+        */
+       getFormatedPublishedAt() {
+           return this.#publishedAt.format();
+       }
+   }
+   ```
+   </details>
+
+   <details>
+   <summary>src/news/infrastructure/article.assembler.js (Full file with doc comments)</summary>
+
+   ```javascript
+   import {SourceAssembler} from "./source.assembler.js";
+   import {Article} from "../domain/model/article.entity.js";
+   import "./news-resources.js";
+
+   /**
+    * Infrastructure service that maps article data from API responses into Domain Entities.
+    *
+    * @remarks
+    * Following DDD patterns, this assembler acts as a Data Mapper between the
+    * infrastructure-specific article format and the Article domain entity.
+    */
+   export class ArticleAssembler {
+       #source;
+       #sourceAssembler;
+
+       /**
+        * Initializes the ArticleAssembler.
+        *
+        * @param {import('../domain/model/source.entity.js').Source | null} [source=null] - An optional Source entity to associate with assembled articles.
+        */
+       constructor(source = null) {
+           this.#source = source;
+           this.#sourceAssembler = new SourceAssembler();
+       }
+
+       /**
+        * Maps a full Axios response containing article resources into an array of Article entities.
+        *
+        * @param {import('axios').AxiosResponse<ArticlesResponse>} response - The HTTP response from the news provider.
+        * @returns {Article[]} An array of Article domain entities. Returns an empty array if the status is not 'ok'.
+        */
+       toEntitiesFromResponse(response) {
+           if (response.data.status !== "ok") {
+               console.error(`${response.data["status"]},  ${response.data["code"]}, ${response.data["message"]}`);
+               return [];
+           }
+           const articlesResponse = response.data;
+           return articlesResponse["articles"].map((article) => {
+               try {
+                   return this.toEntityFromResource(article);
+               } catch (error) {
+                   console.error('Validation error for article:', error.message, article);
+                   return null;
+               }
+           }).filter(article => article !== null);
+       }
+
+       /**
+        * Maps a single article resource into an Article domain entity.
+        *
+        * @param {ArticleResource} resource - The article data as received from the external API.
+        * @returns {Article} The assembled Article domain entity, with its source already resolved.
+        */
+       toEntityFromResource(resource) {
+           const resolvedSource = this.#source && (this.#source.id === resource.source?.id || this.#source.name === resource.source?.name)
+               ? this.#source
+               : this.#sourceAssembler.toEntityFromResource(resource.source || {id: 'unknown', name: 'Unknown Source'});
+           return new Article({...resource, source: resolvedSource});
+       }
+   }
+   ```
+   </details>
+
+   <details>
+   <summary>src/news/presentation/components/article-list.vue (Full file with doc comments)</summary>
+
+   ```vue
+   <script setup lang="js">
+   import ArticleItem from "./article-item.vue";
+   import {Article} from "../../domain/model/article.entity.js";
+
+   /**
+    * Presentation component for rendering a collection of article cards.
+    *
+    * @remarks
+    * Iterates over an array of Article entities and renders an ArticleItem for each.
+    */
+
+   /**
+    * Properties for the ArticleList component.
+    *
+    * @typedef {Object} ArticleListProps
+    * @property {Article[]} articles - An array of Article entities to be displayed.
+    */
+   const { articles } = defineProps({ articles: { type: Array, required: true } });
+
+   </script>
+
+   <template>
+     <div v-for="article in articles" :key="article.url.toString()">
+       <article-item :article="article"/>
+     </div>
+   </template>
+
+   <style scoped>
+
+   </style>
+   ```
+   </details>
+
+   <details>
    <summary>src/news/presentation/components/article-item.vue (Full file with doc comments)</summary>
 
    ```vue
    <script lang="js" setup>
    import {useI18n} from "vue-i18n";
-   import {Article} from "@/news/domain/model/article.entity.js";
-   import SourceSummary from "@/news/presentation/components/source-summary.vue";
+   import {Article} from "../../domain/model/article.entity.js";
+   import SourceSummary from "./source-summary.vue";
    import {ref} from "vue";
 
    /**
@@ -3994,32 +4721,242 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    ```
    </details>
 
-   **Note:** `ref="sourceSummary"` on `<source-summary>` here is `ArticleItem`'s own handle onto the *whole* `SourceSummary` component instance, specifically the `{toggle}` object it exposed with `defineExpose` in the previous step. `sourceSummary.value.toggle(event)` in `toggleSourceSummary` (from US002) was always calling forward to this, waiting for `SourceSummary` to exist.
+   <details>
+   <summary>src/i18n.js (Full file with doc comments)</summary>
+
+   ```javascript
+   import en from "./locales/en.json";
+   import es from "./locales/es.json";
+
+   import {createI18n} from "vue-i18n";
+
+   /**
+    * Shared internationalization service used across presentation modules.
+    */
+   const i18n = createI18n({
+       legacy: false,
+       locale: "en",
+       fallbackLocale: "en",
+       messages: {en, es}
+   });
+
+   export default i18n;
+   ```
+   </details>
+
+   <details>
+   <summary>src/shared/presentation/components/language-switcher.vue (Full file with doc comments)</summary>
+
+   ```vue
+   <script setup lang="js">
+   import { useI18n } from 'vue-i18n';
+
+   /**
+    * Presentation component for switching the application's locale.
+    *
+    * @remarks
+    * Uses the vue-i18n instance to display and update the current language.
+    */
+   const { locale, availableLocales } = useI18n();
+   </script>
+
+   <template>
+     <pv-select-button v-model="locale" :options="availableLocales">
+       <template #option="slotProps">
+         <span>{{ slotProps.option.toUpperCase() }}</span>
+       </template>
+     </pv-select-button>
+   </template>
+
+   <style scoped>
+
+   </style>
+   ```
+   </details>
+
+   <details>
+   <summary>src/shared/presentation/components/footer-content.vue (Full file with doc comments)</summary>
+
+   ```vue
+   <script setup lang="js">
+     import {useI18n} from "vue-i18n";
+
+     /**
+      * Presentation component for the application footer.
+      *
+      * @remarks
+      * Displays attribution links, copyright information, and supports localization.
+      */
+     const { t } = useI18n();
+   </script>
+
+   <template>
+     <div class="grid mt-4 p-4 justify-content-center bg-primary text-primary-contrast text-center">
+       <div class="col-12 flex flex-column align-items-center">
+         <p>Copyright &copy; 2026. ACME Studios</p>
+       </div>
+       <div  class="col-12 flex flex-column align-items-center mt-3">
+         <p>
+           {{ t('authoring-phrase.intro') }} <i class="pi pi-heart text-red-500"/>
+           {{ t('authoring-phrase.use') }} <a href="https://primevue.org/" target="_blank" class="text-primary-contrast font-bold">PrimeVue</a>
+           {{ t('authoring-phrase.author', {brand: 'ACME'}) }}
+         </p>
+         <p>{{ t('footer.powered-by') }} <a href="https://www.newsapi.org" class="text-primary-contrast font-bold">NewsAPI.org</a> {{ t('footer.and') }} <a href="https://logo.dev" class="text-primary-contrast font-bold">Logo.dev Logo API</a> </p>
+       </div>
+     </div>
+   </template>
+
+   <style scoped>
+
+   </style>
+   ```
+   </details>
+
+   <details>
+   <summary>src/news/presentation/components/unavailable-content.vue (Full file with doc comments)</summary>
+
+   ```vue
+   <script setup lang="js">
+     import {useI18n} from "vue-i18n";
+
+     /**
+      * Presentation component for displaying error messages or fallback content.
+      *
+      * @remarks
+      * This component is rendered when no articles are available or an error occurs
+      * during data fetching.
+      */
+
+     /**
+      * Properties for the UnavailableContent component.
+      *
+      * @typedef {Object} UnavailableContentProps
+      * @property {Array<string>} errors - A list of error message strings to display.
+      */
+
+     const { t } = useI18n();
+
+     /** @type {UnavailableContentProps} */
+     const { errors } = defineProps({ errors: { type: Array, default: () => [] } });
+   </script>
+
+   <template>
+     <div class="flex flex-column align-items-center justify-content-center mt-8 text-muted-color">
+       <i class="pi pi-exclamation-circle text-6xl mb-4" />
+       <div><h4>{{ t('unavailable-news') }}</h4></div>
+       <div v-for="error in errors" :key="error" class="mt-2">
+         <h6>{{ error }}</h6>
+       </div>
+     </div>
+   </template>
+
+   <style scoped>
+
+   </style>
+   ```
+   </details>
+
+   <details>
+   <summary>src/news/presentation/components/source-summary.vue (Full file with doc comments)</summary>
+
+   ```vue
+   <script setup lang="js">
+   import {Source} from "../../domain/model/source.entity.js";
+   import {useI18n} from "vue-i18n";
+   import {ref} from "vue";
+
+   /**
+    * Presentation component for rendering news source details in a popover.
+    *
+    * @remarks
+    * This component displays information about a news source, like its name, description, category, etc.
+    * and provides a link to the source's website.
+    */
+
+   /**
+    * Properties for the SourceSummary component.
+    *
+    * @typedef {Object} SourceSummaryProps
+    * @property {Source} source - The source entity to display.
+    */
+
+   const {t} = useI18n();
+
+   /** @type {SourceSummaryProps} */
+   const {source} = defineProps({
+     source: {type: Source, required: true}
+   });
+
+   /**
+    * Reference to the popover component for toggling visibility.
+    *
+    */
+   const sourceSummary = ref();
+
+   /**
+    * Toggles the popover visibility.
+    *
+    * @param {Event} event - The click event that triggered the popover.
+    */
+   const toggle = (event) => {
+     sourceSummary.value.toggle(event);
+   };
+
+   /**
+    * Exposes the toggle method to parent components.
+    */
+   defineExpose({toggle});
+   </script>
+
+   <template>
+     <pv-popover ref="sourceSummary">
+       <div class="flex flex-column gap-3 w-25rem">
+         <div class="flex align-items-center gap-2">
+           <pv-avatar :image="source.urlToLogo" :aria-label="source.name" shape="circle" size="large" />
+           <span class="font-bold text-xl">{{ source.name }}</span>
+         </div>
+         <div v-if="source.description" class="text-color-secondary">
+           {{ source.description }}
+         </div>
+         <div class="flex flex-column gap-2">
+           <div v-if="source.category" class="flex align-items-center gap-2">
+             <i class="pi pi-tag text-primary"></i>
+             <span>{{ source.category }}</span>
+           </div>
+           <div v-if="source.language" class="flex align-items-center gap-2">
+             <i class="pi pi-globe text-primary"></i>
+             <span>{{ source.language.toUpperCase() }}</span>
+           </div>
+           <div v-if="source.country" class="flex align-items-center gap-2">
+             <i class="pi pi-map-marker text-primary"></i>
+             <span>{{ source.country.toUpperCase() }}</span>
+           </div>
+         </div>
+         <div v-if="!source.url.isEmpty()" class="flex justify-content-end">
+           <pv-button
+               as="a"
+               :href="source.url.toString()"
+               target="_blank"
+               :label="t('read-more')"
+               icon="pi pi-external-link"
+               size="small"
+               text />
+         </div>
+       </div>
+     </pv-popover>
+   </template>
+
+   <style scoped>
+   </style>
+   ```
+   </details>
 
    ```
    git add .
-   git commit -m "feat(news): show SourceSummary from ArticleItem."
+   git commit -m "docs: add doc comments to every class."
    ```
 
-6. **Run it.**
-
-    ```
-    npm run dev
-    ```
-
-    Click a source's name or avatar on any article card, a popover opens with its description, category, language, country, and a link to its website. Stop the server with `Ctrl+C`.
-
-7. **Publish and finish the feature.**
-
----
-
-## Prepare the First Release
-
-**Still on `develop`.** All four user stories are merged. Every real public repo ships a `LICENSE.md`, a `README.md`, and a `CONTRIBUTING.md`, but none of them belonged earlier, back then there was nothing to describe yet.
-
-1. **Run every scenario end to end.** `npm run dev`, then in the browser: confirm the drawer lists real sources with the first one active (US001); choosing a different source loads its articles, each with a title, author when present, and a formatted date (US002); switch the language and watch every string change, including the articles (US003); click a source's name and confirm the popover shows its details (US004). Then check every scenario in `docs/user-stories.md` against what the app actually does. No automated test drives these end to end, so this manual run is the acceptance check. Stop the server with `Ctrl+C`.
-
-2. **Add `LICENSE.md`.** Right-click the project root → `New` → `File` → type `LICENSE.md` → Enter.
+3. **Add `LICENSE.md`.** Right-click the project root → `New` → `File` → type `LICENSE.md` → Enter.
 
    <details>
    <summary>LICENSE.md</summary>
@@ -4053,7 +4990,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    git commit -m "chore: add license."
    ```
 
-3. **Add `README.md`.** Right-click the project root → `New` → `File` → type `README.md` → Enter.
+4. **Add `README.md`.** Right-click the project root → `New` → `File` → type `README.md` → Enter.
 
    <details>
    <summary>README.md</summary>
@@ -4218,7 +5155,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    git commit -m "docs: update project-level documentation."
    ```
 
-4. **Add `CONTRIBUTING.md`,** linked from the README.
+5. **Add `CONTRIBUTING.md`,** linked from the README.
 
    <details>
    <summary>CONTRIBUTING.md</summary>
@@ -4251,8 +5188,8 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    - **Layers**: a strict separation between **domain** (pure JavaScript, no Vue import), **application** (`newsStore`, orchestration), **infrastructure** (HTTP, mapping), and **presentation** (`.vue` components).
 
    ### Object-Oriented Programming (OOP)
-   - **Encapsulation**: `Article` and `Source` use the `_` prefix, not native `#` private fields, because both live inside `newsStore`'s reactive state, and Vue's Proxy-based reactivity cannot read `#` fields through a wrapped instance (see `docs/adrs.md`, ADR-0003). `Url` and `DateTime` use native `#` fields, they are never themselves the direct value of a reactive property.
-   - **Immutability**: every domain type is built once, in its constructor, then frozen with `Object.freeze()`. Nothing is ever assigned to an entity or value object after construction (ADR-0004).
+   - **Encapsulation**: `Article` and `Source` use native `#` private fields, the same convention as `Url`, `DateTime`, and every other class in this project. `newsStore` keeps `sources`, `articles`, and `currentSource` in `shallowRef` and `errors` in a plain `ref`, so Vue never wraps an entity in a Proxy that would break a `#field` read (see `docs/adrs.md`, ADR-0003).
+   - **Immutability**: every domain type is immutable by design: state lives in private fields, there are only getters, and everything is resolved before the constructor runs. `Object.freeze(this)` adds a guard against adding or reassigning public properties from outside; it does not cover `#` private fields (ADR-0004).
    - **Access**: always through getters; no raw setters anywhere in the domain layer.
 
    ### Vue 3.5 & Composition API
@@ -4325,7 +5262,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
    **Note:** the release name carries a `v` prefix (`v1.0.0`), matching the git tag it becomes on finish. The `package.json` `"version"` stays plain (`1.0.0`), and so does the `CHANGELOG.md` heading (`## [1.0.0]`): npm and Keep a Changelog conventions don't use the prefix.
 
-2. **Add the Architecture Decision Records** to a single `docs/adrs.md`. Right-click the `docs` folder → `New` → `File` → type `adrs.md` → Enter. Eight decisions, written in one sitting: the layered architecture, value objects for domain data, `_` fields over native `#` on the two reactive entities, building an entity once and freezing it, the Composition API plus PrimeVue choice, the assembler pattern, the centralized Axios error handling, and progressive `URL.canParse()` enhancement.
+2. **Add the Architecture Decision Records** to a single `docs/adrs.md`. Right-click the `docs` folder → `New` → `File` → type `adrs.md` → Enter. Eight decisions, written in one sitting: the layered architecture, value objects for domain data, native `#` private fields with domain entities held in `shallowRef`, building an entity once and immutable by design, the Composition API plus PrimeVue choice, the assembler pattern, the centralized Axios error handling, and progressive `URL.canParse()` enhancement.
 
    <details>
    <summary>docs/adrs.md</summary>
@@ -4385,7 +5322,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
    ## Decision
 
-   `Url` and `DateTime` are immutable (`Object.freeze()` in the constructor), self-validating (a malformed value falls back to a safe default instead of leaving the object half-built), and behavior-rich (`isFuture()`, `format()`, `equals()`) instead of bare strings passed around and re-validated everywhere.
+   `Url` and `DateTime` are immutable by design (state in private fields, only getters, and `Object.freeze(this)` as an extra guard for public properties), self-validating (a malformed value falls back to a safe default instead of leaving the object half-built), and behavior-rich (`isFuture()`, `format()`, `equals()`) instead of bare strings passed around and re-validated everywhere.
 
    ## Consequences
 
@@ -4397,40 +5334,55 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
    ---
 
-   # ADR-0003: `_`-Prefixed Fields Instead of Native Private Fields on Reactive Entities
+   # ADR-0003: Native Private Fields (`#`) Everywhere, Domain Entities Held in `shallowRef`
 
    **Status:** Accepted
 
    ## Context
 
-   `Article` and `Source` instances end up inside `newsStore`, a `reactive()` object: every article and source the store holds gets wrapped in a Vue `Proxy`. A method that reads `this.#field` throws `TypeError: Cannot read private member from an object whose class did not declare it` when `this` is that `Proxy`, because a private-field read is a direct internal-slot check against the exact receiver, and the receiver Vue hands back is the Proxy, not the original instance. `Url` and `DateTime` do not have this problem: they are never stored directly in the reactive tree by themselves, they are always read through an already-reactive `Article`/`Source`.
+   Native `#field` gives real encapsulation, and it is the convention on every domain type in this course. Vue can wrap reactive objects in a `Proxy`, though. `reactive()` and `ref()` wrap in depth, so an entity stored in one of them becomes a `Proxy`, and a getter that reads `this.#field` through it throws `TypeError: Cannot read private member from an object whose class did not declare it`. JavaScript checks that the object used as `this` carries the private brand of the class that declared the field, and a `Proxy` is a different object, without that brand.
+
+   Vue 3.5 currently skips objects that are not extensible (`!Object.isExtensible(target)`), and `Article` and `Source` call `Object.freeze(this)`, so today Vue would leave them alone even inside a `reactive()` object. That is an internal detail of Vue, not a contract, and this project does not build on it: `Developer` in `hello-vue-developer` is not frozen, and it does throw inside a deep `ref()`.
+
+   A component that receives an entity as a prop cannot fix this either. If the parent already handed it over as a `Proxy`, the child keeps seeing the `Proxy`, so the entity has to enter Vue as a `shallowRef` from the start, not be repaired further down the tree.
 
    ## Decision Drivers
 
-   - `Article` and `Source` are exactly the objects `newsStore`'s `reactive()` wraps, so they are the ones at risk.
-   - Encapsulation should not come at the cost of the app crashing the first time a reactive `Article` calls one of its own getters.
+   - `#field` should not be traded away for a framework detail; `Article`/`Source` should follow the same rule as `Url` and `DateTime`.
+   - `Article` and `Source` are immutable by design (ADR-0004): `newsStore` only ever needs to know when `sources`, `articles`, or `currentSource` are *replaced*, never when something inside an entity changes, because nothing does.
+   - The rule has to be easy to teach and hold no matter how an entity is built or frozen.
 
    ## Considered Options
 
-   1. `_field` convention on `Article`/`Source` (not enforced by the language, but invisible to the Proxy machinery), native `#field` kept on `Url`/`DateTime` *(Chosen)*
-   2. Native `#field` private fields on every domain type, including `Article`/`Source`
-   3. Plain public fields on `Article`/`Source`, no encapsulation at all
+   1. `_field` convention on `Article`/`Source`, so a deep `reactive()` store never has to `Proxy`-wrap a private field (the original decision here)
+   2. Native `#field` with the whole `newsStore` built on `shallowReactive()` (applied first, then dropped: it puts UI state like `errors` under shallow rules too, so `errors.push(...)` stops triggering updates)
+   3. Native `#field`, domain entities in `shallowRef`, plain UI state in `ref`/`reactive` *(Chosen)*
+   4. Native `#field` with `markRaw(entity)` at every place an entity is built (more invasive, easy to forget one)
+   5. A plain ViewModel/DTO between the domain and Vue (very clean in a large application, but it adds a second model and mappings and drops domain behavior, for a course focused on entities, encapsulation, `#`, DDD, Vue, and stores)
+   6. Plain public fields, no encapsulation at all
 
    ## Decision
 
-   `Article` and `Source` use the `_` prefix (`_title`, `_source`, `_urlToLogo`, and so on) for every internal field, never `#`. Access is still funneled through getters; nothing outside the class reads a `_field` directly. `Url` and `DateTime`, which are never themselves the direct value inside a `reactive()` property, keep their native `#` fields.
+   Vue can wrap reactive objects in a `Proxy`. Domain entities that use native private fields (`#`) must not be proxied. That is why we store them with `shallowRef` and update state by replacing references. Plain UI state (strings, message arrays, flags) stays in `ref`/`reactive`.
+
+   - **UI state** (`ref`, `reactive`): deep reactivity, `Proxy`.
+   - **Domain objects** (`shallowRef`): the real object, untouched.
+
+   In `newsStore`, `sources`, `articles`, and `currentSource` are `shallowRef`, and `errors` is a plain `ref`. The store is a `reactive()` object holding those refs, so components keep reading `newsStore.sources` and `newsStore.errors` with no `.value`. Entities are updated by replacement, `this.sources = [...]`, `this.articles = [...]`, `this.currentSource = source`. Errors are just messages, so `this.errors.push(message)` works as usual.
 
    ## Consequences
 
    **Positive:**
-   - `Article` and `Source` work correctly once wrapped in `newsStore`'s reactivity, with no special-casing.
+   - Real encapsulation: `someArticle.#title` is a syntax error outside the class, not just a convention nobody happens to break.
+   - One privacy convention across the whole project, `#` everywhere, and one rule for Vue: entities in `shallowRef`, UI state in `ref`/`reactive`.
+   - The store never depends on an entity being frozen, so the rule still holds for an entity that is not.
 
    **Negative:**
-   - A `_field` is reachable at runtime from outside the class (`someArticle._title` compiles and runs). Nothing in this codebase does that, but the language does not stop it.
+   - An entity inside a `shallowRef` must be replaced, never mutated in place (`.push`, `.splice`, index assignment): Vue would not notice. Not a new constraint here, since entities are immutable and the store already replaces whole arrays.
 
    ---
 
-   # ADR-0004: `Article` and `Source` Are Built Once, Then Frozen
+   # ADR-0004: `Article` and `Source` Are Built Once and Immutable by Design
 
    **Status:** Accepted
 
@@ -4445,12 +5397,12 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
    ## Considered Options
 
-   1. Resolve `urlToLogo` and the cross-referenced `source` *before* constructing the entity, pass them in through the constructor, then `Object.freeze()` it *(Chosen)*
+   1. Resolve `urlToLogo` and the cross-referenced `source` *before* constructing the entity, pass them in through the constructor, keep every field private with getters only, and add `Object.freeze(this)` as an extra guard *(Chosen)*
    2. Keep constructing a partial entity first, then assign the remaining fields from the assembler afterward
 
    ## Decision
 
-   `SourceAssembler` resolves the logo URL from the raw `url` string before ever calling `new Source(...)`, passing `urlToLogo` in with the rest of the properties. `ArticleAssembler` resolves the matching `Source` before calling `new Article(...)`, passing it in as `source`. Both constructors call `Object.freeze(this)` as their last line: once built, neither entity changes again.
+   `SourceAssembler` resolves the logo URL from the raw `url` string before ever calling `new Source(...)`, passing `urlToLogo` in with the rest of the properties. `ArticleAssembler` resolves the matching `Source` before calling `new Article(...)`, passing it in as `source`. Both entities are immutable by design: state lives in `#` private fields, there are only getters, no operation changes it, and everything is resolved before the constructor runs. Both constructors also call `Object.freeze(this)` as their last line, an extra guard against adding or reassigning public properties from outside; it does not cover `#` private fields.
 
    ## Consequences
 
@@ -4459,6 +5411,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
    **Negative:**
    - The assembler does slightly more work up front (resolving the logo URL, or the matching source) before it can call the constructor, instead of patching the entity afterward.
+   - `Object.freeze(this)` does not freeze `#` private fields, so the guarantee rests on the design (no operation that modifies state), not on the freeze.
 
    ---
 
@@ -4628,7 +5581,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    - `README.md`, MIT `LICENSE.md`, `CONTRIBUTING.md`.
 
    ### Design notes
-   - `Article` and `Source` are built once, with every field resolved before construction, then frozen; internal fields use the `_` convention, not native `#` private fields, because both entities live inside `newsStore`'s reactive state, and Vue's Proxy-based reactivity cannot read `#` fields through a wrapped instance (ADR-0003).
+   - `Article` and `Source` are built once, with every field resolved before construction, immutable by design; internal fields use native `#` private fields, same as every other class in this project, `newsStore` holds them in `shallowRef` precisely so Vue never wraps them (ADR-0003).
    - `Url` and `DateTime` are immutable value objects with native `#` private fields, since they are never themselves the direct value of a reactive property.
    ```
    </details>
@@ -4666,7 +5619,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    - **US002:** read articles for the active source, with author, a formatted publish date, and a placeholder image when one is missing.
    - **US003:** switch between English and Spanish, everywhere, including article text; attribution for NewsAPI.org and Logo.dev in the footer; a fallback view when a request fails.
    - **US004:** share an article through the Web Share API (or copy its URL); a popover with a source's full details.
-   - `Article` and `Source` entities: built once, every field resolved before construction, then frozen, `_`-prefixed fields since both live inside reactive application state.
+   - `Article` and `Source` entities: built once, every field resolved before construction, immutable by design, native `#` private fields; `newsStore` holds them in `shallowRef` so Vue never wraps them in a `Proxy`.
    - `Url` and `DateTime` value objects, immutable, native `#` private fields.
    - `README.md`, MIT `LICENSE.md`, `CONTRIBUTING.md`, `CHANGELOG.md`; `docs/user-stories.md` with a Requirement Traceability Matrix, `docs/c4`, `docs/class-diagram.puml`, `docs/adrs.md`.
    ```
@@ -4715,7 +5668,7 @@ Once you have pushed your work it is on GitHub, so you can carry on from any mac
 
 3. **Fill in your own keys.** The clone already has `.env.development` and `.env.production` with the demo values from Project Setup step 13. Replace the three demo values in each with your own NewsAPI, Logo.dev, and PrimeVue keys (Project Setup steps 10-12), they are not something `npm install` restores.
 
-4. **Reinstall the tools that live outside the repo.** Plugins live in the IDE, not the repo: reinstall the Git Flow Helper plugin (Project Setup step 21) if this machine does not have it.
+4. **Reinstall the tools that live outside the repo.** Plugins live in the IDE, not the repo: reinstall the Git Flow Helper plugin (Project Setup step 22) if this machine does not have it.
 
 5. **Reinstate Git Flow.**
    - Check out `develop` before anything else: a fresh clone only has `main` as a local branch. Do it before `Init`, so Git Flow Helper registers against the existing `develop` instead of creating a new one.
@@ -4724,7 +5677,7 @@ Once you have pushed your work it is on GitHub, so you can carry on from any mac
      git checkout develop
      ```
 
-   - Register your GitHub account in the IDE (Project Setup step 20): get the token with
+   - Register your GitHub account in the IDE (Project Setup step 21): get the token with
 
      ```
      gh auth token
@@ -4744,7 +5697,7 @@ Once you have pushed your work it is on GitHub, so you can carry on from any mac
 
 ### Signing in to GitHub with a token
 
-The guide uses `gh auth login` (Project Setup step 20), which is the simplest way. If you can't install `gh`, GitHub also accepts a Personal Access Token.
+The guide uses `gh auth login` (Project Setup step 21), which is the simplest way. If you can't install `gh`, GitHub also accepts a Personal Access Token.
 
 **On a shared machine, clear any cached credential first** so a plain push doesn't run as whoever signed in last:
 
@@ -4763,7 +5716,7 @@ host=github.com
    - Note (the label): `UPC`.
    - Expiration: leave the default (`30 days`).
    - Scopes: check only the top-level `repo` checkbox (covers everything a push needs); leave the rest unchecked.
-   - Click **Generate token**, then copy it somewhere safe (a password manager) before navigating away. GitHub shows it **only once**. The IDE GitHub account (Project Setup step 20) needs it too.
+   - Click **Generate token**, then copy it somewhere safe (a password manager) before navigating away. GitHub shows it **only once**. The IDE GitHub account (Project Setup step 21) needs it too.
 2. Back in the terminal where the push is waiting:
    - **macOS:** type your GitHub username, then paste the token as the password (nothing shows as you paste, that's normal).
    - **Windows:** in the "Connect to GitHub" window, pick the `Token` tab and paste it there.
