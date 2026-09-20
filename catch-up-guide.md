@@ -1509,7 +1509,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     ```
     git add .
-    git commit -m "feat(news): add SourceItem component."
+    git commit -m "feat(news): add source-item component."
     ```
 
 16. **Create the `SourceList` component's template.** A PrimeVue drawer, listing one `SourceItem` per source, each one wired to the events it will emit:
@@ -1627,7 +1627,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     ```
     git add .
-    git commit -m "feat(news): add SourceList component."
+    git commit -m "feat(news): add source-list component."
     ```
 
 19. **Register PrimeVue in `main.js`.** Right-click `src` → the `main.js` file already exists from Project Setup, open it. This is the one place the whole app's global plugins and components get wired up.
@@ -1882,7 +1882,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     ```
     git add .
-    git commit -m "feat: add Layout component, wired into app.vue."
+    git commit -m "feat: add layout component, wired into app.vue."
     ```
 
 24. **Run it.**
@@ -2729,7 +2729,7 @@ Choosing a source now only marks it active. This story makes it load and show re
 
     ```
     git add .
-    git commit -m "feat(news): add ArticleItem component."
+    git commit -m "feat(news): add article-item component."
     ```
 
 12. **Create the `ArticleList` component's template.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/article-list` → Enter. One `ArticleItem` per article, keyed by the article's URL.
@@ -2790,7 +2790,7 @@ Choosing a source now only marks it active. This story makes it load and show re
 
     ```
     git add .
-    git commit -m "feat(news): add ArticleList component."
+    git commit -m "feat(news): add article-list component."
     ```
 
 14. **Wire `ArticleList` into `Layout`.**
@@ -2905,7 +2905,7 @@ Choosing a source now only marks it active. This story makes it load and show re
 
     ```
     git add .
-    git commit -m "feat: show ArticleList in Layout."
+    git commit -m "feat: show article-list in layout."
     ```
 
 15. **Run it.**
@@ -3138,7 +3138,7 @@ Every string shown so far is hardcoded English. This story adds real internation
 
    ```
    git add .
-   git commit -m "feat(shared): add LanguageSwitcher component."
+   git commit -m "feat(shared): add language-switcher component."
    ```
 
 8. **Create the `FooterContent` component.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `shared/presentation/components/footer-content` → Enter. Attribution for the two external services this app depends on.
@@ -3177,7 +3177,7 @@ Every string shown so far is hardcoded English. This story adds real internation
 
    ```
    git add .
-   git commit -m "feat(shared): add FooterContent component."
+   git commit -m "feat(shared): add footer-content component."
    ```
 
 9. **Wire `LanguageSwitcher` and `FooterContent` into `Layout`.** `LanguageSwitcher` and `FooterContent` join the script's imports.
@@ -3285,7 +3285,7 @@ Every string shown so far is hardcoded English. This story adds real internation
 
    ```
    git add .
-   git commit -m "feat: show LanguageSwitcher and FooterContent in Layout."
+   git commit -m "feat: show language-switcher and footer-content in layout."
    ```
 
 10. **Revisit `ArticleItem`, translate its text.** `"By "`, `"Published on "`, `"Read more"`, `"Share"`, and the tooltip were plain English, written before i18n existed.
@@ -3433,7 +3433,7 @@ Every string shown so far is hardcoded English. This story adds real internation
 
     ```
     git add .
-    git commit -m "feat(i18n): translate ArticleItem's text."
+    git commit -m "feat(i18n): translate article-item's text."
     ```
 
 11. **Create the `UnavailableContent` component.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/unavailable-content` → Enter. Shown instead of the article list whenever loading sources or articles failed.
@@ -3468,7 +3468,7 @@ Every string shown so far is hardcoded English. This story adds real internation
 
     ```
     git add .
-    git commit -m "feat(news): add UnavailableContent component."
+    git commit -m "feat(news): add unavailable-content component."
     ```
 
 12. **Show `UnavailableContent` in `Layout` when there is nothing to display.**
@@ -3578,7 +3578,7 @@ Every string shown so far is hardcoded English. This story adds real internation
 
     ```
     git add .
-    git commit -m "feat: show UnavailableContent when there are no articles."
+    git commit -m "feat: show unavailable-content when there are no articles."
     ```
 
 13. **Run it.**
@@ -3886,7 +3886,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
    ```
    git add .
-   git commit -m "feat(news): add SourceSummary component."
+   git commit -m "feat(news): add source-summary component."
    ```
 
 6. **Wire `SourceSummary` into `ArticleItem`.**
@@ -4009,7 +4009,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
    ```
    git add .
-   git commit -m "feat(news): show SourceSummary from ArticleItem."
+   git commit -m "feat(news): show source-summary from article-item."
    ```
 
 7. **Run it.**
