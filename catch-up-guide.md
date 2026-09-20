@@ -880,7 +880,34 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
 1. **Start the feature `register-source-browsing`.**
 
-2. **Create the `Source` entity, fields and constructor.** Right-click `src` → `New` → `JavaScript File` → type `news/domain/model/source.entity` → Enter (WebStorm adds the `.js` and creates the folders). This is the aggregate the whole story is about, it validates `id` and `name`, the two fields nothing downstream can work without, and stores both trimmed, so `"  bbc-news "` and `"bbc-news"` end up as the same source.
+2. **See the component tree this story builds.** This is the picture to keep in mind before writing code: every component the story builds, who owns what state, and how data flows between parent and child. `:prop` binds an input down, `@event` binds an output back up.
+
+   ```
+   +-----+
+   | app |
+   +-----+
+       |
+       +----------------------------------+
+       | layout                           |
+       | State (from newsStore):          |
+       |   sources: ComputedRef<Source[]> |
+       |   drawerVisible: Ref<boolean>    |
+       +----------------------------------+
+           |
+           +-------------------------------------------+
+           | source-list                               |
+           | Input:  :visible (v-model), :sources      |
+           | Output: @source-selected, @update:visible |
+           +-------------------------------------------+
+               |
+               +--------------------------+
+               | source-item              |
+               | Input:  :source          |
+               | Output: @source-selected |
+               +--------------------------+
+   ```
+
+3. **Create the `Source` entity, fields and constructor.** Right-click `src` → `New` → `JavaScript File` → type `news/domain/model/source.entity` → Enter (WebStorm adds the `.js` and creates the folders). This is the aggregate the whole story is about, it validates `id` and `name`, the two fields nothing downstream can work without, and stores both trimmed, so `"  bbc-news "` and `"bbc-news"` end up as the same source.
 
    <details>
    <summary>src/news/domain/model/source.entity.js (so far)</summary>
@@ -908,7 +935,6 @@ A visitor opens the app and sees a drawer listing every available news source, w
            this.#language = language;
            this.#country = country;
            this.#urlToLogo = urlToLogo;
-           Object.freeze(this);
        }
    }
    ```
@@ -920,13 +946,13 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
    **Note:** `urlToLogo` is a constructor parameter, not a field you set after the fact. The temptation is `const source = new Source({...}); source.urlToLogo = theRealUrl;`, construct first, patch after, but `Source` has no setter for `urlToLogo`, so the assignment throws in strict mode (ES modules are always strict) and is silently ignored otherwise. Whoever creates a `Source` resolves the logo URL first, then passes everything into one constructor call. ADR-0004 in `## Release` covers why.
 
-   **Note:** `Source` is already immutable by design: private fields, only getters, no operation that changes them. `Object.freeze(this)`, the last line of the constructor, adds a guard against adding or reassigning public properties from outside; it does not cover the `#` private fields.
+   **Note:** `Source` is immutable by design: private fields, only getters, no operation that changes them, and everything, `urlToLogo` included, is resolved before the constructor runs.
 
    **Note:** until the next two steps exist, the IDE underlines `StringValidator` and `Url` in the constructor as undefined. That is expected: writing the model is how you discover which support classes it needs, and the next two steps create them.
 
    **Note:** no commit here, `Source` still needs `StringValidator`, `Url`, and its read accessors.
 
-3. **Create the `StringValidator` utility.** Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/string-validator` → Enter (WebStorm adds the `.js`). `Source`'s constructor calls it to validate `id` and `name`, so it comes next. A small, static-only class: no instance ever gets created, it exists purely to hold string-checking rules shared by every entity that validates one.
+4. **Create the `StringValidator` utility.** Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/string-validator` → Enter (WebStorm adds the `.js`). `Source`'s constructor calls it to validate `id` and `name`, so it comes next. A small, static-only class: no instance ever gets created, it exists purely to hold string-checking rules shared by every entity that validates one.
 
    <details>
    <summary>src/shared/domain/model/string-validator.js</summary>
@@ -951,7 +977,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
    git commit -m "feat(shared): add string validator utility."
    ```
 
-4. **Create the `Url` value object.** Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/url` → Enter (WebStorm adds the `.js`). `Source` also stores a `Url` for its website, so this is the last support class it needs. A malformed URL never throws, it just becomes an empty `Url`, `""`. `toString()`/`valueOf()` expose the raw string, `isEmpty()` is the check most callers actually need, and `equals()` compares by value.
+5. **Create the `Url` value object.** Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/url` → Enter (WebStorm adds the `.js`). `Source` also stores a `Url` for its website, so this is the last support class it needs. A malformed URL never throws, it just becomes an empty `Url`, `""`. `toString()`/`valueOf()` expose the raw string, `isEmpty()` is the check most callers actually need, and `equals()` compares by value.
 
    <details>
    <summary>src/shared/domain/model/url.js</summary>
@@ -975,7 +1001,6 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
        constructor(value) {
            this.#value = Url.isValidUrl(value) ? value : '';
-           Object.freeze(this);
        }
 
        toString() {
@@ -1006,7 +1031,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
    git commit -m "feat(shared): add Url value object."
    ```
 
-5. **Add the read accessors.** One getter per field, exposing exactly what the constructor validated and stored.
+6. **Add the read accessors.** One getter per field, exposing exactly what the constructor validated and stored.
 
    <details>
    <summary>src/news/domain/model/source.entity.js (Full file)</summary>
@@ -1037,7 +1062,6 @@ A visitor opens the app and sees a drawer listing every available news source, w
            this.#language = language;
            this.#country = country;
            this.#urlToLogo = urlToLogo;
-           Object.freeze(this);
        }
 
        get id() {
@@ -1080,7 +1104,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
    git commit -m "feat(news): add Source entity."
    ```
 
-6. **Create the `LogoDevApi` helper.** Right-click `src` → `New` → `JavaScript File` → type `shared/infrastructure/logo-dev-api` → Enter. It builds a Logo.dev image URL from a source's website host, nothing more.
+7. **Create the `LogoDevApi` helper.** Right-click `src` → `New` → `JavaScript File` → type `shared/infrastructure/logo-dev-api` → Enter. It builds a Logo.dev image URL from a source's website host, nothing more.
 
    **Tip:** open [`https://img.logo.dev/bbc.co.uk?token=pk_bufKzaXPQFeNkMz5gxZWAA`](https://img.logo.dev/bbc.co.uk?token=pk_bufKzaXPQFeNkMz5gxZWAA) in the browser first, this is exactly the URL `LogoDevApi` builds and hands to an `<img>` tag.
 
@@ -1104,7 +1128,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
    git commit -m "feat(shared): add Logo.dev API helper."
    ```
 
-7. **Create the news API response shapes.** Right-click `src` → `New` → `JavaScript File` → type `news/infrastructure/news-resources` → Enter. Plain JSDoc `@typedef`s describing what NewsAPI actually returns, no runtime code, just the types the assemblers and the store below reference. They are the one exception to "comments go last": the editor reads them for autocompletion and checking, so the code depends on them and they are written here, not in the final comments step.
+8. **Create the news API response shapes.** Right-click `src` → `New` → `JavaScript File` → type `news/infrastructure/news-resources` → Enter. Plain JSDoc `@typedef`s describing what NewsAPI actually returns, no runtime code, just the types the assemblers and the store below reference. They are the one exception to "comments go last": the editor reads them for autocompletion and checking, so the code depends on them and they are written here, not in the final comments step.
 
    **Tip:** open [`https://newsapi.org/v2/sources?apiKey=0d5b87d6eed74a768b7f2f7a3ca1bafb`](https://newsapi.org/v2/sources?apiKey=0d5b87d6eed74a768b7f2f7a3ca1bafb) in the browser, this raw JSON is exactly what `SourceResource` and `SourcesResponse` model below.
 
@@ -1158,7 +1182,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
    git commit -m "feat(news): add API response type definitions."
    ```
 
-8. **Create the `errorInterceptor`.** Right-click `src` → `New` → `JavaScript File` → type `shared/infrastructure/error.interceptor` → Enter. A pair of Axios interceptor functions: one for a successful response, one that turns any kind of Axios error into a single, user-facing message string.
+9. **Create the `errorInterceptor`.** Right-click `src` → `New` → `JavaScript File` → type `shared/infrastructure/error.interceptor` → Enter. A pair of Axios interceptor functions: one for a successful response, one that turns any kind of Axios error into a single, user-facing message string.
 
    <details>
    <summary>src/shared/infrastructure/error.interceptor.js</summary>
@@ -1197,48 +1221,48 @@ A visitor opens the app and sees a drawer listing every available news source, w
    git commit -m "feat(shared): add Axios error interceptor."
    ```
 
-9. **Create the `NewsApi` client.** Right-click `src` → `New` → `JavaScript File` → type `news/infrastructure/news-api` → Enter. One `axios` instance, configured once, shared by both of its methods.
+10. **Create the `NewsApi` client.** Right-click `src` → `New` → `JavaScript File` → type `news/infrastructure/news-api` → Enter. One `axios` instance, configured once, shared by both of its methods.
 
-   <details>
-   <summary>src/news/infrastructure/news-api.js</summary>
+    <details>
+    <summary>src/news/infrastructure/news-api.js</summary>
 
-   ```javascript
-   import axios from "axios";
-   import "./news-resources.js";
-   import {errorInterceptor} from "../../shared/infrastructure/error.interceptor.js";
+    ```javascript
+    import axios from "axios";
+    import "./news-resources.js";
+    import {errorInterceptor} from "../../shared/infrastructure/error.interceptor.js";
 
-   const newsApi               = import.meta.env.VITE_NEWS_API_URL;
-   const apiKey                = import.meta.env.VITE_NEWS_API_KEY;
-   const sourcesEndpoint       = import.meta.env.VITE_SOURCES_ENDPOINT_PATH;
-   const topHeadlinesEndpoint  = import.meta.env.VITE_TOP_HEADLINES_ENDPOINT_PATH;
+    const newsApi               = import.meta.env.VITE_NEWS_API_URL;
+    const apiKey                = import.meta.env.VITE_NEWS_API_KEY;
+    const sourcesEndpoint       = import.meta.env.VITE_SOURCES_ENDPOINT_PATH;
+    const topHeadlinesEndpoint  = import.meta.env.VITE_TOP_HEADLINES_ENDPOINT_PATH;
 
-   const http = axios.create({
-       baseURL: newsApi,
-       params: {
-           apiKey: apiKey,
-       },
-   })
+    const http = axios.create({
+        baseURL: newsApi,
+        params: {
+            apiKey: apiKey,
+        },
+    })
 
-   http.interceptors.response.use(errorInterceptor.onResponse, errorInterceptor.onError);
+    http.interceptors.response.use(errorInterceptor.onResponse, errorInterceptor.onError);
 
-   export class NewsApi {
+    export class NewsApi {
 
-       getSources = () => http.get(`${sourcesEndpoint}`);
+        getSources = () => http.get(`${sourcesEndpoint}`);
 
-       getArticlesForSourceId = sourceId => http.get(`${topHeadlinesEndpoint}`, {params: {sources: sourceId}});
+        getArticlesForSourceId = sourceId => http.get(`${topHeadlinesEndpoint}`, {params: {sources: sourceId}});
 
-   }
-   ```
-   </details>
+    }
+    ```
+    </details>
 
-   **Note:** `apiKey` travels as a query parameter on every request (`http.create({..., params: {apiKey}})`), because that is how NewsAPI's free tier expects it. `getArticlesForSourceId` is not used yet, US002 is the first to call it, it is written now because it lives on the same class and the same Axios instance as `getSources`.
+    **Note:** `apiKey` travels as a query parameter on every request (`http.create({..., params: {apiKey}})`), because that is how NewsAPI's free tier expects it. `getArticlesForSourceId` is not used yet, US002 is the first to call it, it is written now because it lives on the same class and the same Axios instance as `getSources`.
 
-   ```
-   git add .
-   git commit -m "feat(news): add NewsApi client."
-   ```
+    ```
+    git add .
+    git commit -m "feat(news): add NewsApi client."
+    ```
 
-10. **Create the `SourceAssembler`.** Right-click `src` → `New` → `JavaScript File` → type `news/infrastructure/source.assembler` → Enter. Turns a raw API resource into a `Source`, resolving its logo URL first, since `Source` only ever accepts an already-known `urlToLogo`.
+11. **Create the `SourceAssembler`.** Right-click `src` → `New` → `JavaScript File` → type `news/infrastructure/source.assembler` → Enter. Turns a raw API resource into a `Source`, resolving its logo URL first, since `Source` only ever accepts an already-known `urlToLogo`.
 
     <details>
     <summary>src/news/infrastructure/source.assembler.js (so far)</summary>
@@ -1290,7 +1314,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     git commit -m "feat(news): add SourceAssembler."
     ```
 
-11. **Create the `NewsStore`, sources only for now.** Right-click `src` → `New` → `JavaScript File` → type `news/application/news.store` → Enter. It is the application service every component below reads from and calls into. A class whose state is private (`#`), read through getters: domain entities go in `shallowRef`, so Vue never wraps them in a `Proxy`; plain UI state, like the error messages, goes in a normal `ref`.
+12. **Create the `NewsStore`, sources only for now.** Right-click `src` → `New` → `JavaScript File` → type `news/application/news.store` → Enter. It is the application service every component below reads from and calls into. A class whose state is private (`#`), read through getters: domain entities go in `shallowRef`, so Vue never wraps them in a `Proxy`; plain UI state, like the error messages, goes in a normal `ref`.
 
     <details>
     <summary>src/news/application/news.store.js (so far)</summary>
@@ -1359,7 +1383,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     git commit -m "feat(news): add NewsStore, sources only."
     ```
 
-12. **Create the `SourceItem` component's template.** Right-click `src` → `New` → `Vue Single-File Component`. A dropdown asks `Composition API` or `Options API`, pick `Composition API`. Type the full path starting from the bounded context, `news/presentation/components/source-item` → Enter. An avatar with the source's logo, and its name next to it; clicking anywhere in the row selects it.
+13. **Create the `SourceItem` component's template.** Right-click `src` → `New` → `Vue Single-File Component`. A dropdown asks `Composition API` or `Options API`, pick `Composition API`. Type the full path starting from the bounded context, `news/presentation/components/source-item` → Enter. An avatar with the source's logo, and its name next to it; clicking anywhere in the row selects it.
 
     The row calls a handler when it is clicked, and shows the source's logo as an avatar:
 
@@ -1392,7 +1416,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     **Note:** `source` and `emitSourceSelectedEvent` do not exist anywhere yet, WebStorm shows both unresolved in the template. That is expected, script and template are separate concerns in a `<script setup>` component: nothing here compiles against the other the way a strictly-typed Angular template would. They get defined next, one at a time.
 
-13. **Add the `source` prop.**
+14. **Add the `source` prop.**
 
     The component receives the source it shows as a required prop:
 
@@ -1433,7 +1457,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     **Note:** `{{source.name}}` and `:image="source.urlToLogo"` in the template now resolve, `source` exists. `emitSourceSelectedEvent` is still unresolved, that's the last piece.
 
-14. **Add `emitSourceSelectedEvent()`.**
+15. **Add `emitSourceSelectedEvent()`.**
 
     Clicking the row emits the chosen source upward through the event `source-selected`:
 
@@ -1488,7 +1512,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     git commit -m "feat(news): add SourceItem component."
     ```
 
-15. **Create the `SourceList` component's template.** A PrimeVue drawer, listing one `SourceItem` per source, each one wired to the events it will emit:
+16. **Create the `SourceList` component's template.** A PrimeVue drawer, listing one `SourceItem` per source, each one wired to the events it will emit:
 
     ```vue
     <source-item v-for="source in sources"
@@ -1512,7 +1536,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     ```
     </details>
 
-16. **Add the `visible` and `sources` props.**
+17. **Add the `visible` and `sources` props.**
 
     The drawer receives whether it is open and the sources it lists:
 
@@ -1548,7 +1572,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     **Note:** `sources: Array`, plain and simple, not `Array[Source]`. `Array[Source]` reads like "an array of `Source`", but it is not valid Vue prop syntax, `Source` there would be read as a property key on the `Array` constructor function, which does not exist, so it silently resolves to `undefined` and validates nothing.
 
-17. **Add the two emitted events.**
+18. **Add the two emitted events.**
 
     The list emits two events, one so the parent can open or close the drawer, and one that relays the source a `SourceItem` reported:
 
@@ -1606,7 +1630,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     git commit -m "feat(news): add SourceList component."
     ```
 
-18. **Register PrimeVue in `main.js`.** Right-click `src` → the `main.js` file already exists from Project Setup, open it. This is the one place the whole app's global plugins and components get wired up.
+19. **Register PrimeVue in `main.js`.** Right-click `src` → the `main.js` file already exists from Project Setup, open it. This is the one place the whole app's global plugins and components get wired up.
 
     <details>
     <summary>src/main.js (so far)</summary>
@@ -1646,7 +1670,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     git commit -m "feat: register PrimeVue globally."
     ```
 
-19. **Wire `SourceList` into `Layout`, template only for now.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `shared/presentation/components/layout` → Enter. A menu bar with a button that opens the source drawer.
+20. **Wire `SourceList` into `Layout`, template only for now.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `shared/presentation/components/layout` → Enter. A menu bar with a button that opens the source drawer.
 
     A button toggles the drawer, and the drawer itself is the `SourceList`:
 
@@ -1693,7 +1717,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     ```
     </details>
 
-20. **Add the drawer state and the sources view.**
+21. **Add the drawer state and the sources view.**
 
     The script holds the drawer state and a `computed()` view over the store's sources:
 
@@ -1759,7 +1783,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     **Note:** `sources` reads `newsStore.sources` through a `computed()`, not directly. `Layout` never reaches into `newsStore` from the template, it always goes through a `computed()` view or a method, the same discipline every component below follows.
 
-21. **Add `setSource()` and load the sources on mount.**
+22. **Add `setSource()` and load the sources on mount.**
 
     Choosing a source selects it in the store, and `onMounted` asks the store to load the sources:
 
@@ -1835,7 +1859,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     **Note:** choosing a source also closes the drawer (`toggleDrawer()` right after `setCurrentSource`), so the visible list is not left covering the page once a choice is made. `onMounted` is what actually starts the whole app, nothing loads until `Layout` exists on the page.
 
-22. **Show `Layout` from `app.vue`.**
+23. **Show `Layout` from `app.vue`.**
 
     <details>
     <summary>src/app.vue</summary>
@@ -1861,7 +1885,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     git commit -m "feat: add Layout component, wired into app.vue."
     ```
 
-23. **Run it.**
+24. **Run it.**
 
     ```
     npm run dev
@@ -1869,34 +1893,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     Open the local URL Vite prints. A "CatchUp" button opens a drawer with a real list of news sources, fetched live from NewsAPI. Click one, the drawer closes. Nothing else on the page changes yet, that's US002. Stop the server with `Ctrl+C`.
 
-24. **Publish and finish the feature.**
-
-25. **See the component tree so far.** Every component built in this story, who owns what state, and how data flows between parent and child: `:prop` binds an input down, `@event` binds an output back up.
-
-    ```
-    +-----+
-    | app |
-    +-----+
-        |
-        +----------------------------------+
-        | layout                           |
-        | State (from newsStore):          |
-        |   sources: ComputedRef<Source[]> |
-        |   drawerVisible: Ref<boolean>    |
-        +----------------------------------+
-            |
-            +-------------------------------------------+
-            | source-list                               |
-            | Input:  :visible (v-model), :sources      |
-            | Output: @source-selected, @update:visible |
-            +-------------------------------------------+
-                |
-                +--------------------------+
-                | source-item              |
-                | Input:  :source          |
-                | Output: @source-selected |
-                +--------------------------+
-    ```
+25. **Publish and finish the feature.**
 
 ---
 
@@ -1906,7 +1903,46 @@ Choosing a source now only marks it active. This story makes it load and show re
 
 1. **Start the feature `view-articles`.**
 
-2. **Create the `Article` entity, fields and constructor.** Right-click `src` → `New` → `JavaScript File` → type `news/domain/model/article.entity` → Enter. It validates the title, the source, and the url, stores the title trimmed, resolves a `DateTime` from whatever it was given, and falls back to a placeholder image when none was provided. The placeholder is a named constant, `NO_IMAGE_URL`, not a literal buried in the middle of the constructor.
+2. **See the component tree this story builds.** `ArticleItem` and `ArticleList` join the tree, and `Layout` now also exposes `articles`.
+
+   ```
+   +-----+
+   | app |
+   +-----+
+       |
+       +------------------------------------+
+       | layout                             |
+       | State (from newsStore):            |
+       |   sources: ComputedRef<Source[]>   |
+       |   drawerVisible: Ref<boolean>      |
+       |   articles: ComputedRef<Article[]> |
+       +------------------------------------+
+           |
+           +-------------------------------------------+
+           | source-list                               |
+           | Input:  :visible (v-model), :sources      |
+           | Output: @source-selected, @update:visible |
+           +-------------------------------------------+
+               |
+               +--------------------------+
+               | source-item              |
+               | Input:  :source          |
+               | Output: @source-selected |
+               +--------------------------+
+           |
+           +-------------------+
+           | article-list      |
+           | Input:  :articles |
+           +-------------------+
+               |
+               +-------------------------+
+               | article-item            |
+               | Input:  :article        |
+               | Output: @article-shared |
+               +-------------------------+
+   ```
+
+3. **Create the `Article` entity, fields and constructor.** Right-click `src` → `New` → `JavaScript File` → type `news/domain/model/article.entity` → Enter. It validates the title, the source, and the url, stores the title trimmed, resolves a `DateTime` from whatever it was given, and falls back to a placeholder image when none was provided. The placeholder is a named constant, `NO_IMAGE_URL`, not a literal buried in the middle of the constructor.
 
    <details>
    <summary>src/news/domain/model/article.entity.js (so far)</summary>
@@ -1950,7 +1986,6 @@ Choosing a source now only marks it active. This story makes it load and show re
            this.#urlToImage = resolvedImage.isEmpty() ? new Url(NO_IMAGE_URL) : resolvedImage;
            this.#source = source;
            this.#publishedAt = dateTime;
-           Object.freeze(this);
        }
    }
    ```
@@ -1958,13 +1993,13 @@ Choosing a source now only marks it active. This story makes it load and show re
 
    **Note:** `Url` never throws, an invalid string falls back to an empty `Url` (ADR-0002), so "the article has a url" cannot be checked by whether `new Url(url)` throws. The guard checks the result instead: `resolvedUrl.isEmpty()` means the provider sent nothing usable, and the constructor throws. `ArticleAssembler` already builds every item inside a `try`/`catch` and drops the ones that fail, so an article without a url never reaches the list with a dead "Read more" button.
 
-   **Note:** like `Source`, `Article` is immutable by design; `Object.freeze(this)` at the end of the constructor only guards its public properties and does not cover the `#` private fields.
+   **Note:** like `Source`, `Article` is immutable by design: private fields, only getters, and its `Source` and `DateTime` arrive already built.
 
    **Note:** until the next step exists, the IDE underlines `DateTime` in the constructor as undefined. That is expected: writing the model is how you discover which support classes it needs, and the next step creates it. `Url`, `Source`, and `StringValidator` already exist from US001, so their imports are already there.
 
    **Note:** no commit here, `Article` still needs `DateTime` and its read accessors.
 
-3. **Create the `DateTime` value object.** `Article` needed this one to resolve its `publishedAt`. Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/date-time` → Enter. An invalid date throws immediately, unlike `Url`'s "fall back to empty" approach, a date-time is either real or it is a bug in the caller. It also answers `isFuture()`, formats itself, hands out a copy of its `Date`, and has a `now()` factory.
+4. **Create the `DateTime` value object.** `Article` needed this one to resolve its `publishedAt`. Right-click `src` → `New` → `JavaScript File` → type `shared/domain/model/date-time` → Enter. An invalid date throws immediately, unlike `Url`'s "fall back to empty" approach, a date-time is either real or it is a bug in the caller. It also answers `isFuture()`, formats itself, hands out a copy of its `Date`, and has a `now()` factory.
 
    <details>
    <summary>src/shared/domain/model/date-time.js</summary>
@@ -1979,7 +2014,6 @@ Choosing a source now only marks it active. This story makes it load and show re
                throw new Error('Invalid date-time value');
            }
            this.#date = date;
-           Object.freeze(this);
        }
 
        isFuture() {
@@ -2026,7 +2060,7 @@ Choosing a source now only marks it active. This story makes it load and show re
    git commit -m "feat(shared): add DateTime value object."
    ```
 
-4. **Add the read accessors.** One getter per field, plus `getFormatedPublishedAt()`, the derived view the presentation layer needs.
+5. **Add the read accessors.** One getter per field, plus `getFormatedPublishedAt()`, the derived view the presentation layer needs.
 
    <details>
    <summary>src/news/domain/model/article.entity.js (Full file)</summary>
@@ -2071,7 +2105,6 @@ Choosing a source now only marks it active. This story makes it load and show re
            this.#urlToImage = resolvedImage.isEmpty() ? new Url(NO_IMAGE_URL) : resolvedImage;
            this.#source = source;
            this.#publishedAt = dateTime;
-           Object.freeze(this);
        }
 
        get author() {
@@ -2114,7 +2147,7 @@ Choosing a source now only marks it active. This story makes it load and show re
    git commit -m "feat(news): add Article entity."
    ```
 
-5. **Create the `ArticleAssembler`.** Right-click `src` → `New` → `JavaScript File` → type `news/infrastructure/article.assembler` → Enter. Resolves the matching `Source` before constructing the `Article`, the same "resolve first, construct once" shape `SourceAssembler` already uses.
+6. **Create the `ArticleAssembler`.** Right-click `src` → `New` → `JavaScript File` → type `news/infrastructure/article.assembler` → Enter. Resolves the matching `Source` before constructing the `Article`, the same "resolve first, construct once" shape `SourceAssembler` already uses.
 
    <details>
    <summary>src/news/infrastructure/article.assembler.js (so far)</summary>
@@ -2166,7 +2199,7 @@ Choosing a source now only marks it active. This story makes it load and show re
    git commit -m "feat(news): add ArticleAssembler."
    ```
 
-6. **Extend `NewsStore` to load articles for the current source.** Cache the articles by source id, expose the ones of the current source, and load them when the source changes. Choosing a source that was already visited shows its cached list, with no second request.
+7. **Extend `NewsStore` to load articles for the current source.** Cache the articles by source id, expose the ones of the current source, and load them when the source changes. Choosing a source that was already visited shows its cached list, with no second request.
 
    The private article cache goes right after `#sources`:
 
@@ -2303,7 +2336,7 @@ Choosing a source now only marks it active. This story makes it load and show re
    git commit -m "feat(news): load articles for the current source."
    ```
 
-7. **Create the `ArticleItem` component's template.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/article-item` → Enter.
+8. **Create the `ArticleItem` component's template.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/article-item` → Enter.
 
    A card built from PrimeVue slots, `header`, `title`, `subtitle`, `content`, and `footer`. The image goes in the header, the source row with its avatar in the subtitle, and the read-more link with the share button in the footer:
 
@@ -2385,7 +2418,7 @@ Choosing a source now only marks it active. This story makes it load and show re
 
    **Note:** `article`, `toggleSourceSummary`, and `shareArticle` do not exist yet, WebStorm shows them unresolved in the template. `"By "` and `"Published on "` are plain English text for now, not yet translated, US003 replaces both with `t(...)` calls once i18n exists. Building the template with real, readable copy first, then swapping it for translation keys, is easier to follow than starting from `{{ t('article.by') }}` with no English text to compare it against yet.
 
-8. **Add the `article` prop.**
+9. **Add the `article` prop.**
 
    The component receives the article it shows as a required prop:
 
@@ -2465,100 +2498,100 @@ Choosing a source now only marks it active. This story makes it load and show re
    ```
    </details>
 
-9. **Add the `SourceSummary` popover trigger.** `SourceSummary` itself does not exist yet, US004 builds it, this component only needs a `ref` to call `.toggle()` on it.
+10. **Add the `SourceSummary` popover trigger.** `SourceSummary` itself does not exist yet, US004 builds it, this component only needs a `ref` to call `.toggle()` on it.
 
-   A `ref` for the popover, and the handler the source row already calls when it is clicked:
+    A `ref` for the popover, and the handler the source row already calls when it is clicked:
 
-   ```javascript
-   const sourceSummary = ref();
+    ```javascript
+    const sourceSummary = ref();
 
-   const toggleSourceSummary = event => {
-     sourceSummary.value.toggle(event);
-   };
-   ```
+    const toggleSourceSummary = event => {
+      sourceSummary.value.toggle(event);
+    };
+    ```
 
-   <details>
-   <summary>src/news/presentation/components/article-item.vue (so far)</summary>
+    <details>
+    <summary>src/news/presentation/components/article-item.vue (so far)</summary>
 
-   ```vue
-   <script lang="js" setup>
-   import {Article} from "../../domain/model/article.entity.js";
-   import {ref} from "vue";
+    ```vue
+    <script lang="js" setup>
+    import {Article} from "../../domain/model/article.entity.js";
+    import {ref} from "vue";
 
-   const { article } = defineProps({article: {type: Article, required: true}});
+    const { article } = defineProps({article: {type: Article, required: true}});
 
-   const sourceSummary = ref();
+    const sourceSummary = ref();
 
-   const toggleSourceSummary = event => {
-     sourceSummary.value.toggle(event);
-   };
-   </script>
+    const toggleSourceSummary = event => {
+      sourceSummary.value.toggle(event);
+    };
+    </script>
 
-   <template>
-     <pv-card class="m-2">
-       <template #header>
-         <img :alt="article.title" :src="article.urlToImage.toString()" class="image-fit"/>
-       </template>
-       <template #title>
-         <p class="flex align-content-start flex-wrap">
-           {{ article.title }}
-         </p>
-       </template>
-       <template #subtitle>
-         <div class="flex flex-column gap-2">
-           <p class="flex align-content-start flex-wrap cursor-pointer" @click="toggleSourceSummary">
-             <span class="flex align-items-center justify-content-center mr-2">
-               <pv-avatar :aria-label="article.source.name"
-                          :image="article.source.urlToLogo"
-                          shape="circle"/>
-             </span>
-             <span class="flex align-items-center justify-content-center font-bold">
-               {{ article.source.name }}
-             </span>
-           </p>
-           <p v-if="article.author" class="flex align-content-start flex-wrap">
-             <span class="text-sm">By {{ article.author }}</span>
-           </p>
-           <p class="flex align-content-start flex-wrap">
-             <span class="text-sm">Published on {{ article.getFormatedPublishedAt() }}</span>
-           </p>
-         </div>
-       </template>
-       <template #content>
-         <p class="flex align-content-start flex-wrap mt-4">
-           {{ article.description }}
-         </p>
-       </template>
-       <template #footer>
-         <div class="flex justify-content-between align-items-center">
-           <pv-button v-if="!article.url.isEmpty()" as="a" :href="article.url.toString()" target="_blank"
-                      label="Read more" link class="p-0" />
-           <pv-button
-               v-if="!article.url.isEmpty()"
-               label="Share"
-               aria-label="Share article"
-               text
-               size="small"
-               icon="pi pi-share-alt"
-               @click="shareArticle"/>
-         </div>
-       </template>
-     </pv-card>
-   </template>
+    <template>
+      <pv-card class="m-2">
+        <template #header>
+          <img :alt="article.title" :src="article.urlToImage.toString()" class="image-fit"/>
+        </template>
+        <template #title>
+          <p class="flex align-content-start flex-wrap">
+            {{ article.title }}
+          </p>
+        </template>
+        <template #subtitle>
+          <div class="flex flex-column gap-2">
+            <p class="flex align-content-start flex-wrap cursor-pointer" @click="toggleSourceSummary">
+              <span class="flex align-items-center justify-content-center mr-2">
+                <pv-avatar :aria-label="article.source.name"
+                           :image="article.source.urlToLogo"
+                           shape="circle"/>
+              </span>
+              <span class="flex align-items-center justify-content-center font-bold">
+                {{ article.source.name }}
+              </span>
+            </p>
+            <p v-if="article.author" class="flex align-content-start flex-wrap">
+              <span class="text-sm">By {{ article.author }}</span>
+            </p>
+            <p class="flex align-content-start flex-wrap">
+              <span class="text-sm">Published on {{ article.getFormatedPublishedAt() }}</span>
+            </p>
+          </div>
+        </template>
+        <template #content>
+          <p class="flex align-content-start flex-wrap mt-4">
+            {{ article.description }}
+          </p>
+        </template>
+        <template #footer>
+          <div class="flex justify-content-between align-items-center">
+            <pv-button v-if="!article.url.isEmpty()" as="a" :href="article.url.toString()" target="_blank"
+                       label="Read more" link class="p-0" />
+            <pv-button
+                v-if="!article.url.isEmpty()"
+                label="Share"
+                aria-label="Share article"
+                text
+                size="small"
+                icon="pi pi-share-alt"
+                @click="shareArticle"/>
+          </div>
+        </template>
+      </pv-card>
+    </template>
 
-   <style scoped>
-   .image-fit {
-     width: 100%;
-     height: 100%;
-     object-fit: cover;
-   }
-   </style>
-   ```
-   </details>
+    <style scoped>
+    .image-fit {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    </style>
+    ```
+    </details>
 
-   **Note:** no commit here, `<source-summary>` is not in the template yet either, that and this piece land together once `SourceSummary` exists, in US004.
+    **Note:** no commit here, `<source-summary>` is not in the template yet either, that and this piece land together once `SourceSummary` exists, in US004.
 
-10. **Add `shareArticle()`.** Web Share API first, clipboard as the fallback.
+11. **Add `shareArticle()`.** Web Share API first, clipboard as the fallback.
 
     First the event `article-shared`, right under the prop:
 
@@ -2699,7 +2732,7 @@ Choosing a source now only marks it active. This story makes it load and show re
     git commit -m "feat(news): add ArticleItem component."
     ```
 
-11. **Create the `ArticleList` component's template.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/article-list` → Enter. One `ArticleItem` per article, keyed by the article's URL.
+12. **Create the `ArticleList` component's template.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/article-list` → Enter. One `ArticleItem` per article, keyed by the article's URL.
 
     Each article gets its own `ArticleItem`:
 
@@ -2721,7 +2754,7 @@ Choosing a source now only marks it active. This story makes it load and show re
     ```
     </details>
 
-12. **Add the `articles` prop.**
+13. **Add the `articles` prop.**
 
     The list receives the articles it shows as an array:
 
@@ -2760,7 +2793,7 @@ Choosing a source now only marks it active. This story makes it load and show re
     git commit -m "feat(news): add ArticleList component."
     ```
 
-13. **Wire `ArticleList` into `Layout`.**
+14. **Wire `ArticleList` into `Layout`.**
 
     A `computed()` view over the store's articles for the current source:
 
@@ -2875,7 +2908,7 @@ Choosing a source now only marks it active. This story makes it load and show re
     git commit -m "feat: show ArticleList in Layout."
     ```
 
-14. **Run it.**
+15. **Run it.**
 
     ```
     npm run dev
@@ -2883,46 +2916,7 @@ Choosing a source now only marks it active. This story makes it load and show re
 
     Choosing a source now loads real articles for it: title, image (or the placeholder), author when one exists, and a formatted publish date. Click **Share** on an article, its URL lands on your clipboard (or your device's native share sheet opens, if it supports the Web Share API). Stop the server with `Ctrl+C`.
 
-15. **Publish and finish the feature.**
-
-16. **See the component tree so far.** `ArticleItem`/`ArticleList` joined the tree, and `Layout` now also exposes `articles`.
-
-    ```
-    +-----+
-    | app |
-    +-----+
-        |
-        +------------------------------------+
-        | layout                             |
-        | State (from newsStore):            |
-        |   sources: ComputedRef<Source[]>   |
-        |   drawerVisible: Ref<boolean>      |
-        |   articles: ComputedRef<Article[]> |
-        +------------------------------------+
-            |
-            +-------------------------------------------+
-            | source-list                               |
-            | Input:  :visible (v-model), :sources      |
-            | Output: @source-selected, @update:visible |
-            +-------------------------------------------+
-                |
-                +--------------------------+
-                | source-item              |
-                | Input:  :source          |
-                | Output: @source-selected |
-                +--------------------------+
-            |
-            +-------------------+
-            | article-list      |
-            | Input:  :articles |
-            +-------------------+
-                |
-                +-------------------------+
-                | article-item            |
-                | Input:  :article        |
-                | Output: @article-shared |
-                +-------------------------+
-    ```
+16. **Publish and finish the feature.**
 
 ---
 
@@ -2932,7 +2926,62 @@ Every string shown so far is hardcoded English. This story adds real internation
 
 1. **Start the feature `internationalize-the-application`.**
 
-2. **Create the English dictionary.** Right-click `src` → `New` → `File` → type `locales/en.json` → Enter.
+2. **See the component tree this story builds.** `LanguageSwitcher`, `UnavailableContent`, and `FooterContent` join the tree; `LanguageSwitcher` and `FooterContent` take no input (they read `useI18n()` directly), `UnavailableContent` takes `:errors` and replaces `ArticleList` through `v-else` when there are no articles. `Layout` now also exposes `errors`.
+
+   ```
+   +-----+
+   | app |
+   +-----+
+       |
+       +------------------------------------+
+       | layout                             |
+       | State (from newsStore):            |
+       |   sources: ComputedRef<Source[]>   |
+       |   drawerVisible: Ref<boolean>      |
+       |   articles: ComputedRef<Article[]> |
+       |   errors: ComputedRef<string[]>    |
+       +------------------------------------+
+           |
+           +-------------------------------------------+
+           | source-list                               |
+           | Input:  :visible (v-model), :sources      |
+           | Output: @source-selected, @update:visible |
+           +-------------------------------------------+
+               |
+               +--------------------------+
+               | source-item              |
+               | Input:  :source          |
+               | Output: @source-selected |
+               +--------------------------+
+           |
+           +--------------------------------------------+
+           | language-switcher                          |
+           | (no Input/Output, uses useI18n() directly) |
+           +--------------------------------------------+
+           |
+           +-------------------------------------+
+           | article-list  (v-if articles.length) |
+           | Input:  :articles                   |
+           +-------------------------------------+
+               |
+               +-------------------------+
+               | article-item            |
+               | Input:  :article        |
+               | Output: @article-shared |
+               +-------------------------+
+           |
+           +------------------------------+
+           | unavailable-content  (v-else) |
+           | Input:  :errors              |
+           +------------------------------+
+           |
+           +--------------------------------------------+
+           | footer-content                             |
+           | (no Input/Output, uses useI18n() directly) |
+           +--------------------------------------------+
+   ```
+
+3. **Create the English dictionary.** Right-click `src` → `New` → `File` → type `locales/en.json` → Enter.
 
    <details>
    <summary>src/locales/en.json</summary>
@@ -2962,7 +3011,7 @@ Every string shown so far is hardcoded English. This story adds real internation
 
    **Note:** `"author": "by {brand} Developer Team"` has a `{brand}` placeholder, `vue-i18n` fills it in from an argument passed at the call site (`t('authoring-phrase.author', {brand: 'ACME'})`), the dictionary itself never hardcodes which brand.
 
-3. **Create the Spanish dictionary, same keys.**
+4. **Create the Spanish dictionary, same keys.**
 
    <details>
    <summary>src/locales/es.json</summary>
@@ -2995,7 +3044,7 @@ Every string shown so far is hardcoded English. This story adds real internation
    git commit -m "feat(i18n): add English and Spanish dictionaries."
    ```
 
-4. **Create the i18n instance.** Right-click `src` → `New` → `JavaScript File` → type `i18n` → Enter.
+5. **Create the i18n instance.** Right-click `src` → `New` → `JavaScript File` → type `i18n` → Enter.
 
    <details>
    <summary>src/i18n.js</summary>
@@ -3019,7 +3068,7 @@ Every string shown so far is hardcoded English. This story adds real internation
 
    **Note:** `legacy: false` opts into vue-i18n's Composition API mode, `useI18n()` inside `<script setup>`, instead of the older `this.$t(...)` Options API style. `fallbackLocale: "en"` means a key missing from `es.json` still renders, in English, instead of showing blank or the raw key name.
 
-5. **Register i18n in `main.js`.**
+6. **Register i18n in `main.js`.**
 
    <details>
    <summary>src/main.js (Full file)</summary>
@@ -3059,7 +3108,7 @@ Every string shown so far is hardcoded English. This story adds real internation
    git commit -m "feat: register vue-i18n globally."
    ```
 
-6. **Create the `LanguageSwitcher` component.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `shared/presentation/components/language-switcher` → Enter. `vue-i18n`'s own `useI18n()` already exposes everything this component needs, no props at all.
+7. **Create the `LanguageSwitcher` component.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `shared/presentation/components/language-switcher` → Enter. `vue-i18n`'s own `useI18n()` already exposes everything this component needs, no props at all.
 
    <details>
    <summary>src/shared/presentation/components/language-switcher.vue</summary>
@@ -3092,7 +3141,7 @@ Every string shown so far is hardcoded English. This story adds real internation
    git commit -m "feat(shared): add LanguageSwitcher component."
    ```
 
-7. **Create the `FooterContent` component.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `shared/presentation/components/footer-content` → Enter. Attribution for the two external services this app depends on.
+8. **Create the `FooterContent` component.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `shared/presentation/components/footer-content` → Enter. Attribution for the two external services this app depends on.
 
    <details>
    <summary>src/shared/presentation/components/footer-content.vue</summary>
@@ -3131,7 +3180,7 @@ Every string shown so far is hardcoded English. This story adds real internation
    git commit -m "feat(shared): add FooterContent component."
    ```
 
-8. **Wire `LanguageSwitcher` and `FooterContent` into `Layout`.** `LanguageSwitcher` and `FooterContent` join the script's imports.
+9. **Wire `LanguageSwitcher` and `FooterContent` into `Layout`.** `LanguageSwitcher` and `FooterContent` join the script's imports.
 
    The switcher goes at the end of the menu bar:
 
@@ -3239,152 +3288,7 @@ Every string shown so far is hardcoded English. This story adds real internation
    git commit -m "feat: show LanguageSwitcher and FooterContent in Layout."
    ```
 
-9. **Create the `UnavailableContent` component.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/unavailable-content` → Enter. Shown instead of the article list whenever loading sources or articles failed.
-
-   <details>
-   <summary>src/news/presentation/components/unavailable-content.vue</summary>
-
-   ```vue
-   <script setup lang="js">
-     import {useI18n} from "vue-i18n";
-
-     const { t } = useI18n();
-
-     const { errors } = defineProps({ errors: { type: Array, default: () => [] } });
-   </script>
-
-   <template>
-     <div class="flex flex-column align-items-center justify-content-center mt-8 text-muted-color">
-       <i class="pi pi-exclamation-circle text-6xl mb-4" />
-       <div><h4>{{ t('unavailable-news') }}</h4></div>
-       <div v-for="error in errors" :key="error" class="mt-2">
-         <h6>{{ error }}</h6>
-       </div>
-     </div>
-   </template>
-
-   <style scoped>
-
-   </style>
-   ```
-   </details>
-
-   ```
-   git add .
-   git commit -m "feat(news): add UnavailableContent component."
-   ```
-
-10. **Show `UnavailableContent` in `Layout` when there is nothing to display.**
-
-    `UnavailableContent` joins the script's imports, and `errors` is a `computed()` view over the store's error messages:
-
-    ```javascript
-    const errors = computed(() => newsStore.errors);
-    ```
-
-    The list shows only when there are articles, and `UnavailableContent` takes its place otherwise:
-
-    ```vue
-    <article-list v-if="articles.length" :articles="articles"/>
-    <unavailable-content v-else :errors="errors"/>
-    ```
-
-    <details>
-    <summary>src/shared/presentation/components/layout.vue (Full file)</summary>
-
-    ```vue
-    <script lang="js" setup>
-
-    import {newsStore} from "../../../news/application/news.store.js";
-    import SourceList from "../../../news/presentation/components/source-list.vue";
-    import LanguageSwitcher from "./language-switcher.vue";
-    import ArticleList from "../../../news/presentation/components/article-list.vue";
-    import UnavailableContent from "../../../news/presentation/components/unavailable-content.vue";
-    import FooterContent from "./footer-content.vue";
-    import {ref, computed, onMounted} from "vue";
-
-    const drawerVisible = ref(false);
-
-    const toggleDrawer = () => {
-      drawerVisible.value = !drawerVisible.value;
-    };
-
-    const sources = computed(() => newsStore.sources);
-    const errors = computed(() => newsStore.errors);
-    const articles = computed(() => newsStore.currentSourceArticles);
-
-    const setSource = source => {
-      newsStore.setCurrentSource(source);
-      toggleDrawer();
-    };
-
-    onMounted(() => {
-      newsStore.loadSources();
-    });
-
-    </script>
-
-    <template>
-      <div class="layout-container">
-        <header class="sticky-header">
-          <pv-menubar>
-            <template #start>
-              <pv-button icon="pi pi-bars" label="CatchUp"
-                         text @click="toggleDrawer" class="mr-2"/>
-              <source-list :sources="sources"
-                           v-model:visible="drawerVisible"
-                           @source-selected="setSource"/>
-            </template>
-            <template #end>
-              <language-switcher/>
-            </template>
-          </pv-menubar>
-        </header>
-        <main class="content-padding">
-          <article-list v-if="articles.length" :articles="articles"/>
-          <unavailable-content v-else :errors="errors"/>
-        </main>
-        <footer>
-          <footer-content/>
-        </footer>
-      </div>
-    </template>
-
-    <style scoped>
-    .layout-container {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    .sticky-header {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-
-    .content-padding {
-      padding: 1rem;
-      flex: 1;
-    }
-
-    @media screen and (min-width: 768px) {
-      .content-padding {
-        padding: 2rem;
-      }
-    }
-    </style>
-    ```
-    </details>
-
-    **Note:** `v-if="articles.length"` / `v-else`, never both branches rendered at once. An empty article list (no source chosen yet, or a request still in flight with zero results so far) falls into the same `v-else` branch as a real error, `UnavailableContent`'s own message covers both, `errors` is simply empty in the first case.
-
-    ```
-    git add .
-    git commit -m "feat: show UnavailableContent when there are no articles."
-    ```
-
-11. **Revisit `ArticleItem`, translate its text.** `"By "`, `"Published on "`, `"Read more"`, `"Share"`, and the tooltip were plain English, written before i18n existed.
+10. **Revisit `ArticleItem`, translate its text.** `"By "`, `"Published on "`, `"Read more"`, `"Share"`, and the tooltip were plain English, written before i18n existed.
 
     `useI18n()` gives the component its translation function:
 
@@ -3395,16 +3299,28 @@ Every string shown so far is hardcoded English. This story adds real internation
     The author and date labels read from the dictionary:
 
     ```vue
-    <span class="text-sm">{{ t('article.by') }} {{ article.author }}</span>
-    <span class="text-sm">{{ t('article.published-on') }} {{ article.getFormatedPublishedAt() }}</span>
+    <p v-if="article.author" class="flex align-content-start flex-wrap">
+      <span class="text-sm">{{ t('article.by') }} {{ article.author }}</span>
+    </p>
+    <p class="flex align-content-start flex-wrap">
+      <span class="text-sm">{{ t('article.published-on') }} {{ article.getFormatedPublishedAt() }}</span>
+    </p>
     ```
 
     And so do the read-more link, the share button, and its tooltip:
 
     ```vue
-    :label="t('read-more')"
-    v-tooltip="t('article.copy-to-clipboard')"
-    :label="t('article.share')"
+    <pv-button v-if="!article.url.isEmpty()" as="a" :href="article.url.toString()" target="_blank"
+               :label="t('read-more')" link class="p-0" />
+    <pv-button
+        v-if="!article.url.isEmpty()"
+        v-tooltip="t('article.copy-to-clipboard')"
+        :label="t('article.share')"
+        aria-label="Share article"
+        text
+        size="small"
+        icon="pi pi-share-alt"
+        @click="shareArticle"/>
     ```
 
     <details>
@@ -3520,7 +3436,152 @@ Every string shown so far is hardcoded English. This story adds real internation
     git commit -m "feat(i18n): translate ArticleItem's text."
     ```
 
-12. **Run it.**
+11. **Create the `UnavailableContent` component.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/unavailable-content` → Enter. Shown instead of the article list whenever loading sources or articles failed.
+
+    <details>
+    <summary>src/news/presentation/components/unavailable-content.vue</summary>
+
+    ```vue
+    <script setup lang="js">
+      import {useI18n} from "vue-i18n";
+
+      const { t } = useI18n();
+
+      const { errors } = defineProps({ errors: { type: Array, default: () => [] } });
+    </script>
+
+    <template>
+      <div class="flex flex-column align-items-center justify-content-center mt-8 text-muted-color">
+        <i class="pi pi-exclamation-circle text-6xl mb-4" />
+        <div><h4>{{ t('unavailable-news') }}</h4></div>
+        <div v-for="error in errors" :key="error" class="mt-2">
+          <h6>{{ error }}</h6>
+        </div>
+      </div>
+    </template>
+
+    <style scoped>
+
+    </style>
+    ```
+    </details>
+
+    ```
+    git add .
+    git commit -m "feat(news): add UnavailableContent component."
+    ```
+
+12. **Show `UnavailableContent` in `Layout` when there is nothing to display.**
+
+    `UnavailableContent` joins the script's imports, and `errors` is a `computed()` view over the store's error messages:
+
+    ```javascript
+    const errors = computed(() => newsStore.errors);
+    ```
+
+    The list shows only when there are articles, and `UnavailableContent` takes its place otherwise:
+
+    ```vue
+    <article-list v-if="articles.length" :articles="articles"/>
+    <unavailable-content v-else :errors="errors"/>
+    ```
+
+    <details>
+    <summary>src/shared/presentation/components/layout.vue (Full file)</summary>
+
+    ```vue
+    <script lang="js" setup>
+
+    import {newsStore} from "../../../news/application/news.store.js";
+    import SourceList from "../../../news/presentation/components/source-list.vue";
+    import LanguageSwitcher from "./language-switcher.vue";
+    import ArticleList from "../../../news/presentation/components/article-list.vue";
+    import UnavailableContent from "../../../news/presentation/components/unavailable-content.vue";
+    import FooterContent from "./footer-content.vue";
+    import {ref, computed, onMounted} from "vue";
+
+    const drawerVisible = ref(false);
+
+    const toggleDrawer = () => {
+      drawerVisible.value = !drawerVisible.value;
+    };
+
+    const sources = computed(() => newsStore.sources);
+    const errors = computed(() => newsStore.errors);
+    const articles = computed(() => newsStore.currentSourceArticles);
+
+    const setSource = source => {
+      newsStore.setCurrentSource(source);
+      toggleDrawer();
+    };
+
+    onMounted(() => {
+      newsStore.loadSources();
+    });
+
+    </script>
+
+    <template>
+      <div class="layout-container">
+        <header class="sticky-header">
+          <pv-menubar>
+            <template #start>
+              <pv-button icon="pi pi-bars" label="CatchUp"
+                         text @click="toggleDrawer" class="mr-2"/>
+              <source-list :sources="sources"
+                           v-model:visible="drawerVisible"
+                           @source-selected="setSource"/>
+            </template>
+            <template #end>
+              <language-switcher/>
+            </template>
+          </pv-menubar>
+        </header>
+        <main class="content-padding">
+          <article-list v-if="articles.length" :articles="articles"/>
+          <unavailable-content v-else :errors="errors"/>
+        </main>
+        <footer>
+          <footer-content/>
+        </footer>
+      </div>
+    </template>
+
+    <style scoped>
+    .layout-container {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .content-padding {
+      padding: 1rem;
+      flex: 1;
+    }
+
+    @media screen and (min-width: 768px) {
+      .content-padding {
+        padding: 2rem;
+      }
+    }
+    </style>
+    ```
+    </details>
+
+    **Note:** `v-if="articles.length"` / `v-else`, never both branches rendered at once. An empty article list (no source chosen yet, or a request still in flight with zero results so far) falls into the same `v-else` branch as a real error, `UnavailableContent`'s own message covers both, `errors` is simply empty in the first case.
+
+    ```
+    git add .
+    git commit -m "feat: show UnavailableContent when there are no articles."
+    ```
+
+13. **Run it.**
 
     ```
     npm run dev
@@ -3528,62 +3589,7 @@ Every string shown so far is hardcoded English. This story adds real internation
 
     The switcher in the top bar changes every visible string, article text included, immediately. Disconnect from the network and reload: `UnavailableContent`'s message appears instead of a blank page. Stop the server with `Ctrl+C`.
 
-13. **Publish and finish the feature.**
-
-14. **See the component tree so far.** `LanguageSwitcher`, `UnavailableContent`, and `FooterContent` joined the tree; `LanguageSwitcher` and `FooterContent` take no input (they read `useI18n()` directly), `UnavailableContent` takes `:errors` and replaces `ArticleList` through `v-else` when there are no articles. `Layout` now also exposes `errors`.
-
-    ```
-    +-----+
-    | app |
-    +-----+
-        |
-        +------------------------------------+
-        | layout                             |
-        | State (from newsStore):            |
-        |   sources: ComputedRef<Source[]>   |
-        |   drawerVisible: Ref<boolean>      |
-        |   articles: ComputedRef<Article[]> |
-        |   errors: ComputedRef<string[]>    |
-        +------------------------------------+
-            |
-            +-------------------------------------------+
-            | source-list                               |
-            | Input:  :visible (v-model), :sources      |
-            | Output: @source-selected, @update:visible |
-            +-------------------------------------------+
-                |
-                +--------------------------+
-                | source-item              |
-                | Input:  :source          |
-                | Output: @source-selected |
-                +--------------------------+
-            |
-            +--------------------------------------------+
-            | language-switcher                          |
-            | (no Input/Output, uses useI18n() directly) |
-            +--------------------------------------------+
-            |
-            +-------------------------------------+
-            | article-list  (v-if articles.length) |
-            | Input:  :articles                   |
-            +-------------------------------------+
-                |
-                +-------------------------+
-                | article-item            |
-                | Input:  :article        |
-                | Output: @article-shared |
-                +-------------------------+
-            |
-            +------------------------------+
-            | unavailable-content  (v-else) |
-            | Input:  :errors              |
-            +------------------------------+
-            |
-            +--------------------------------------------+
-            | footer-content                             |
-            | (no Input/Output, uses useI18n() directly) |
-            +--------------------------------------------+
-    ```
+14. **Publish and finish the feature.**
 
 ---
 
@@ -3593,7 +3599,68 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
 1. **Start the feature `add-source-summary-popover`.**
 
-2. **Create the `SourceSummary` component's template.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/source-summary` → Enter. A popover: logo and name, description, category/language/country when present, and a link to the source's website.
+2. **See the component tree this story builds.** `SourceSummary` joins the tree, nested under `ArticleItem` in the template itself (a `pv-popover` toggled via an exposed `toggle()`, not a dynamically-opened dialog).
+
+   ```
+   +-----+
+   | app |
+   +-----+
+       |
+       +------------------------------------+
+       | layout                             |
+       | State (from newsStore):            |
+       |   sources: ComputedRef<Source[]>   |
+       |   drawerVisible: Ref<boolean>      |
+       |   articles: ComputedRef<Article[]> |
+       |   errors: ComputedRef<string[]>    |
+       +------------------------------------+
+           |
+           +-------------------------------------------+
+           | source-list                               |
+           | Input:  :visible (v-model), :sources      |
+           | Output: @source-selected, @update:visible |
+           +-------------------------------------------+
+               |
+               +--------------------------+
+               | source-item              |
+               | Input:  :source          |
+               | Output: @source-selected |
+               +--------------------------+
+           |
+           +--------------------------------------------+
+           | language-switcher                          |
+           | (no Input/Output, uses useI18n() directly) |
+           +--------------------------------------------+
+           |
+           +-------------------------------------+
+           | article-list  (v-if articles.length) |
+           | Input:  :articles                   |
+           +-------------------------------------+
+               |
+               +-------------------------+
+               | article-item            |
+               | Input:  :article        |
+               | Output: @article-shared |
+               +-------------------------+
+                   |
+                   +-------------------+
+                   | source-summary    |
+                   | Input:  :source   |
+                   | Exposes: toggle() |
+                   +-------------------+
+           |
+           +------------------------------+
+           | unavailable-content  (v-else) |
+           | Input:  :errors              |
+           +------------------------------+
+           |
+           +--------------------------------------------+
+           | footer-content                             |
+           | (no Input/Output, uses useI18n() directly) |
+           +--------------------------------------------+
+   ```
+
+3. **Create the `SourceSummary` component's template.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/source-summary` → Enter. A popover: logo and name, description, category/language/country when present, and a link to the source's website.
 
    The popover shows the source's logo, name, and details, and is toggled from outside:
 
@@ -3649,7 +3716,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
    **Note:** `"Read more"` is plain text here, on purpose. Unlike `ArticleItem` in US003, this component is created after i18n already exists, so it goes straight to `t('read-more')` in the next step, no need for a separate "translate it later" pass.
 
-3. **Add the `source` prop and translate the read-more label.**
+4. **Add the `source` prop and translate the read-more label.**
 
    The component receives the source it shows as a required prop, and gets the translation function:
 
@@ -3664,7 +3731,14 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    The link label reads from the dictionary instead of plain text:
 
    ```vue
-   :label="t('read-more')"
+   <pv-button
+       as="a"
+       :href="source.url.toString()"
+       target="_blank"
+       :label="t('read-more')"
+       icon="pi pi-external-link"
+       size="small"
+       text />
    ```
 
    <details>
@@ -3727,7 +3801,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
    **Note:** no commit here, `<pv-popover ref="sourceSummary">` has nothing to actually toggle it open, that's next.
 
-4. **Add `toggle()` and expose it.** `ArticleItem`'s own `sourceSummary.value.toggle(event)`, from US002, calls exactly this method.
+5. **Add `toggle()` and expose it.** `ArticleItem`'s own `sourceSummary.value.toggle(event)`, from US002, calls exactly this method.
 
    A `ref` for the popover, the method that toggles it, and `defineExpose` so the parent can call it:
 
@@ -3815,7 +3889,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    git commit -m "feat(news): add SourceSummary component."
    ```
 
-5. **Wire `SourceSummary` into `ArticleItem`.**
+6. **Wire `SourceSummary` into `ArticleItem`.**
 
    `SourceSummary` joins the script's imports, and the popover goes inside the subtitle, next to the source row that toggles it:
 
@@ -3938,7 +4012,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    git commit -m "feat(news): show SourceSummary from ArticleItem."
    ```
 
-6. **Run it.**
+7. **Run it.**
 
    ```
    npm run dev
@@ -3946,68 +4020,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
    Click a source's name or avatar on any article card, a popover opens with its description, category, language, country, and a link to its website. Stop the server with `Ctrl+C`.
 
-7. **Publish and finish the feature.**
-
-8. **See the finished component tree.** `SourceSummary` joined the tree, nested under `ArticleItem` in the template itself (a `pv-popover` toggled via an exposed `toggle()`, not a dynamically-opened dialog).
-
-   ```
-   +-----+
-   | app |
-   +-----+
-       |
-       +------------------------------------+
-       | layout                             |
-       | State (from newsStore):            |
-       |   sources: ComputedRef<Source[]>   |
-       |   drawerVisible: Ref<boolean>      |
-       |   articles: ComputedRef<Article[]> |
-       |   errors: ComputedRef<string[]>    |
-       +------------------------------------+
-           |
-           +-------------------------------------------+
-           | source-list                               |
-           | Input:  :visible (v-model), :sources      |
-           | Output: @source-selected, @update:visible |
-           +-------------------------------------------+
-               |
-               +--------------------------+
-               | source-item              |
-               | Input:  :source          |
-               | Output: @source-selected |
-               +--------------------------+
-           |
-           +--------------------------------------------+
-           | language-switcher                          |
-           | (no Input/Output, uses useI18n() directly) |
-           +--------------------------------------------+
-           |
-           +-------------------------------------+
-           | article-list  (v-if articles.length) |
-           | Input:  :articles                   |
-           +-------------------------------------+
-               |
-               +-------------------------+
-               | article-item            |
-               | Input:  :article        |
-               | Output: @article-shared |
-               +-------------------------+
-                   |
-                   +-------------------+
-                   | source-summary    |
-                   | Input:  :source   |
-                   | Exposes: toggle() |
-                   +-------------------+
-           |
-           +------------------------------+
-           | unavailable-content  (v-else) |
-           | Input:  :errors              |
-           +------------------------------+
-           |
-           +--------------------------------------------+
-           | footer-content                             |
-           | (no Input/Output, uses useI18n() directly) |
-           +--------------------------------------------+
-   ```
+8. **Publish and finish the feature.**
 
 ---
 
@@ -4175,7 +4188,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
     * @remarks
     * This model belongs to the domain layer and encapsulates the identity and
     * attributes of a news source. It remains independent of external API structures.
-    * Every field is set once, in the constructor, then frozen: `urlToLogo` is
+    * Every field is set once, in the constructor, there are no setters: `urlToLogo` is
     * resolved by the assembler before the entity is built, never assigned after.
     */
    export class Source {
@@ -4214,7 +4227,6 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
            this.#language = language;
            this.#country = country;
            this.#urlToLogo = urlToLogo;
-           Object.freeze(this);
        }
 
        /** @returns {string} */
@@ -4335,7 +4347,6 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
         */
        constructor(value) {
            this.#value = Url.isValidUrl(value) ? value : '';
-           Object.freeze(this);
        }
 
        /**
@@ -5053,7 +5064,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
     * @remarks
     * This entity encapsulates the core attributes and behavior of a news article
     * within the domain. It ensures data integrity through validation in its
-    * constructor, and every field is set once, then frozen.
+    * constructor, and every field is set once, in the constructor, with no setters.
     */
    export class Article {
        #author;
@@ -5100,7 +5111,6 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
            this.#urlToImage = resolvedImage.isEmpty() ? new Url(NO_IMAGE_URL) : resolvedImage;
            this.#source = source;
            this.#publishedAt = dateTime;
-           Object.freeze(this);
        }
 
        /** @returns {string} */
@@ -5177,7 +5187,6 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
                throw new Error('Invalid date-time value');
            }
            this.#date = date;
-           Object.freeze(this);
        }
 
        /**
@@ -5956,7 +5965,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
    ### Object-Oriented Programming (OOP)
    - **Encapsulation**: `Article` and `Source` use native `#` private fields, the same convention as `Url`, `DateTime`, and every other class in this project. `newsStore` keeps `sources`, `articles`, and `currentSource` in `shallowRef` and `errors` in a plain `ref`, so Vue never wraps an entity in a Proxy that would break a `#field` read (see `docs/adrs.md`, ADR-0003).
-   - **Immutability**: every domain type is immutable by design: state lives in private fields, there are only getters, and everything is resolved before the constructor runs. `Object.freeze(this)` adds a guard against adding or reassigning public properties from outside; it does not cover `#` private fields (ADR-0004).
+   - **Immutability**: every domain type is immutable by design: state lives in private fields, there are only getters, and everything is resolved before the constructor runs. (ADR-0004).
    - **Access**: always through getters; no raw setters anywhere in the domain layer.
 
    ### Vue 3.5 & Composition API
@@ -6089,7 +6098,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
    ## Decision
 
-   `Url` and `DateTime` are immutable by design (state in private fields, only getters, and `Object.freeze(this)` as an extra guard for public properties), self-validating (a malformed value falls back to a safe default instead of leaving the object half-built), and behavior-rich (`isFuture()`, `format()`, `equals()`) instead of bare strings passed around and re-validated everywhere.
+   `Url` and `DateTime` are immutable by design (state in private fields, only getters), self-validating (a malformed value falls back to a safe default instead of leaving the object half-built), and behavior-rich (`isFuture()`, `format()`, `equals()`) instead of bare strings passed around and re-validated everywhere.
 
    ## Consequences
 
@@ -6109,15 +6118,13 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
    Native `#field` gives real encapsulation, and it is the convention on every domain type in this course. Vue can wrap reactive objects in a `Proxy`, though. `reactive()` and `ref()` wrap in depth, so an entity stored in one of them becomes a `Proxy`, and a getter that reads `this.#field` through it throws `TypeError: Cannot read private member from an object whose class did not declare it`. JavaScript checks that the object used as `this` carries the private brand of the class that declared the field, and a `Proxy` is a different object, without that brand.
 
-   Vue 3.5 currently skips objects that are not extensible (`!Object.isExtensible(target)`), and `Article` and `Source` call `Object.freeze(this)`, so today Vue would leave them alone even inside a `reactive()` object. That is an internal detail of Vue, not a contract, and this project does not build on it: `Developer` in `hello-vue-developer` is not frozen, and it does throw inside a deep `ref()`.
-
    A component that receives an entity as a prop cannot fix this either. If the parent already handed it over as a `Proxy`, the child keeps seeing the `Proxy`, so the entity has to enter Vue as a `shallowRef` from the start, not be repaired further down the tree.
 
    ## Decision Drivers
 
    - `#field` should not be traded away for a framework detail; `Article`/`Source` should follow the same rule as `Url` and `DateTime`.
    - `Article` and `Source` are immutable by design (ADR-0004): `newsStore` only ever needs to know when `sources`, `articles`, or `currentSource` are *replaced*, never when something inside an entity changes, because nothing does.
-   - The rule has to be easy to teach and hold no matter how an entity is built or frozen.
+   - The rule has to be easy to teach and hold for every entity, however it is built.
 
    ## Considered Options
 
@@ -6142,7 +6149,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    **Positive:**
    - Real encapsulation: `someArticle.#title` is a syntax error outside the class, not just a convention nobody happens to break.
    - One privacy convention across the whole project, `#` everywhere, and one rule for Vue: entities in `shallowRef`, UI state in `ref`/`reactive`.
-   - The store never depends on an entity being frozen, so the rule still holds for an entity that is not.
+   - The rule is applied once, in the container, and never has to be repaired further down: it holds for every entity, however it is built.
 
    **Negative:**
    - An entity inside a `shallowRef` must be replaced, never mutated in place (`.push`, `.splice`, index assignment): Vue would not notice. Not a new constraint here, since entities are immutable and the store already replaces whole arrays.
@@ -6164,12 +6171,12 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
    ## Considered Options
 
-   1. Resolve `urlToLogo` and the cross-referenced `source` *before* constructing the entity, pass them in through the constructor, keep every field private with getters only, and add `Object.freeze(this)` as an extra guard *(Chosen)*
+   1. Resolve `urlToLogo` and the cross-referenced `source` *before* constructing the entity, pass them in through the constructor, keep every field private with getters only *(Chosen)*
    2. Keep constructing a partial entity first, then assign the remaining fields from the assembler afterward
 
    ## Decision
 
-   `SourceAssembler` resolves the logo URL from the raw `url` string before ever calling `new Source(...)`, passing `urlToLogo` in with the rest of the properties. `ArticleAssembler` resolves the matching `Source` before calling `new Article(...)`, passing it in as `source`. Both entities are immutable by design: state lives in `#` private fields, there are only getters, no operation changes it, and everything is resolved before the constructor runs. Both constructors also call `Object.freeze(this)` as their last line, an extra guard against adding or reassigning public properties from outside; it does not cover `#` private fields.
+   `SourceAssembler` resolves the logo URL from the raw `url` string before ever calling `new Source(...)`, passing `urlToLogo` in with the rest of the properties. `ArticleAssembler` resolves the matching `Source` before calling `new Article(...)`, passing it in as `source`. Both entities are immutable by design: state lives in `#` private fields, there are only getters, no operation changes it, and everything is resolved before the constructor runs.
 
    ## Consequences
 
@@ -6178,7 +6185,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
 
    **Negative:**
    - The assembler does slightly more work up front (resolving the logo URL, or the matching source) before it can call the constructor, instead of patching the entity afterward.
-   - `Object.freeze(this)` does not freeze `#` private fields, so the guarantee rests on the design (no operation that modifies state), not on the freeze.
+   - Nothing in the runtime stops outside code from adding loose properties to an entity: the guarantee rests on the design (no operation that modifies state) and on code review, not on a runtime check.
 
    ---
 
