@@ -1501,7 +1501,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     git commit -m "feat(news): add source-item component."
     ```
 
-16. **Create the `SourceList` component and add the `visible` and `sources` props.** The drawer receives whether it is open and the sources it lists:
+16. **Create the `SourceList` component and add the `visible` and `sources` props.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/source-list` → Enter. The drawer receives whether it is open and the sources it lists:
 
     ```javascript
     const { visible, sources } = defineProps({ visible: Boolean, sources: Array });
@@ -2863,7 +2863,7 @@ Every string shown so far is hardcoded English. This story adds real internation
 
    **Note:** `"author": "by {brand} Developer Team"` has a `{brand}` placeholder, `vue-i18n` fills it in from an argument passed at the call site (`t('authoring-phrase.author', {brand: 'ACME'})`), the dictionary itself never hardcodes which brand.
 
-4. **Create the Spanish dictionary, same keys.**
+4. **Create the Spanish dictionary, same keys.** Right-click `src` → `New` → `File` → type `locales/es.json` → Enter.
 
    <details>
    <summary>src/locales/es.json</summary>
