@@ -5283,6 +5283,8 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
     * @typedef {Object} ArticleListProps
     * @property {Article[]} articles - An array of Article entities to be displayed.
     */
+
+   /** @type {ArticleListProps} */
    const { articles } = defineProps({ articles: { type: Array, required: true } });
 
    </script>
