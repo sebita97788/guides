@@ -591,13 +591,13 @@ A visitor types a first and last name and clicks **Register**. This story builds
 
    ```javascript
    export class Developer {
-       _id;
-       _name;
+       #id;
+       #name;
    }
    ```
    </details>
 
-   **Note:** `_id` / `_name`, not `#id` / `#name`. Vue wraps values placed in a `ref()` or passed as a prop in a `Proxy`, and reading a native `#field` through that `Proxy` throws `TypeError`, the read only works against the exact original instance. The `_` prefix marks these internal by convention instead, which the `Proxy` has no trouble with. ADR-0003 in `## Release` has the full reasoning. This is the only exception in this project's JavaScript to the `#`-private-fields convention used elsewhere in the course, and it is deliberate. Every domain class below follows the same `_` convention.
+   **Note:** native private fields, `#id` and `#name`, the same convention as every other JavaScript project in this course. A deep `ref()` wraps what it holds in a `Proxy`, and reading a native `#field` through that `Proxy` throws `TypeError`, because the read only works against the exact original instance. `Developer` never goes into a deep `ref()`: `app.vue` holds it in `shallowRef(null)`, which tracks reassigning the whole instance but never wraps what is inside it. ADR-0003 in `## Release` has the full reasoning.
 
 3. **Add `Developer`'s constructor.** It builds a `PersonName` from the given names, then assigns an identity only when that name is valid.
 
@@ -606,13 +606,13 @@ A visitor types a first and last name and clicks **Register**. This story builds
 
    ```javascript
    export class Developer {
-       _id;
-       _name;
+       #id;
+       #name;
 
        constructor(firstName, lastName) {
            const providedName = new PersonName(firstName, lastName);
-           this._id = providedName.isValid() ? DeveloperId.build() : null;
-           this._name = providedName;
+           this.#id = providedName.isValid() ? DeveloperId.build() : null;
+           this.#name = providedName;
        }
    }
    ```
@@ -620,7 +620,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
 
    **Note:** no `import` for `PersonName` or `DeveloperId`, neither file exists yet. WebStorm shows both names unresolved, that clears once each is created below, typing the name again or `Alt+Enter` on it adds the import for you.
 
-   **Note:** an incomplete or empty name never throws here. `PersonName` accepts anything (step 4), and this constructor only asks `providedName.isValid()` to decide the `id`: `true` gets a real `DeveloperId`, `false` gets `null`. A `Developer` with `_id === null` is not an error, it is what an anonymous or partially-registered developer looks like in this domain. This is ADR-0005 in `## Release`.
+   **Note:** an incomplete or empty name never throws here. `PersonName` accepts anything (step 4), and this constructor only asks `providedName.isValid()` to decide the `id`: `true` gets a real `DeveloperId`, `false` gets `null`. A `Developer` with `#id === null` is not an error, it is what an anonymous or partially-registered developer looks like in this domain. This is ADR-0005 in `## Release`.
 
    **Note:** no commit here. The file does not run yet, `PersonName` and `DeveloperId` don't exist.
 
@@ -631,14 +631,14 @@ A visitor types a first and last name and clicks **Register**. This story builds
 
    ```javascript
    export class PersonName {
-       _firstName;
-       _lastName;
+       #firstName;
+       #lastName;
 
        constructor(firstName, lastName) {
            const trimmedFirstName = firstName?.trim() || "";
            const trimmedLastName = lastName?.trim() || "";
-           this._firstName = trimmedFirstName;
-           this._lastName = trimmedLastName;
+           this.#firstName = trimmedFirstName;
+           this.#lastName = trimmedLastName;
        }
    }
    ```
@@ -646,12 +646,12 @@ A visitor types a first and last name and clicks **Register**. This story builds
 
    **Note:** `firstName?.trim() || ""` combines two operators. `?.` is optional chaining, if `firstName` is `null` or `undefined`, it stops right there and evaluates to `undefined` instead of throwing on `.trim()`. `||` is a fallback, if what is on its left is falsy, `undefined`, an empty string, `0`, and so on, it evaluates to the right side instead. Together: call `.trim()` only if there is something to call it on, and fall back to `""` either way, whether `firstName` was missing or trimming it left nothing. The result is always a string, never `null` or `undefined`. Spaces do not render reliably in a table or in regular text, so the table below marks each one with `·`:
 
-   | raw `firstName` passed in | `_firstName` after the constructor |
+   | raw `firstName` passed in | `#firstName` after the constructor |
    |---|---|
    | `"··Ada··"` | `"Ada"` |
    | `"···"` (only spaces) | `""` |
 
-   **Note:** no commit here, nothing can read `_firstName`/`_lastName` from outside the class yet, that's the next step.
+   **Note:** no commit here, nothing can read `#firstName`/`#lastName` from outside the class yet, that's the next step.
 
 5. **Add the read accessors.** `firstName` and `lastName` expose the trimmed fields as-is; `fullName` combines them.
 
@@ -660,26 +660,26 @@ A visitor types a first and last name and clicks **Register**. This story builds
 
    ```javascript
    export class PersonName {
-       _firstName;
-       _lastName;
+       #firstName;
+       #lastName;
 
        constructor(firstName, lastName) {
            const trimmedFirstName = firstName?.trim() || "";
            const trimmedLastName = lastName?.trim() || "";
-           this._firstName = trimmedFirstName;
-           this._lastName = trimmedLastName;
+           this.#firstName = trimmedFirstName;
+           this.#lastName = trimmedLastName;
        }
 
        get firstName() {
-           return this._firstName;
+           return this.#firstName;
        }
 
        get lastName() {
-           return this._lastName;
+           return this.#lastName;
        }
 
        get fullName() {
-           return [this._firstName, this._lastName].filter(name => name.length > 0).join(" ");
+           return [this.#firstName, this.#lastName].filter(name => name.length > 0).join(" ");
        }
    }
    ```
@@ -687,7 +687,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
 
    **Note:** `fullName` builds an array with both names, drops the empty ones with `.filter(name => name.length > 0)`, then glues whatever is left with `.join(" ")`. `.join(" ")` places its argument between every pair of array elements, so two elements get exactly one space between them, and one element gets none, there is no pair to separate. It always works off the already-trimmed fields from the constructor, so it never has to deal with stray spaces itself. `·` marks the one space `.join(" ")` inserts:
 
-   | `_firstName` | `_lastName` | after `.filter(...)` | `fullName` |
+   | `#firstName` | `#lastName` | after `.filter(...)` | `fullName` |
    |---|---|---|---|
    | `"Ada"` | `"Lovelace"` | `["Ada", "Lovelace"]` | `"Ada·Lovelace"` |
    | `"Ada"` | `""` | `["Ada"]` | `"Ada"` |
@@ -702,32 +702,32 @@ A visitor types a first and last name and clicks **Register**. This story builds
 
    ```javascript
    export class PersonName {
-       _firstName;
-       _lastName;
+       #firstName;
+       #lastName;
 
        constructor(firstName, lastName) {
            const trimmedFirstName = firstName?.trim() || "";
            const trimmedLastName = lastName?.trim() || "";
-           this._firstName = trimmedFirstName;
-           this._lastName = trimmedLastName;
+           this.#firstName = trimmedFirstName;
+           this.#lastName = trimmedLastName;
        }
 
        get firstName() {
-           return this._firstName;
+           return this.#firstName;
        }
 
        get lastName() {
-           return this._lastName;
+           return this.#lastName;
        }
 
        get fullName() {
-           return [this._firstName, this._lastName].filter(name => name.length > 0).join(" ");
+           return [this.#firstName, this.#lastName].filter(name => name.length > 0).join(" ");
        }
 
        equals(other) {
            return other instanceof PersonName &&
-               this._firstName === other.firstName &&
-               this._lastName === other.lastName;
+               this.#firstName === other.firstName &&
+               this.#lastName === other.lastName;
        }
 
        isValid() {
@@ -735,7 +735,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
        }
 
        isFullyNamed() {
-           return this._firstName.length > 0 && this._lastName.length > 0;
+           return this.#firstName.length > 0 && this.#lastName.length > 0;
        }
    }
    ```
@@ -756,16 +756,14 @@ A visitor types a first and last name and clicks **Register**. This story builds
        /**
         * The first name of the person.
         * @type {string}
-        * @private
         */
-       _firstName;
+       #firstName;
 
        /**
         * The last name of the person.
         * @type {string}
-        * @private
         */
-       _lastName;
+       #lastName;
 
        /**
         * Creates a new PersonName instance.
@@ -775,8 +773,8 @@ A visitor types a first and last name and clicks **Register**. This story builds
        constructor(firstName, lastName) {
            const trimmedFirstName = firstName?.trim() || "";
            const trimmedLastName = lastName?.trim() || "";
-           this._firstName = trimmedFirstName;
-           this._lastName = trimmedLastName;
+           this.#firstName = trimmedFirstName;
+           this.#lastName = trimmedLastName;
        }
 
        /**
@@ -784,7 +782,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
         * @returns {string}
         */
        get firstName() {
-           return this._firstName;
+           return this.#firstName;
        }
 
        /**
@@ -792,7 +790,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
         * @returns {string} The last name.
         */
        get lastName() {
-           return this._lastName;
+           return this.#lastName;
        }
 
        /**
@@ -800,7 +798,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
         * @returns {string} The full name, which is a combination of first and last names.
         */
        get fullName() {
-           return [this._firstName, this._lastName].filter(name => name.length > 0).join(" ");
+           return [this.#firstName, this.#lastName].filter(name => name.length > 0).join(" ");
        }
 
        /**
@@ -810,8 +808,8 @@ A visitor types a first and last name and clicks **Register**. This story builds
         */
        equals(other) {
            return other instanceof PersonName &&
-               this._firstName === other.firstName &&
-               this._lastName === other.lastName;
+               this.#firstName === other.firstName &&
+               this.#lastName === other.lastName;
        }
 
        /**
@@ -827,7 +825,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
         * @returns {boolean} true if both names are present, false otherwise.
         */
        isFullyNamed() {
-           return this._firstName.length > 0 && this._lastName.length > 0;
+           return this.#firstName.length > 0 && this.#lastName.length > 0;
        }
    }
    ```
@@ -891,13 +889,13 @@ A visitor types a first and last name and clicks **Register**. This story builds
    import {isValidUUID} from "../../../shared/domain/uuid.js";
 
    export class DeveloperId {
-       _value;
+       #value;
 
        constructor(value) {
            if (!isValidUUID(value)) {
                throw new Error(`Invalid UUID: ${value}`);
            }
-           this._value = value;
+           this.#value = value;
        }
    }
    ```
@@ -914,17 +912,17 @@ A visitor types a first and last name and clicks **Register**. This story builds
    import {generateUUID, isValidUUID} from "../../../shared/domain/uuid.js";
 
    export class DeveloperId {
-       _value;
+       #value;
 
        constructor(value) {
            if (!isValidUUID(value)) {
                throw new Error(`Invalid UUID: ${value}`);
            }
-           this._value = value;
+           this.#value = value;
        }
 
        get value() {
-           return this._value;
+           return this.#value;
        }
 
        static build() {
@@ -945,17 +943,17 @@ A visitor types a first and last name and clicks **Register**. This story builds
    import {generateUUID, isValidUUID} from "../../../shared/domain/uuid.js";
 
    export class DeveloperId {
-       _value;
+       #value;
 
        constructor(value) {
            if (!isValidUUID(value)) {
                throw new Error(`Invalid UUID: ${value}`);
            }
-           this._value = value;
+           this.#value = value;
        }
 
        get value() {
-           return this._value;
+           return this.#value;
        }
 
        static build() {
@@ -963,11 +961,11 @@ A visitor types a first and last name and clicks **Register**. This story builds
        }
 
        equals(other) {
-           return other instanceof DeveloperId && this._value === other.value;
+           return other instanceof DeveloperId && this.#value === other.value;
        }
 
        toString() {
-           return this._value;
+           return this.#value;
        }
    }
    ```
@@ -991,9 +989,8 @@ A visitor types a first and last name and clicks **Register**. This story builds
        /**
         * The UUID string value.
         * @type {string}
-        * @private
         */
-       _value;
+       #value;
 
        /**
         * Creates a new DeveloperId instance.
@@ -1004,7 +1001,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
            if (!isValidUUID(value)) {
                throw new Error(`Invalid UUID: ${value}`);
            }
-           this._value = value;
+           this.#value = value;
        }
 
        /**
@@ -1012,7 +1009,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
         * @returns {string}
         */
        get value() {
-           return this._value;
+           return this.#value;
        }
 
        /**
@@ -1029,7 +1026,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
         * @returns {boolean}
         */
        equals(other) {
-           return other instanceof DeveloperId && this._value === other.value;
+           return other instanceof DeveloperId && this.#value === other.value;
        }
 
        /**
@@ -1037,7 +1034,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
         * @returns {string}
         */
        toString() {
-           return this._value;
+           return this.#value;
        }
    }
    ```
@@ -1055,11 +1052,11 @@ A visitor types a first and last name and clicks **Register**. This story builds
 
     ```javascript
     get name() {
-        return this._name;
+        return this.#name;
     }
 
     get fullName() {
-        return this._name?.fullName || "Unknown";
+        return this.#name?.fullName || "Unknown";
     }
     ```
     </details>
@@ -1074,33 +1071,33 @@ A visitor types a first and last name and clicks **Register**. This story builds
     import {DeveloperId} from "./developer-id.value-object.js";
 
     export class Developer {
-        _id;
-        _name;
+        #id;
+        #name;
 
         constructor(firstName, lastName) {
             const providedName = new PersonName(firstName, lastName);
-            this._id = providedName.isValid() ? DeveloperId.build() : null;
-            this._name = providedName;
+            this.#id = providedName.isValid() ? DeveloperId.build() : null;
+            this.#name = providedName;
         }
 
         get name() {
-            return this._name;
+            return this.#name;
         }
 
         get fullName() {
-            return this._name?.fullName || "Unknown";
+            return this.#name?.fullName || "Unknown";
         }
 
         isRegisterable() {
-            return this._name ? this._name.isValid() : false;
+            return this.#name ? this.#name.isValid() : false;
         }
 
         get id() {
-            return this._id;
+            return this.#id;
         }
 
         isIdentified() {
-            return this._id !== null;
+            return this.#id !== null;
         }
     }
     ```
@@ -1126,15 +1123,13 @@ A visitor types a first and last name and clicks **Register**. This story builds
 
         /**
          * @type {DeveloperId|null}
-         * @private
          */
-        _id;
+        #id;
 
         /**
          * @type {PersonName}
-         * @private
          */
-        _name;
+        #name;
 
         /**
          * Creates a new Developer instance.
@@ -1143,8 +1138,8 @@ A visitor types a first and last name and clicks **Register**. This story builds
          */
         constructor(firstName, lastName) {
             const providedName = new PersonName(firstName, lastName);
-            this._id = providedName.isValid() ? DeveloperId.build() : null;
-            this._name = providedName;
+            this.#id = providedName.isValid() ? DeveloperId.build() : null;
+            this.#name = providedName;
         }
 
 
@@ -1153,7 +1148,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
          * @returns {PersonName}
          */
         get name() {
-            return this._name;
+            return this.#name;
         }
 
         /**
@@ -1161,7 +1156,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
          * @returns {string}
          */
         get fullName() {
-            return this._name?.fullName || "Unknown";
+            return this.#name?.fullName || "Unknown";
         }
 
         /**
@@ -1169,7 +1164,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
          * @returns {boolean}
          */
         isRegisterable() {
-            return this._name ? this._name.isValid() : false;
+            return this.#name ? this.#name.isValid() : false;
         }
 
 
@@ -1178,7 +1173,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
          * @returns {DeveloperId|null}
          */
         get id() {
-            return this._id;
+            return this.#id;
         }
 
         /**
@@ -1186,7 +1181,7 @@ A visitor types a first and last name and clicks **Register**. This story builds
          * @returns {boolean}
          */
         isIdentified() {
-            return this._id !== null;
+            return this.#id !== null;
         }
 
     }
@@ -1426,9 +1421,9 @@ A visitor types a first and last name and clicks **Register**. This story builds
     ```vue
     <script setup>
     import DeveloperRegistration from "./greetings/presentation/components/developer-registration.vue";
-    import {ref} from "vue";
+    import {shallowRef} from "vue";
 
-    const registeredDeveloper = ref(null);
+    const registeredDeveloper = shallowRef(null);
 
     function updateRegisteredDeveloperInfo(payload) {
       registeredDeveloper.value = payload.developer;
@@ -1436,6 +1431,8 @@ A visitor types a first and last name and clicks **Register**. This story builds
     </script>
     ```
     </details>
+
+    **Note:** `shallowRef`, not `ref`. `Developer` uses native `#` private fields (step 12), and `ref()` would wrap it in a deep `Proxy` that breaks reading them, `TypeError: Cannot read private member from an object whose class did not declare it`. `shallowRef` tracks reassigning `.value` to a new `Developer` without ever wrapping the instance itself. ADR-0003 in `## Release` has the full reasoning.
 
     **Note:** no commit here, the template does not use any of this yet.
 
@@ -1464,9 +1461,9 @@ A visitor types a first and last name and clicks **Register**. This story builds
     ```vue
     <script setup>
     import DeveloperRegistration from "./greetings/presentation/components/developer-registration.vue";
-    import {ref} from "vue";
+    import {shallowRef} from "vue";
 
-    const registeredDeveloper = ref(null);
+    const registeredDeveloper = shallowRef(null);
 
     function updateRegisteredDeveloperInfo(payload) {
       registeredDeveloper.value = payload.developer;
@@ -1627,9 +1624,9 @@ Once someone registers, the app greets them by name and shows their ID. Before t
    <script setup>
    import DeveloperRegistration from "./greetings/presentation/components/developer-registration.vue";
    import DeveloperGreeting from "./greetings/presentation/components/developer-greeting.vue";
-   import {ref} from "vue";
+   import {ref, shallowRef} from "vue";
 
-   const registeredDeveloper = ref(null);
+   const registeredDeveloper = shallowRef(null);
    const hasRegistered = ref(false);
 
    function updateRegisteredDeveloperInfo(payload) {
@@ -1774,9 +1771,9 @@ A running count of how many developers have registered with a valid name, shown 
    import DeveloperRegistration from "./greetings/presentation/components/developer-registration.vue";
    import DeveloperGreeting from "./greetings/presentation/components/developer-greeting.vue";
    import DeveloperCountShow from "./greetings/presentation/components/developer-count-show.vue";
-   import {ref} from "vue";
+   import {ref, shallowRef} from "vue";
 
-   const registeredDeveloper = ref(null);
+   const registeredDeveloper = shallowRef(null);
    const developerCount = ref(0);
    const hasRegistered = ref(false);
 
@@ -1902,9 +1899,9 @@ A **Later** button lets the visitor drop a pending registration: the form clears
    import DeveloperRegistration from "./greetings/presentation/components/developer-registration.vue";
    import DeveloperGreeting from "./greetings/presentation/components/developer-greeting.vue";
    import DeveloperCountShow from "./greetings/presentation/components/developer-count-show.vue";
-   import {ref} from "vue";
+   import {ref, shallowRef} from "vue";
 
-   const registeredDeveloper = ref(null);
+   const registeredDeveloper = shallowRef(null);
    const developerCount = ref(0);
    const hasRegistered = ref(false);
 
@@ -1968,13 +1965,13 @@ A **Later** button lets the visitor drop a pending registration: the form clears
    import DeveloperGreeting from "./greetings/presentation/components/developer-greeting.vue";
    import DeveloperCountShow from "./greetings/presentation/components/developer-count-show.vue";
    import {Developer} from "./greetings/domain/model/developer.entity.js";
-   import {ref} from "vue";
+   import {ref, shallowRef} from "vue";
 
    /**
     * The registered developer entity.
-    * @type {import('vue').Ref<Developer|null>}
+    * @type {import('vue').ShallowRef<Developer|null>}
     */
-   const registeredDeveloper = ref(null);
+   const registeredDeveloper = shallowRef(null);
 
    /**
     * The number of developers registered (excluding unknown developers).
@@ -2415,7 +2412,7 @@ A **Clear** button empties the inputs without touching the current greeting or c
    - **Layers**: Maintain a strict separation between the **Domain Layer** (pure JavaScript, no Vue import) and the **Presentation Layer** (`.vue` components).
 
    ### Object-Oriented Programming (OOP)
-   - **Encapsulation**: internal fields use the `_` prefix, not native `#` private fields, because Vue's Proxy-based reactivity cannot read `#` fields through a wrapped instance (see `docs/adrs.md`, ADR-0003). Access still goes through getters.
+   - **Encapsulation**: internal fields use native `#` private fields, the same convention as the rest of the course; `app.vue` holds the registered `Developer` in `shallowRef(null)` so Vue never wraps the instance in a deep `Proxy` that would break reading them (see `docs/adrs.md`, ADR-0003). Access still goes through getters.
    - **Invariants**: value objects validate themselves in their constructor (`DeveloperId`) or expose an `isValid()` check (`PersonName`); `Developer` only assigns an identity once its `PersonName` is valid.
    - **Identity**: entities are identified by a `DeveloperId` value object and compared with `.equals()`, never by reference or raw string.
 
@@ -2565,37 +2562,47 @@ A **Clear** button empties the inputs without touching the current greeting or c
 
    ---
 
-   # ADR-0003: Semi-Private Fields (`_`) Instead of Native Private Fields (`#`)
+   # ADR-0003: Native Private Fields (`#`), Kept Out of Vue's Deep Reactivity
 
    **Status:** Accepted
 
    ## Context
 
-   Native JavaScript private fields (`#field`) give real runtime encapsulation and are the convention in this course's other JavaScript projects. Vue 3's reactivity, though, wraps objects passed into `ref()` or `reactive()` in a `Proxy`. A method that reads `this.#field` throws `TypeError: Cannot read private member from an object whose class did not declare it` when `this` is that `Proxy`, because a private-field read is a direct internal-slot check against the exact receiver, and the receiver Vue hands back is the Proxy, not the original instance.
+   Native JavaScript private fields (`#field`) give real runtime encapsulation and are the convention in this course's other JavaScript projects. Vue can wrap reactive objects in a `Proxy`, though. `reactive()` and `ref()` wrap in depth, so an object stored in one of them becomes a `Proxy`, and a method that reads `this.#field` through it throws `TypeError: Cannot read private member from an object whose class did not declare it`. JavaScript checks that the object used as `this` carries the private brand of the class that declared the field, and a `Proxy` is a different object, without that brand.
+
+   A component that receives the developer as a prop cannot fix this either. If the parent already handed it over as a `Proxy`, the child keeps seeing the `Proxy`, so the entity has to enter Vue as a `shallowRef` from the start, not be repaired further down the tree.
 
    ## Decision Drivers
 
-   - Domain entities (`Developer`) and value objects (`DeveloperId`, `PersonName`) get stored in `ref()`s and passed as component props, so they are exactly the objects Vue's reactivity wraps.
-   - Encapsulation should not come at the cost of the app crashing the first time a reactive `Developer` calls one of its own getters.
+   - Real encapsulation (`#field`) should not be traded away for a framework detail, especially when this course's other JavaScript projects all use `#`.
+   - `Developer`, `DeveloperId`, and `PersonName` are immutable by design: built once, no operation changes them afterwards, so per-field reactivity inside them buys nothing.
+   - The rule has to be easy to teach and hold for every entity, however it is built.
 
    ## Considered Options
 
-   1. `_field` convention (not enforced by the language, but invisible to the Proxy machinery) *(Chosen)*
-   2. Native `#field` private fields
-   3. Closures over local variables instead of a class
+   1. `_field` convention instead of `#`, so a `Proxy` never has to intercept a private-field read (the original decision here)
+   2. `#field` with the instance in a `shallowRef` *(Chosen)*
+   3. `#field` with `markRaw()` on every instance (more invasive, easy to forget one)
+   4. A plain ViewModel/DTO between the domain and Vue (very clean in a large application, but it adds a second model and mappings for a course focused on entities, encapsulation, `#`, DDD, and Vue)
 
    ## Decision
 
-   Every internal field on `Developer`, `DeveloperId`, and `PersonName` uses the `_` prefix (`_id`, `_name`, `_value`, `_firstName`, `_lastName`), never `#`. Access is still funneled through getters; nothing outside the class reads `_field` directly, `_` marks it internal by convention rather than by the runtime.
+   Vue can wrap reactive objects in a `Proxy`. Domain entities that use native private fields (`#`) must not be proxied. That is why we store them with `shallowRef` and update state by replacing references. Plain UI state (strings, message arrays, flags) stays in `ref`/`reactive`.
+
+   - **UI state** (`ref`, `reactive`): deep reactivity, `Proxy`.
+   - **Domain objects** (`shallowRef`): the real object, untouched.
+
+   Every internal field on `Developer`, `DeveloperId`, and `PersonName` uses `#` (`#id`, `#name`, `#value`, `#firstName`, `#lastName`). `app.vue` holds the registered `Developer` in `shallowRef(null)`, not `ref(null)`: Vue tracks the `.value` replacement (a new `Developer` on registration, `null` again on defer) but never wraps the `Developer` in a `Proxy`, so its methods read their own `#field`s with `this` bound to the real instance.
 
    ## Consequences
 
    **Positive:**
-   - These objects work correctly wrapped in Vue's reactivity, as `ref()` values and as component props, with no special-casing.
-   - The same objects would also work unwrapped (a plain `new Developer(...)` outside of Vue), so the domain layer has no hidden Vue dependency.
+   - Real encapsulation: `someDeveloper.#name` is a syntax error outside the class, not just a convention nobody happens to break.
+   - One privacy convention across every JavaScript project in the course, and one rule for Vue: entities in `shallowRef`, UI state in `ref`/`reactive`.
+   - The rule is applied once, where the entity enters Vue, and never has to be repaired further down the tree.
 
    **Negative:**
-   - `_field` is reachable at runtime from outside the class (`someDeveloper._name` compiles and runs). Nothing in this codebase does that, but the language does not stop it. For the same reason, this project also skips `Object.freeze(this)` on these objects (used elsewhere in the course's plain-JavaScript projects): freezing is unnecessary extra ceremony here, since nothing mutates a `_field` after construction, and it is left out to keep this one exception to the `#`-fields convention easy to spot.
+   - An entity inside a `shallowRef` must be replaced, never mutated in place: Vue only sees `.value` being reassigned. Not a concern for this immutable domain, but worth knowing before reusing the pattern.
 
    ---
 
@@ -2654,7 +2661,7 @@ A **Clear** button empties the inputs without touching the current greeting or c
 
    ## Decision
 
-   `PersonName.isValid()` (an alias for `isFullyNamed()`) is `true` only when both `firstName` and `lastName` have length after trimming. `Developer`'s constructor builds a `PersonName` first, then assigns `_id = providedName.isValid() ? DeveloperId.build() : null`, so an incomplete name never gets an identity. `isRegisterable()` and `isIdentified()` both read off that same one decision.
+   `PersonName.isValid()` (an alias for `isFullyNamed()`) is `true` only when both `firstName` and `lastName` have length after trimming. `Developer`'s constructor builds a `PersonName` first, then assigns `#id = providedName.isValid() ? DeveloperId.build() : null`, so an incomplete name never gets an identity. `isRegisterable()` and `isIdentified()` both read off that same one decision.
 
    ## Consequences
 
@@ -2705,7 +2712,7 @@ A **Clear** button empties the inputs without touching the current greeting or c
 
    ### Design notes
    - `Developer` only receives a `DeveloperId` once `PersonName.isValid()` holds (both names present), so the presence of an ID marks a registered developer.
-   - Internal fields use the `_` convention, not native `#` private fields, because Vue 3's Proxy-based reactivity cannot read `#` fields through a wrapped instance (ADR-0003).
+   - Internal fields use native `#` private fields; `app.vue` holds the registered `Developer` in `shallowRef(null)` so Vue never wraps it in a deep `Proxy` (ADR-0003).
    - Identifiers are UUID v7 (time-ordered), generated in the shared kernel so the version is decided in one file.
    ```
    </details>
@@ -2746,7 +2753,7 @@ A **Clear** button empties the inputs without touching the current greeting or c
    - **US005:** a `Clear` action empties the form without changing the current greeting or count.
    - `Developer` entity: conditional identity, a `DeveloperId` is assigned only once its `PersonName` is valid.
    - `DeveloperId` and `PersonName` value objects; `generateUUID()` / `isValidUUID()` in the shared kernel, backed by UUID v7.
-   - Internal fields use the `_` convention rather than native `#` private fields, so these objects work correctly wrapped in Vue's reactivity (ADR-0003).
+   - Internal fields use native `#` private fields; `app.vue` holds the registered `Developer` in `shallowRef(null)` so these objects never end up behind a deep reactive `Proxy` (ADR-0003).
    - `README.md`, MIT `LICENSE.md`, `CHANGELOG.md`; `docs/user-stories.md` with a Requirement Traceability Matrix, `docs/class-diagram.puml`, `docs/adrs.md`.
    ```
    </details>

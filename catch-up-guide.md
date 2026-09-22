@@ -1383,40 +1383,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     git commit -m "feat(news): add NewsStore, sources only."
     ```
 
-13. **Create the `SourceItem` component's template.** Right-click `src` → `New` → `Vue Single-File Component`. A dropdown asks `Composition API` or `Options API`, pick `Composition API`. Type the full path starting from the bounded context, `news/presentation/components/source-item` → Enter. An avatar with the source's logo, and its name next to it; clicking anywhere in the row selects it.
-
-    The row calls a handler when it is clicked, and shows the source's logo as an avatar:
-
-    ```vue
-    <div @click="emitSourceSelectedEvent" class="flex align-content-start flex-wrap cursor-pointer">
-      <pv-avatar :aria-label="source.name" :image="source.urlToLogo" shape="circle"/>
-    </div>
-    ```
-
-    <details>
-    <summary>src/news/presentation/components/source-item.vue (template)</summary>
-
-    ```vue
-    <template>
-      <div class="m-4">
-        <div @click="emitSourceSelectedEvent" class="flex align-content-start flex-wrap cursor-pointer hover:bg-emphasis p-2 border-round transition-colors transition-duration-150">
-        <span  class="flex align-items-center justify-content-center mr-2">
-              <pv-avatar :aria-label="source.name"
-                         :image="source.urlToLogo"
-                         shape="circle"/>
-        </span>
-          <span  class="flex align-items-center justify-content-center font-medium">
-              {{source.name}}
-        </span>
-        </div>
-      </div>
-    </template>
-    ```
-    </details>
-
-    **Note:** `source` and `emitSourceSelectedEvent` do not exist anywhere yet, WebStorm shows both unresolved in the template. That is expected, script and template are separate concerns in a `<script setup>` component: nothing here compiles against the other the way a strictly-typed Angular template would. They get defined next, one at a time.
-
-14. **Add the `source` prop.**
+13. **Create the `SourceItem` component and add the `source` prop.** Right-click `src` → `New` → `Vue Single-File Component`. A dropdown asks `Composition API` or `Options API`, pick `Composition API`. Type the full path starting from the bounded context, `news/presentation/components/source-item` → Enter.
 
     The component receives the source it shows as a required prop:
 
@@ -1435,18 +1402,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     </script>
 
     <template>
-      <div class="m-4">
-        <div @click="emitSourceSelectedEvent" class="flex align-content-start flex-wrap cursor-pointer hover:bg-emphasis p-2 border-round transition-colors transition-duration-150">
-        <span  class="flex align-items-center justify-content-center mr-2">
-              <pv-avatar :aria-label="source.name"
-                         :image="source.urlToLogo"
-                         shape="circle"/>
-        </span>
-          <span  class="flex align-items-center justify-content-center font-medium">
-              {{source.name}}
-        </span>
-        </div>
-      </div>
+
     </template>
 
     <style scoped>
@@ -1455,9 +1411,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     ```
     </details>
 
-    **Note:** `{{source.name}}` and `:image="source.urlToLogo"` in the template now resolve, `source` exists. `emitSourceSelectedEvent` is still unresolved, that's the last piece.
-
-15. **Add `emitSourceSelectedEvent()`.**
+14. **Add `emitSourceSelectedEvent()`.**
 
     Clicking the row emits the chosen source upward through the event `source-selected`:
 
@@ -1467,6 +1421,41 @@ A visitor opens the app and sees a drawer listing every available news source, w
     const emitSourceSelectedEvent = () => {
       emit('source-selected', source);
     };
+    ```
+
+    <details>
+    <summary>src/news/presentation/components/source-item.vue (so far)</summary>
+
+    ```vue
+    <script setup lang="js">
+      import {Source} from "../../domain/model/source.entity.js";
+
+      const { source } = defineProps({ source: { type: Source, required: true } });
+      const emit  = defineEmits(['source-selected']);
+
+      const emitSourceSelectedEvent = () => {
+        emit('source-selected', source);
+      };
+    </script>
+
+    <template>
+
+    </template>
+
+    <style scoped>
+
+    </style>
+    ```
+    </details>
+
+15. **Add the row template.** An avatar with the source's logo, and its name next to it; clicking anywhere in the row selects it.
+
+    The row calls the handler when it is clicked, and shows the source's logo as an avatar:
+
+    ```vue
+    <div @click="emitSourceSelectedEvent" class="flex align-content-start flex-wrap cursor-pointer">
+      <pv-avatar :aria-label="source.name" :image="source.urlToLogo" shape="circle"/>
+    </div>
     ```
 
     <details>
@@ -1505,40 +1494,14 @@ A visitor opens the app and sees a drawer listing every available news source, w
     ```
     </details>
 
-    **Note:** everything in the template now resolves. No styles for this component, the classes on the `<div>`s are PrimeFlex utility classes, applied inline, there is nothing left for `<style scoped>` to add.
+    **Note:** everything in the template resolves right away, `source` and `emitSourceSelectedEvent` already exist in the script above. No styles for this component, the classes on the `<div>`s are PrimeFlex utility classes, applied inline, there is nothing left for `<style scoped>` to add.
 
     ```
     git add .
     git commit -m "feat(news): add source-item component."
     ```
 
-16. **Create the `SourceList` component's template.** A PrimeVue drawer, listing one `SourceItem` per source, each one wired to the events it will emit:
-
-    ```vue
-    <source-item v-for="source in sources"
-                 :key="source.id"
-                 :source="source"
-                 @source-selected="emitSourceSelectedEvent(source)"/>
-    ```
-
-    <details>
-    <summary>src/news/presentation/components/source-list.vue (template)</summary>
-
-    ```vue
-    <template>
-      <pv-drawer :visible="visible" @update:visible="emitVisibilityUpdatedEvent">
-        <source-item v-for="source in sources"
-                     :key="source.id"
-                     :source="source"
-                     @source-selected="emitSourceSelectedEvent(source)"/>
-      </pv-drawer>
-    </template>
-    ```
-    </details>
-
-17. **Add the `visible` and `sources` props.**
-
-    The drawer receives whether it is open and the sources it lists:
+16. **Create the `SourceList` component and add the `visible` and `sources` props.** The drawer receives whether it is open and the sources it lists:
 
     ```javascript
     const { visible, sources } = defineProps({ visible: Boolean, sources: Array });
@@ -1550,18 +1513,12 @@ A visitor opens the app and sees a drawer listing every available news source, w
     ```vue
     <script setup lang="js">
       import {Source} from "../../domain/model/source.entity.js";
-      import SourceItem from "./source-item.vue";
 
       const { visible, sources } = defineProps({ visible: Boolean, sources: Array });
     </script>
 
     <template>
-      <pv-drawer :visible="visible" @update:visible="emitVisibilityUpdatedEvent">
-        <source-item v-for="source in sources"
-                     :key="source.id"
-                     :source="source"
-                     @source-selected="emitSourceSelectedEvent(source)"/>
-      </pv-drawer>
+
     </template>
 
     <style scoped>
@@ -1572,7 +1529,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     **Note:** `sources: Array`, plain and simple, not `Array[Source]`. `Array[Source]` reads like "an array of `Source`", but it is not valid Vue prop syntax, `Source` there would be read as a property key on the `Array` constructor function, which does not exist, so it silently resolves to `undefined` and validates nothing.
 
-18. **Add the two emitted events.**
+17. **Add the two emitted events.**
 
     The list emits two events, one so the parent can open or close the drawer, and one that relays the source a `SourceItem` reported:
 
@@ -1586,6 +1543,46 @@ A visitor opens the app and sees a drawer listing every available news source, w
     const emitSourceSelectedEvent = source => {
       emit('source-selected', source);
     };
+    ```
+
+    <details>
+    <summary>src/news/presentation/components/source-list.vue (so far)</summary>
+
+    ```vue
+    <script setup lang="js">
+      import {Source} from "../../domain/model/source.entity.js";
+
+      const { visible, sources } = defineProps({ visible: Boolean, sources: Array });
+      const emit  = defineEmits(['source-selected', 'update:visible']);
+
+      const emitVisibilityUpdatedEvent = (value) => {
+        emit('update:visible', value);
+      };
+
+      const emitSourceSelectedEvent = source => {
+        emit('source-selected', source);
+      };
+    </script>
+
+    <template>
+
+    </template>
+
+    <style scoped>
+
+    </style>
+    ```
+    </details>
+
+    **Note:** `update:visible` is Vue's naming convention for `v-model:visible` support, whoever uses `<source-list v-model:visible="...">` gets two-way binding for free, Vue wires the `visible` prop and the `update:visible` event together.
+
+18. **Add the drawer template.** A PrimeVue drawer, listing one `SourceItem` per source, each one wired to the events it will emit:
+
+    ```vue
+    <source-item v-for="source in sources"
+                 :key="source.id"
+                 :source="source"
+                 @source-selected="emitSourceSelectedEvent(source)"/>
     ```
 
     <details>
@@ -1623,7 +1620,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     ```
     </details>
 
-    **Note:** `update:visible` is Vue's naming convention for `v-model:visible` support, whoever uses `<source-list v-model:visible="...">` gets two-way binding for free, Vue wires the `visible` prop and the `update:visible` event together.
+    **Note:** everything in the template resolves right away, `visible`, `sources`, `emitVisibilityUpdatedEvent`, and `emitSourceSelectedEvent` already exist in the script above.
 
     ```
     git add .
@@ -1670,56 +1667,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     git commit -m "feat: register PrimeVue globally."
     ```
 
-20. **Wire `SourceList` into `Layout`, template only for now.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `shared/presentation/components/layout` → Enter. A menu bar with a button that opens the source drawer.
-
-    A button toggles the drawer, and the drawer itself is the `SourceList`:
-
-    ```vue
-    <pv-button icon="pi pi-bars" label="CatchUp" text @click="toggleDrawer" class="mr-2"/>
-    <source-list :sources="sources"
-                 v-model:visible="drawerVisible"
-                 @source-selected="setSource"/>
-    ```
-
-    <details>
-    <summary>src/shared/presentation/components/layout.vue (template)</summary>
-
-    ```vue
-    <template>
-      <div class="layout-container">
-        <header class="sticky-header">
-          <pv-menubar>
-            <template #start>
-              <pv-button icon="pi pi-bars" label="CatchUp"
-                         text @click="toggleDrawer" class="mr-2"/>
-              <source-list :sources="sources"
-                           v-model:visible="drawerVisible"
-                           @source-selected="setSource"/>
-            </template>
-          </pv-menubar>
-        </header>
-      </div>
-    </template>
-
-    <style scoped>
-    .layout-container {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    .sticky-header {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-    </style>
-    ```
-    </details>
-
-21. **Add the drawer state and the sources view.**
-
-    The script holds the drawer state and a `computed()` view over the store's sources:
+20. **Create the `Layout` component and add the drawer state.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `shared/presentation/components/layout` → Enter. The script holds the drawer state and a `computed()` view over the store's sources:
 
     ```javascript
     const drawerVisible = ref(false);
@@ -1750,40 +1698,18 @@ A visitor opens the app and sees a drawer listing every available news source, w
     </script>
 
     <template>
-      <div class="layout-container">
-        <header class="sticky-header">
-          <pv-menubar>
-            <template #start>
-              <pv-button icon="pi pi-bars" label="CatchUp"
-                         text @click="toggleDrawer" class="mr-2"/>
-              <source-list :sources="sources"
-                           v-model:visible="drawerVisible"
-                           @source-selected="setSource"/>
-            </template>
-          </pv-menubar>
-        </header>
-      </div>
+
     </template>
 
     <style scoped>
-    .layout-container {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
 
-    .sticky-header {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
     </style>
     ```
     </details>
 
     **Note:** `sources` reads `newsStore.sources` through a `computed()`, not directly. `Layout` never reaches into `newsStore` from the template, it always goes through a `computed()` view or a method, the same discipline every component below follows.
 
-22. **Add `setSource()` and load the sources on mount.**
+21. **Add `setSource()` and load the sources on mount.**
 
     Choosing a source selects it in the store, and `onMounted` asks the store to load the sources:
 
@@ -1796,6 +1722,54 @@ A visitor opens the app and sees a drawer listing every available news source, w
     onMounted(() => {
       newsStore.loadSources();
     });
+    ```
+
+    <details>
+    <summary>src/shared/presentation/components/layout.vue (so far)</summary>
+
+    ```vue
+    <script lang="js" setup>
+    import {newsStore} from "../../../news/application/news.store.js";
+    import SourceList from "../../../news/presentation/components/source-list.vue";
+    import {ref, computed, onMounted} from "vue";
+
+    const drawerVisible = ref(false);
+
+    const toggleDrawer = () => {
+      drawerVisible.value = !drawerVisible.value;
+    };
+
+    const sources = computed(() => newsStore.sources);
+
+    const setSource = source => {
+      newsStore.setCurrentSource(source);
+      toggleDrawer();
+    };
+
+    onMounted(() => {
+      newsStore.loadSources();
+    });
+    </script>
+
+    <template>
+
+    </template>
+
+    <style scoped>
+
+    </style>
+    ```
+    </details>
+
+    **Note:** choosing a source also closes the drawer (`toggleDrawer()` right after `setCurrentSource`), so the visible list is not left covering the page once a choice is made. `onMounted` is what actually starts the whole app, nothing loads until `Layout` exists on the page.
+
+22. **Add the layout template.** A menu bar with a button that opens the source drawer. A button toggles the drawer, and the drawer itself is the `SourceList`:
+
+    ```vue
+    <pv-button icon="pi pi-bars" label="CatchUp" text @click="toggleDrawer" class="mr-2"/>
+    <source-list :sources="sources"
+                 v-model:visible="drawerVisible"
+                 @source-selected="setSource"/>
     ```
 
     <details>
@@ -1857,7 +1831,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     ```
     </details>
 
-    **Note:** choosing a source also closes the drawer (`toggleDrawer()` right after `setCurrentSource`), so the visible list is not left covering the page once a choice is made. `onMounted` is what actually starts the whole app, nothing loads until `Layout` exists on the page.
+    **Note:** everything in the template resolves right away, `sources`, `drawerVisible`, `toggleDrawer`, and `setSource` already exist in the script above.
 
 23. **Show `Layout` from `app.vue`.**
 
@@ -2336,89 +2310,7 @@ Choosing a source now only marks it active. This story makes it load and show re
    git commit -m "feat(news): load articles for the current source."
    ```
 
-8. **Create the `ArticleItem` component's template.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/article-item` → Enter.
-
-   A card built from PrimeVue slots, `header`, `title`, `subtitle`, `content`, and `footer`. The image goes in the header, the source row with its avatar in the subtitle, and the read-more link with the share button in the footer:
-
-   ```vue
-   <pv-card class="m-2">
-     <template #header> ... </template>
-     <template #title> ... </template>
-     <template #subtitle> ... </template>
-     <template #content> ... </template>
-     <template #footer> ... </template>
-   </pv-card>
-   ```
-
-   <details>
-   <summary>src/news/presentation/components/article-item.vue (template)</summary>
-
-   ```vue
-   <template>
-     <pv-card class="m-2">
-       <template #header>
-         <img :alt="article.title" :src="article.urlToImage.toString()" class="image-fit"/>
-       </template>
-       <template #title>
-         <p class="flex align-content-start flex-wrap">
-           {{ article.title }}
-         </p>
-       </template>
-       <template #subtitle>
-         <div class="flex flex-column gap-2">
-           <p class="flex align-content-start flex-wrap cursor-pointer" @click="toggleSourceSummary">
-             <span class="flex align-items-center justify-content-center mr-2">
-               <pv-avatar :aria-label="article.source.name"
-                          :image="article.source.urlToLogo"
-                          shape="circle"/>
-             </span>
-             <span class="flex align-items-center justify-content-center font-bold">
-               {{ article.source.name }}
-             </span>
-           </p>
-           <p v-if="article.author" class="flex align-content-start flex-wrap">
-             <span class="text-sm">By {{ article.author }}</span>
-           </p>
-           <p class="flex align-content-start flex-wrap">
-             <span class="text-sm">Published on {{ article.getFormatedPublishedAt() }}</span>
-           </p>
-         </div>
-       </template>
-       <template #content>
-         <p class="flex align-content-start flex-wrap mt-4">
-           {{ article.description }}
-         </p>
-       </template>
-       <template #footer>
-         <div class="flex justify-content-between align-items-center">
-           <pv-button v-if="!article.url.isEmpty()" as="a" :href="article.url.toString()" target="_blank"
-                      label="Read more" link class="p-0" />
-           <pv-button
-               v-if="!article.url.isEmpty()"
-               label="Share"
-               aria-label="Share article"
-               text
-               size="small"
-               icon="pi pi-share-alt"
-               @click="shareArticle"/>
-         </div>
-       </template>
-     </pv-card>
-   </template>
-
-   <style scoped>
-   .image-fit {
-     width: 100%;
-     height: 100%;
-     object-fit: cover;
-   }
-   </style>
-   ```
-   </details>
-
-   **Note:** `article`, `toggleSourceSummary`, and `shareArticle` do not exist yet, WebStorm shows them unresolved in the template. `"By "` and `"Published on "` are plain English text for now, not yet translated, US003 replaces both with `t(...)` calls once i18n exists. Building the template with real, readable copy first, then swapping it for translation keys, is easier to follow than starting from `{{ t('article.by') }}` with no English text to compare it against yet.
-
-9. **Add the `article` prop.**
+8. **Create the `ArticleItem` component and add the `article` prop.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/article-item` → Enter.
 
    The component receives the article it shows as a required prop:
 
@@ -2437,161 +2329,57 @@ Choosing a source now only marks it active. This story makes it load and show re
    </script>
 
    <template>
-     <pv-card class="m-2">
-       <template #header>
-         <img :alt="article.title" :src="article.urlToImage.toString()" class="image-fit"/>
-       </template>
-       <template #title>
-         <p class="flex align-content-start flex-wrap">
-           {{ article.title }}
-         </p>
-       </template>
-       <template #subtitle>
-         <div class="flex flex-column gap-2">
-           <p class="flex align-content-start flex-wrap cursor-pointer" @click="toggleSourceSummary">
-             <span class="flex align-items-center justify-content-center mr-2">
-               <pv-avatar :aria-label="article.source.name"
-                          :image="article.source.urlToLogo"
-                          shape="circle"/>
-             </span>
-             <span class="flex align-items-center justify-content-center font-bold">
-               {{ article.source.name }}
-             </span>
-           </p>
-           <p v-if="article.author" class="flex align-content-start flex-wrap">
-             <span class="text-sm">By {{ article.author }}</span>
-           </p>
-           <p class="flex align-content-start flex-wrap">
-             <span class="text-sm">Published on {{ article.getFormatedPublishedAt() }}</span>
-           </p>
-         </div>
-       </template>
-       <template #content>
-         <p class="flex align-content-start flex-wrap mt-4">
-           {{ article.description }}
-         </p>
-       </template>
-       <template #footer>
-         <div class="flex justify-content-between align-items-center">
-           <pv-button v-if="!article.url.isEmpty()" as="a" :href="article.url.toString()" target="_blank"
-                      label="Read more" link class="p-0" />
-           <pv-button
-               v-if="!article.url.isEmpty()"
-               label="Share"
-               aria-label="Share article"
-               text
-               size="small"
-               icon="pi pi-share-alt"
-               @click="shareArticle"/>
-         </div>
-       </template>
-     </pv-card>
+
    </template>
 
    <style scoped>
-   .image-fit {
-     width: 100%;
-     height: 100%;
-     object-fit: cover;
-   }
+
    </style>
    ```
    </details>
 
-10. **Add the `SourceSummary` popover trigger.** `SourceSummary` itself does not exist yet, US004 builds it, this component only needs a `ref` to call `.toggle()` on it.
+9. **Add the `SourceSummary` popover trigger.** `SourceSummary` itself does not exist yet, US004 builds it, this component only needs a `ref` to call `.toggle()` on it.
 
-    A `ref` for the popover, and the handler the source row already calls when it is clicked:
+   A `ref` for the popover, and the handler the source row will call when it is clicked:
 
-    ```javascript
-    const sourceSummary = ref();
+   ```javascript
+   const sourceSummary = ref();
 
-    const toggleSourceSummary = event => {
-      sourceSummary.value.toggle(event);
-    };
-    ```
+   const toggleSourceSummary = event => {
+     sourceSummary.value.toggle(event);
+   };
+   ```
 
-    <details>
-    <summary>src/news/presentation/components/article-item.vue (so far)</summary>
+   <details>
+   <summary>src/news/presentation/components/article-item.vue (so far)</summary>
 
-    ```vue
-    <script lang="js" setup>
-    import {Article} from "../../domain/model/article.entity.js";
-    import {ref} from "vue";
+   ```vue
+   <script lang="js" setup>
+   import {Article} from "../../domain/model/article.entity.js";
+   import {ref} from "vue";
 
-    const { article } = defineProps({article: {type: Article, required: true}});
+   const { article } = defineProps({article: {type: Article, required: true}});
 
-    const sourceSummary = ref();
+   const sourceSummary = ref();
 
-    const toggleSourceSummary = event => {
-      sourceSummary.value.toggle(event);
-    };
-    </script>
+   const toggleSourceSummary = event => {
+     sourceSummary.value.toggle(event);
+   };
+   </script>
 
-    <template>
-      <pv-card class="m-2">
-        <template #header>
-          <img :alt="article.title" :src="article.urlToImage.toString()" class="image-fit"/>
-        </template>
-        <template #title>
-          <p class="flex align-content-start flex-wrap">
-            {{ article.title }}
-          </p>
-        </template>
-        <template #subtitle>
-          <div class="flex flex-column gap-2">
-            <p class="flex align-content-start flex-wrap cursor-pointer" @click="toggleSourceSummary">
-              <span class="flex align-items-center justify-content-center mr-2">
-                <pv-avatar :aria-label="article.source.name"
-                           :image="article.source.urlToLogo"
-                           shape="circle"/>
-              </span>
-              <span class="flex align-items-center justify-content-center font-bold">
-                {{ article.source.name }}
-              </span>
-            </p>
-            <p v-if="article.author" class="flex align-content-start flex-wrap">
-              <span class="text-sm">By {{ article.author }}</span>
-            </p>
-            <p class="flex align-content-start flex-wrap">
-              <span class="text-sm">Published on {{ article.getFormatedPublishedAt() }}</span>
-            </p>
-          </div>
-        </template>
-        <template #content>
-          <p class="flex align-content-start flex-wrap mt-4">
-            {{ article.description }}
-          </p>
-        </template>
-        <template #footer>
-          <div class="flex justify-content-between align-items-center">
-            <pv-button v-if="!article.url.isEmpty()" as="a" :href="article.url.toString()" target="_blank"
-                       label="Read more" link class="p-0" />
-            <pv-button
-                v-if="!article.url.isEmpty()"
-                label="Share"
-                aria-label="Share article"
-                text
-                size="small"
-                icon="pi pi-share-alt"
-                @click="shareArticle"/>
-          </div>
-        </template>
-      </pv-card>
-    </template>
+   <template>
 
-    <style scoped>
-    .image-fit {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    </style>
-    ```
-    </details>
+   </template>
 
-    **Note:** no commit here, `<source-summary>` is not in the template yet either, that and this piece land together once `SourceSummary` exists, in US004.
+   <style scoped>
 
-11. **Add `shareArticle()`.** Web Share API first, clipboard as the fallback.
+   </style>
+   ```
+   </details>
+
+   **Note:** no commit here, `<source-summary>` is not in the template yet, that and this piece land together once `SourceSummary` exists, in US004.
+
+10. **Add `shareArticle()`.** Web Share API first, clipboard as the fallback.
 
     First the event `article-shared`, right under the prop:
 
@@ -2621,6 +2409,70 @@ Choosing a source now only marks it active. This story makes it load and show re
         }
       }
     };
+    ```
+
+    <details>
+    <summary>src/news/presentation/components/article-item.vue (so far)</summary>
+
+    ```vue
+    <script lang="js" setup>
+    import {Article} from "../../domain/model/article.entity.js";
+    import {ref} from "vue";
+
+    const { article } = defineProps({article: {type: Article, required: true}});
+
+    const emit = defineEmits(['article-shared']);
+
+    const sourceSummary = ref();
+
+    const toggleSourceSummary = event => {
+      sourceSummary.value.toggle(event);
+    };
+
+    const shareArticle = async () => {
+      const shareData = {title: article.title, url: article.url.toString()};
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          console.log('Article shared successfully');
+        } catch (err) {
+          console.error('Error sharing the article:', err);
+        }
+      } else {
+        try {
+          await navigator.clipboard.writeText(shareData.url);
+          emit('article-shared', shareData.url);
+          console.log('Article URL copied to clipboard');
+        } catch (err) {
+          console.error('Failed to copy the article URL:', err);
+        }
+      }
+    };
+
+    </script>
+
+    <template>
+
+    </template>
+
+    <style scoped>
+
+    </style>
+    ```
+    </details>
+
+    **Note:** `navigator.share` exists on most mobile browsers and a growing number of desktop ones; where it does not, `else` copies the URL to the clipboard instead and emits `article-shared` so whoever is listening knows it happened. Nothing listens to that event yet, `ArticleList` does not forward it and `Layout` does not handle it, this app has no toast/snackbar mechanism. Wiring one up is a good exercise once you finish this guide, not something this course project builds. No commit here either, the template is next.
+
+11. **Add the article card template.** A card built from PrimeVue slots, `header`, `title`, `subtitle`, `content`, and `footer`. The image goes in the header, the source row with its avatar in the subtitle, and the read-more link with the share button in the footer:
+
+    ```vue
+    <pv-card class="m-2">
+      <template #header> ... </template>
+      <template #title> ... </template>
+      <template #subtitle> ... </template>
+      <template #content> ... </template>
+      <template #footer> ... </template>
+    </pv-card>
     ```
 
     <details>
@@ -2725,41 +2577,47 @@ Choosing a source now only marks it active. This story makes it load and show re
     ```
     </details>
 
-    **Note:** `navigator.share` exists on most mobile browsers and a growing number of desktop ones; where it does not, `else` copies the URL to the clipboard instead and emits `article-shared` so whoever is listening knows it happened. Nothing listens to that event yet, `ArticleList` does not forward it and `Layout` does not handle it, this app has no toast/snackbar mechanism. Wiring one up is a good exercise once you finish this guide, not something this course project builds.
+    **Note:** everything in the template resolves right away, `article`, `toggleSourceSummary`, and `shareArticle` already exist in the script above. `"By "` and `"Published on "` are plain English text for now, not yet translated, US003 replaces both with `t(...)` calls once i18n exists. Building the template with real, readable copy first, then swapping it for translation keys, is easier to follow than starting from `{{ t('article.by') }}` with no English text to compare it against yet.
 
     ```
     git add .
     git commit -m "feat(news): add article-item component."
     ```
 
-12. **Create the `ArticleList` component's template.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/article-list` → Enter. One `ArticleItem` per article, keyed by the article's URL.
-
-    Each article gets its own `ArticleItem`:
-
-    ```vue
-    <div v-for="article in articles" :key="article.url.toString()">
-      <article-item :article="article"/>
-    </div>
-    ```
-
-    <details>
-    <summary>src/news/presentation/components/article-list.vue (template)</summary>
-
-    ```vue
-    <template>
-      <div v-for="article in articles" :key="article.url.toString()">
-        <article-item :article="article"/>
-      </div>
-    </template>
-    ```
-    </details>
-
-13. **Add the `articles` prop.**
+12. **Create the `ArticleList` component and add the `articles` prop.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/article-list` → Enter.
 
     The list receives the articles it shows as an array:
 
     ```javascript
     const { articles } = defineProps({ articles: { type: Array, required: true } });
+    ```
+
+    <details>
+    <summary>src/news/presentation/components/article-list.vue (so far)</summary>
+
+    ```vue
+    <script setup lang="js">
+    const { articles } = defineProps({ articles: { type: Array, required: true } });
+    </script>
+
+    <template>
+
+    </template>
+
+    <style scoped>
+
+    </style>
+    ```
+    </details>
+
+    **Note:** `ArticleList` is complete after this one addition, there is only ever going to be this one prop.
+
+13. **Add the article list template.** One `ArticleItem` per article, keyed by the article's URL. Each article gets its own `ArticleItem`:
+
+    ```vue
+    <div v-for="article in articles" :key="article.url.toString()">
+      <article-item :article="article"/>
+    </div>
     ```
 
     <details>
@@ -2786,7 +2644,7 @@ Choosing a source now only marks it active. This story makes it load and show re
     ```
     </details>
 
-    **Note:** `ArticleList` is complete after this one addition, there is only ever going to be this one prop.
+    **Note:** everything in the template resolves right away, `articles` already exists in the script above.
 
     ```
     git add .
@@ -3660,65 +3518,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
            +--------------------------------------------+
    ```
 
-3. **Create the `SourceSummary` component's template.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/source-summary` → Enter. A popover: logo and name, description, category/language/country when present, and a link to the source's website.
-
-   The popover shows the source's logo, name, and details, and is toggled from outside:
-
-   ```vue
-   <pv-popover ref="sourceSummary">
-     ...
-   </pv-popover>
-   ```
-
-   <details>
-   <summary>src/news/presentation/components/source-summary.vue (template)</summary>
-
-   ```vue
-   <template>
-     <pv-popover ref="sourceSummary">
-       <div class="flex flex-column gap-3 w-25rem">
-         <div class="flex align-items-center gap-2">
-           <pv-avatar :image="source.urlToLogo" :aria-label="source.name" shape="circle" size="large" />
-           <span class="font-bold text-xl">{{ source.name }}</span>
-         </div>
-         <div v-if="source.description" class="text-color-secondary">
-           {{ source.description }}
-         </div>
-         <div class="flex flex-column gap-2">
-           <div v-if="source.category" class="flex align-items-center gap-2">
-             <i class="pi pi-tag text-primary"></i>
-             <span>{{ source.category }}</span>
-           </div>
-           <div v-if="source.language" class="flex align-items-center gap-2">
-             <i class="pi pi-globe text-primary"></i>
-             <span>{{ source.language.toUpperCase() }}</span>
-           </div>
-           <div v-if="source.country" class="flex align-items-center gap-2">
-             <i class="pi pi-map-marker text-primary"></i>
-             <span>{{ source.country.toUpperCase() }}</span>
-           </div>
-         </div>
-         <div v-if="!source.url.isEmpty()" class="flex justify-content-end">
-           <pv-button
-               as="a"
-               :href="source.url.toString()"
-               target="_blank"
-               label="Read more"
-               icon="pi pi-external-link"
-               size="small"
-               text />
-         </div>
-       </div>
-     </pv-popover>
-   </template>
-   ```
-   </details>
-
-   **Note:** `"Read more"` is plain text here, on purpose. Unlike `ArticleItem` in US003, this component is created after i18n already exists, so it goes straight to `t('read-more')` in the next step, no need for a separate "translate it later" pass.
-
-4. **Add the `source` prop and translate the read-more label.**
-
-   The component receives the source it shows as a required prop, and gets the translation function:
+3. **Create the `SourceSummary` component and add the `source` prop.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `news/presentation/components/source-summary` → Enter. This component is created after i18n already exists, so it gets the translation function from the start, no separate "translate it later" pass like `ArticleItem`'s needed back in US003:
 
    ```javascript
    const {t} = useI18n();
@@ -3726,19 +3526,6 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    const {source} = defineProps({
      source: {type: Source, required: true}
    });
-   ```
-
-   The link label reads from the dictionary instead of plain text:
-
-   ```vue
-   <pv-button
-       as="a"
-       :href="source.url.toString()"
-       target="_blank"
-       :label="t('read-more')"
-       icon="pi pi-external-link"
-       size="small"
-       text />
    ```
 
    <details>
@@ -3757,41 +3544,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    </script>
 
    <template>
-     <pv-popover ref="sourceSummary">
-       <div class="flex flex-column gap-3 w-25rem">
-         <div class="flex align-items-center gap-2">
-           <pv-avatar :image="source.urlToLogo" :aria-label="source.name" shape="circle" size="large" />
-           <span class="font-bold text-xl">{{ source.name }}</span>
-         </div>
-         <div v-if="source.description" class="text-color-secondary">
-           {{ source.description }}
-         </div>
-         <div class="flex flex-column gap-2">
-           <div v-if="source.category" class="flex align-items-center gap-2">
-             <i class="pi pi-tag text-primary"></i>
-             <span>{{ source.category }}</span>
-           </div>
-           <div v-if="source.language" class="flex align-items-center gap-2">
-             <i class="pi pi-globe text-primary"></i>
-             <span>{{ source.language.toUpperCase() }}</span>
-           </div>
-           <div v-if="source.country" class="flex align-items-center gap-2">
-             <i class="pi pi-map-marker text-primary"></i>
-             <span>{{ source.country.toUpperCase() }}</span>
-           </div>
-         </div>
-         <div v-if="!source.url.isEmpty()" class="flex justify-content-end">
-           <pv-button
-               as="a"
-               :href="source.url.toString()"
-               target="_blank"
-               :label="t('read-more')"
-               icon="pi pi-external-link"
-               size="small"
-               text />
-         </div>
-       </div>
-     </pv-popover>
+
    </template>
 
    <style scoped>
@@ -3799,9 +3552,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    ```
    </details>
 
-   **Note:** no commit here, `<pv-popover ref="sourceSummary">` has nothing to actually toggle it open, that's next.
-
-5. **Add `toggle()` and expose it.** `ArticleItem`'s own `sourceSummary.value.toggle(event)`, from US002, calls exactly this method.
+4. **Add `toggle()` and expose it.** `ArticleItem`'s own `sourceSummary.value.toggle(event)`, from US002, calls exactly this method.
 
    A `ref` for the popover, the method that toggles it, and `defineExpose` so the parent can call it:
 
@@ -3813,6 +3564,57 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    };
 
    defineExpose({toggle});
+   ```
+
+   <details>
+   <summary>src/news/presentation/components/source-summary.vue (so far)</summary>
+
+   ```vue
+   <script setup lang="js">
+   import {Source} from "../../domain/model/source.entity.js";
+   import {useI18n} from "vue-i18n";
+   import {ref} from "vue";
+
+   const {t} = useI18n();
+
+   const {source} = defineProps({
+     source: {type: Source, required: true}
+   });
+
+   const sourceSummary = ref();
+
+   const toggle = (event) => {
+     sourceSummary.value.toggle(event);
+   };
+
+   defineExpose({toggle});
+   </script>
+
+   <template>
+
+   </template>
+
+   <style scoped>
+   </style>
+   ```
+   </details>
+
+   **Note:** no commit here, the template is next.
+
+5. **Add the popover template.** A popover: logo and name, description, category/language/country when present, and a link to the source's website, its label already reading from the dictionary:
+
+   ```vue
+   <pv-popover ref="sourceSummary">
+     ...
+     <pv-button
+         as="a"
+         :href="source.url.toString()"
+         target="_blank"
+         :label="t('read-more')"
+         icon="pi pi-external-link"
+         size="small"
+         text />
+   </pv-popover>
    ```
 
    <details>
@@ -3882,7 +3684,7 @@ Clicking an article's source name does nothing yet. This story adds `SourceSumma
    ```
    </details>
 
-   **Note:** `ref="sourceSummary"` inside this component's own template (on the `<pv-popover>`) and the `sourceSummary` this component exposes to *its* parent are two different bindings with the same name, one is the local handle this file uses to call PrimeVue's own `.toggle()` on the popover element, the other is what `defineExpose({toggle})` hands upward so `ArticleItem` can call *this* component's `toggle()` in turn.
+   **Note:** everything in the template resolves right away, `source`, `t`, and `toggle` already exist in the script above. `ref="sourceSummary"` inside this component's own template (on the `<pv-popover>`) and the `sourceSummary` this component exposes to *its* parent are two different bindings with the same name, one is the local handle this file uses to call PrimeVue's own `.toggle()` on the popover element, the other is what `defineExpose({toggle})` hands upward so `ArticleItem` can call *this* component's `toggle()` in turn.
 
    ```
    git add .
