@@ -1512,8 +1512,6 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     ```vue
     <script setup lang="js">
-      import {Source} from "../../domain/model/source.entity.js";
-
       const { visible, sources } = defineProps({ visible: Boolean, sources: Array });
     </script>
 
@@ -1527,7 +1525,7 @@ A visitor opens the app and sees a drawer listing every available news source, w
     ```
     </details>
 
-    **Note:** `sources: Array`, plain and simple, not `Array[Source]`. `Array[Source]` reads like "an array of `Source`", but it is not valid Vue prop syntax, `Source` there would be read as a property key on the `Array` constructor function, which does not exist, so it silently resolves to `undefined` and validates nothing.
+    **Note:** `sources: Array`, plain and simple, not `Array[Source]`. `Array[Source]` reads like "an array of `Source`", but it is not valid Vue prop syntax, `Source` there would be read as a property key on the `Array` constructor function, which does not exist, so it silently resolves to `undefined` and validates nothing. Nothing here needs `Source` imported either, the doc-comments step imports it alongside the JSDoc `@typedef` that references it.
 
 17. **Add the two emitted events.**
 
@@ -1550,8 +1548,6 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     ```vue
     <script setup lang="js">
-      import {Source} from "../../domain/model/source.entity.js";
-
       const { visible, sources } = defineProps({ visible: Boolean, sources: Array });
       const emit  = defineEmits(['source-selected', 'update:visible']);
 
@@ -1590,7 +1586,6 @@ A visitor opens the app and sees a drawer listing every available news source, w
 
     ```vue
     <script setup lang="js">
-      import {Source} from "../../domain/model/source.entity.js";
       import SourceItem from "./source-item.vue";
 
       const { visible, sources } = defineProps({ visible: Boolean, sources: Array });
@@ -2626,7 +2621,6 @@ Choosing a source now only marks it active. This story makes it load and show re
     ```vue
     <script setup lang="js">
     import ArticleItem from "./article-item.vue";
-    import {Article} from "../../domain/model/article.entity.js";
 
     const { articles } = defineProps({ articles: { type: Array, required: true } });
 
@@ -2644,7 +2638,7 @@ Choosing a source now only marks it active. This story makes it load and show re
     ```
     </details>
 
-    **Note:** everything in the template resolves right away, `articles` already exists in the script above.
+    **Note:** everything in the template resolves right away, `articles` already exists in the script above. No `Article` import yet, nothing here references the type, `defineProps({ articles: { type: Array, ... } })` only checks that it is an array. The doc-comments step imports `Article` alongside the JSDoc `@typedef` that actually needs it.
 
     ```
     git add .
