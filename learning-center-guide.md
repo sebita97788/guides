@@ -1650,7 +1650,7 @@ A user moves around Learning Center from a toolbar that is always there, sees th
    git commit -m "feat(i18n): add navigation texts to the Spanish dictionary."
    ```
 
-5. **Add the ACME logo.** Right-click `public` → `New` → `File` → type `acme-logo.svg` → Enter. The `about` view shows it, and the next step uses it as the browser tab icon.
+5. **Add the ACME logo.** Right-click `public` → `New` → `File` → type `acme-logo.svg` → Enter, then paste in the content below, or download the file itself from [assets/acme-logo.svg](assets/acme-logo.svg) in this repo. The `about` view shows it, and the next step uses it as the browser tab icon.
 
    <details>
    <summary>public/acme-logo.svg</summary>
