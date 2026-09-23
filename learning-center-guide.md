@@ -337,28 +337,6 @@
      ```
      </details>
 
-   - Open `index.html` and give the page its real title, the scaffold's is `learning-center`:
-
-     <details>
-     <summary>index.html (so far)</summary>
-
-     ```html
-     <!doctype html>
-     <html lang="en">
-       <head>
-         <meta charset="UTF-8" />
-         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-         <title>ACME Learning Center</title>
-       </head>
-       <body>
-         <div id="app"></div>
-         <script type="module" src="/src/main.js"></script>
-       </body>
-     </html>
-     ```
-     </details>
-
    - Add the ACME logo. Right-click `public` → `New` → `File` → type `acme-logo.svg` → Enter, then paste in the content below.
 
      **Tip:** instead of retyping the SVG markup, download the file itself from this guide's own repo, [assets/acme-logo.svg](assets/acme-logo.svg) (a different repo than your project), and drop it straight into your project's `public` folder.
@@ -371,10 +349,11 @@
      ```
      </details>
 
-   - Point `index.html`'s icon at the logo instead of the scaffold's `favicon.svg`:
+   - Open `index.html`. Point the icon at the logo instead of the scaffold's `favicon.svg`, and give the page its real title, the scaffold's is `learning-center`:
 
      ```html
      <link rel="icon" type="image/svg+xml" href="/acme-logo.svg" />
+     <title>ACME Learning Center</title>
      ```
 
      <details>
