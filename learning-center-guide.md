@@ -359,9 +359,49 @@
      ```
      </details>
 
+   - Add the ACME logo. Right-click `public` → `New` → `File` → type `acme-logo.svg` → Enter, then paste in the content below.
+
+     **Tip:** instead of retyping the SVG markup, download the file itself from this guide's own repo, [assets/acme-logo.svg](assets/acme-logo.svg) (a different repo than your project), and drop it straight into your project's `public` folder.
+
+     <details>
+     <summary>public/acme-logo.svg</summary>
+
+     ```xml
+     <svg xmlns="http://www.w3.org/2000/svg" width="2500" height="2500" viewBox="0 0 192.756 192.756"><g fill-rule="evenodd" clip-rule="evenodd"><path fill="#fff" d="M0 0h192.756v192.756H0V0z"/><path d="M23.454 68.785l-20.62 55.488h15.768l2.729-7.883H33.46v7.883h15.464V68.785h-25.47zm9.703 31.535h-6.368l6.368-13.342v13.342zM94.71 68.178H70.149c-8.188 0-10.916 10.613-10.916 10.613l-5.761 33.051s-2.123 12.432 8.49 12.432h23.045l2.426-16.373H75.001s-5.458 1.213-4.548-4.852c.303-.91 2.426-13.039 2.426-13.039s.606-4.245 3.335-4.245h15.464l3.032-17.587zM101.988 68.482l-11.523 55.791h15.162l5.154-23.65 1.213 23.65h8.188l9.095-23.65-4.548 23.65h13.644l11.221-56.095h-19.406l-9.401 23.348V68.482h-18.799zM145.955 124.273l10.611-56.095h31.233l-2.426 16.072H169l-.91 5.457h15.767l-2.425 12.129-16.071-.303-.91 5.457h16.07l-3.335 17.283h-31.231zM185.07 123.365c-2.123 0-3.336-1.518-3.336-3.639 0-2.123 1.213-3.639 3.336-3.639s3.639 1.516 3.639 3.639c0 2.122-1.516 3.639-3.639 3.639zm0 1.213c2.729 0 4.852-2.426 4.852-4.852 0-2.729-2.123-4.852-4.852-4.852s-4.852 2.123-4.852 4.852c.001 2.426 2.124 4.852 4.852 4.852zm1.213-4.549c.91 0 1.516-.303 1.516-1.516s-.91-1.516-2.123-1.516h-2.426v5.154h.91v-2.123h.91l1.213 2.123h1.213l-1.213-2.122zm-2.123-.607v-1.516h1.213c.607 0 1.213 0 1.213.607 0 .605-.303.908-.91.908h-1.516v.001z" fill="#cd5241"/></g></svg>
+     ```
+     </details>
+
+   - Point `index.html`'s icon at the logo instead of the scaffold's `favicon.svg`:
+
+     ```html
+     <link rel="icon" type="image/svg+xml" href="/acme-logo.svg" />
+     ```
+
+     <details>
+     <summary>index.html</summary>
+
+     ```html
+     <!doctype html>
+     <html lang="en">
+       <head>
+         <meta charset="UTF-8" />
+         <link rel="icon" type="image/svg+xml" href="/acme-logo.svg" />
+         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+         <title>ACME Learning Center</title>
+       </head>
+       <body>
+         <div id="app"></div>
+         <script type="module" src="/src/main.js"></script>
+       </body>
+     </html>
+     ```
+     </details>
+
+   - The scaffold's two icon files, `public/favicon.svg` and `public/icons.svg`, are no longer referenced by anything, delete both.
+
    ```
    git add .
-   git commit -m "chore: replace the wizard's starter page with an empty shell, a plain stylesheet and a real page title."
+   git commit -m "chore: replace the wizard's starter page with an empty shell, a plain stylesheet, a real title, and the ACME logo."
    ```
 
 7. **Add PrimeVue.** This project's UI components (`pv-toolbar`, `pv-button`, `pv-data-table`, and the rest) come from it, not from hand-rolled markup.
@@ -1650,57 +1690,7 @@ A user moves around Learning Center from a toolbar that is always there, sees th
    git commit -m "feat(i18n): add navigation texts to the Spanish dictionary."
    ```
 
-5. **Add the ACME logo.** Right-click `public` → `New` → `File` → type `acme-logo.svg` → Enter, then paste in the content below. The `about` view shows it, and the next step uses it as the browser tab icon.
-
-   **Tip:** instead of retyping the SVG markup, download the file itself from this guide's own repo, [assets/acme-logo.svg](assets/acme-logo.svg) (a different repo than your project), and drop it straight into your project's `public` folder.
-
-   <details>
-   <summary>public/acme-logo.svg</summary>
-
-   ```xml
-   <svg xmlns="http://www.w3.org/2000/svg" width="2500" height="2500" viewBox="0 0 192.756 192.756"><g fill-rule="evenodd" clip-rule="evenodd"><path fill="#fff" d="M0 0h192.756v192.756H0V0z"/><path d="M23.454 68.785l-20.62 55.488h15.768l2.729-7.883H33.46v7.883h15.464V68.785h-25.47zm9.703 31.535h-6.368l6.368-13.342v13.342zM94.71 68.178H70.149c-8.188 0-10.916 10.613-10.916 10.613l-5.761 33.051s-2.123 12.432 8.49 12.432h23.045l2.426-16.373H75.001s-5.458 1.213-4.548-4.852c.303-.91 2.426-13.039 2.426-13.039s.606-4.245 3.335-4.245h15.464l3.032-17.587zM101.988 68.482l-11.523 55.791h15.162l5.154-23.65 1.213 23.65h8.188l9.095-23.65-4.548 23.65h13.644l11.221-56.095h-19.406l-9.401 23.348V68.482h-18.799zM145.955 124.273l10.611-56.095h31.233l-2.426 16.072H169l-.91 5.457h15.767l-2.425 12.129-16.071-.303-.91 5.457h16.07l-3.335 17.283h-31.231zM185.07 123.365c-2.123 0-3.336-1.518-3.336-3.639 0-2.123 1.213-3.639 3.336-3.639s3.639 1.516 3.639 3.639c0 2.122-1.516 3.639-3.639 3.639zm0 1.213c2.729 0 4.852-2.426 4.852-4.852 0-2.729-2.123-4.852-4.852-4.852s-4.852 2.123-4.852 4.852c.001 2.426 2.124 4.852 4.852 4.852zm1.213-4.549c.91 0 1.516-.303 1.516-1.516s-.91-1.516-2.123-1.516h-2.426v5.154h.91v-2.123h.91l1.213 2.123h1.213l-1.213-2.122zm-2.123-.607v-1.516h1.213c.607 0 1.213 0 1.213.607 0 .605-.303.908-.91.908h-1.516v.001z" fill="#cd5241"/></g></svg>
-   ```
-   </details>
-
-   ```
-   git add .
-   git commit -m "feat(shared): add the ACME logo."
-   ```
-
-6. **Use the logo as the tab icon.** Open `index.html` and point the icon link at the logo instead of the scaffold's `favicon.svg`.
-
-   ```html
-   <link rel="icon" type="image/svg+xml" href="/acme-logo.svg" />
-   ```
-
-   <details>
-   <summary>index.html</summary>
-
-   ```html
-   <!doctype html>
-   <html lang="en">
-     <head>
-       <meta charset="UTF-8" />
-       <link rel="icon" type="image/svg+xml" href="/acme-logo.svg" />
-       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-       <title>ACME Learning Center</title>
-     </head>
-     <body>
-       <div id="app"></div>
-       <script type="module" src="/src/main.js"></script>
-     </body>
-   </html>
-   ```
-   </details>
-
-   The scaffold's two icon files, `public/favicon.svg` and `public/icons.svg`, are no longer referenced by anything, delete both.
-
-   ```
-   git add .
-   git commit -m "chore: use the ACME logo as the tab icon."
-   ```
-
-7. **Create the `home` view.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `shared/presentation/views/home` → Enter.
+5. **Create the `home` view.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `shared/presentation/views/home` → Enter.
 
    <details>
    <summary>src/shared/presentation/views/home.vue</summary>
@@ -1730,7 +1720,7 @@ A user moves around Learning Center from a toolbar that is always there, sees th
    git commit -m "feat(shared): add home view."
    ```
 
-8. **Create the `about` view.** Right-click `views` → `New` → `Vue Single-File Component` → `Composition API` → type `about` → Enter. It shows the logo from step 5 with the same layout as `home`.
+6. **Create the `about` view.** Right-click `views` → `New` → `Vue Single-File Component` → `Composition API` → type `about` → Enter. It shows the ACME logo added back in Project Setup, with the same layout as `home`.
 
    <details>
    <summary>src/shared/presentation/views/about.vue</summary>
@@ -1759,7 +1749,7 @@ A user moves around Learning Center from a toolbar that is always there, sees th
    git commit -m "feat(shared): add about view."
    ```
 
-9. **Create the `page-not-found` view.** Right-click `views` → `New` → `Vue Single-File Component` → `Composition API` → type `page-not-found` → Enter. It names the address the user typed, and offers a way back home.
+7. **Create the `page-not-found` view.** Right-click `views` → `New` → `Vue Single-File Component` → `Composition API` → type `page-not-found` → Enter. It names the address the user typed, and offers a way back home.
 
    ```javascript
    const route = useRoute();
@@ -1802,98 +1792,98 @@ A user moves around Learning Center from a toolbar that is always there, sees th
    git commit -m "feat(shared): add page-not-found view."
    ```
 
-10. **Create the `footer-content` component.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `shared/presentation/components/footer-content` → Enter. The organization's copyright and the attribution for PrimeVue, translated with the `authoring-phrase` keys.
+8. **Create the `footer-content` component.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `shared/presentation/components/footer-content` → Enter. The organization's copyright and the attribution for PrimeVue, translated with the `authoring-phrase` keys.
 
-    <details>
-    <summary>src/shared/presentation/components/footer-content.vue</summary>
+   <details>
+   <summary>src/shared/presentation/components/footer-content.vue</summary>
 
-    ```vue
-    <script setup>
-    import { useI18n } from "vue-i18n";
+   ```vue
+   <script setup>
+   import { useI18n } from "vue-i18n";
 
-    const { t } = useI18n();
-    </script>
+   const { t } = useI18n();
+   </script>
 
-    <template>
-      <footer class="w-full border-none bg-primary mt-4 border-round-md shadow-1 p-3">
-        <div class="flex flex-column align-items-center justify-content-center gap-2 text-center text-white">
-          <p class="m-0 text-sm font-medium">Copyright &copy; 2026. ACME Studios</p>
-          <p class="m-0 text-sm line-height-3">
-            {{ t('authoring-phrase.intro') }}
-            <i class="pi pi-heart text-pink-300" aria-hidden="true"/>
-            {{ t('authoring-phrase.use') }}
-            <a
-              href="https://primevue.org/"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-white font-bold no-underline hover:text-blue-100"
-            >
-              PrimeVue
-            </a>
-            {{ t('authoring-phrase.author', { brand: 'ACME' }) }}
-          </p>
-        </div>
-      </footer>
-    </template>
-    ```
-    </details>
+   <template>
+     <footer class="w-full border-none bg-primary mt-4 border-round-md shadow-1 p-3">
+       <div class="flex flex-column align-items-center justify-content-center gap-2 text-center text-white">
+         <p class="m-0 text-sm font-medium">Copyright &copy; 2026. ACME Studios</p>
+         <p class="m-0 text-sm line-height-3">
+           {{ t('authoring-phrase.intro') }}
+           <i class="pi pi-heart text-pink-300" aria-hidden="true"/>
+           {{ t('authoring-phrase.use') }}
+           <a
+             href="https://primevue.org/"
+             target="_blank"
+             rel="noopener noreferrer"
+             class="text-white font-bold no-underline hover:text-blue-100"
+           >
+             PrimeVue
+           </a>
+           {{ t('authoring-phrase.author', { brand: 'ACME' }) }}
+         </p>
+       </div>
+     </footer>
+   </template>
+   ```
+   </details>
 
-    **Note:** `t('authoring-phrase.author', { brand: 'ACME' })` fills the `{brand}` placeholder from an argument passed at the call site, the dictionary itself never hardcodes which brand.
+   **Note:** `t('authoring-phrase.author', { brand: 'ACME' })` fills the `{brand}` placeholder from an argument passed at the call site, the dictionary itself never hardcodes which brand.
 
-    **Note:** the footer is a normal `footer` element that flows after the page content, it is not pinned to the bottom of the window, so on a short window it never covers a button of the forms built in later stories.
+   **Note:** the footer is a normal `footer` element that flows after the page content, it is not pinned to the bottom of the window, so on a short window it never covers a button of the forms built in later stories.
 
-    ```
-    git add .
-    git commit -m "feat(shared): add footer-content component."
-    ```
+   ```
+   git add .
+   git commit -m "feat(shared): add footer-content component."
+   ```
 
-11. **Register the components the layout uses.** The toolbar, the buttons, and the drawer of the `layout` come from PrimeVue, registered in `main.js` like `SelectButton` was.
+9. **Register the components the layout uses.** The toolbar, the buttons, and the drawer of the `layout` come from PrimeVue, registered in `main.js` like `SelectButton` was.
 
-    ```javascript
-    createApp(App)
-        .component('pv-button',         Button)
-        .component('pv-drawer',         Drawer)
-        .component('pv-toolbar',        Toolbar)
-    ```
+   ```javascript
+   createApp(App)
+       .component('pv-button',         Button)
+       .component('pv-drawer',         Drawer)
+       .component('pv-toolbar',        Toolbar)
+   ```
 
-    <details>
-    <summary>src/main.js (so far)</summary>
+   <details>
+   <summary>src/main.js (so far)</summary>
 
-    ```javascript
-    import {createApp} from 'vue'
-    import './style.css'
-    import App from './app.vue'
-    import i18n from "./i18n.js";
-    import PrimeVue from 'primevue/config';
-    import Material from '@primeuix/themes/material';
-    import 'primeflex/primeflex.css';
-    import 'primeicons/primeicons.css';
-    import {
-        Button,
-        Drawer,
-        SelectButton,
-        Toolbar
-    } from "primevue";
+   ```javascript
+   import {createApp} from 'vue'
+   import './style.css'
+   import App from './app.vue'
+   import i18n from "./i18n.js";
+   import PrimeVue from 'primevue/config';
+   import Material from '@primeuix/themes/material';
+   import 'primeflex/primeflex.css';
+   import 'primeicons/primeicons.css';
+   import {
+       Button,
+       Drawer,
+       SelectButton,
+       Toolbar
+   } from "primevue";
 
-    const primeUiLicenseKey = import.meta.env.VITE_PRIME_UI_LICENSE_KEY;
+   const primeUiLicenseKey = import.meta.env.VITE_PRIME_UI_LICENSE_KEY;
 
-    createApp(App)
-        .use(i18n)
-        .use(PrimeVue, {theme: {preset: Material}, ripple: true, license: primeUiLicenseKey})
-        .component('pv-button',         Button)
-        .component('pv-drawer',         Drawer)
-        .component('pv-select-button',  SelectButton)
-        .component('pv-toolbar',        Toolbar)
-        .mount('#app')
-    ```
-    </details>
+   createApp(App)
+       .use(i18n)
+       .use(PrimeVue, {theme: {preset: Material}, ripple: true, license: primeUiLicenseKey})
+       .component('pv-button',         Button)
+       .component('pv-drawer',         Drawer)
+       .component('pv-select-button',  SelectButton)
+       .component('pv-toolbar',        Toolbar)
+       .mount('#app')
+   ```
+   </details>
 
-    ```
-    git add .
-    git commit -m "feat: register the PrimeVue toolbar, button and drawer."
-    ```
+   ```
+   git add .
+   git commit -m "feat: register the PrimeVue toolbar, button and drawer."
+   ```
 
-12. **Create the `layout` component.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `shared/presentation/components/layout` → Enter. The frame of the whole application.
+10. **Create the `layout` component.** Right-click `src` → `New` → `Vue Single-File Component` → `Composition API` → type `shared/presentation/components/layout` → Enter. The frame of the whole application.
 
     The script defines the `items` of the navigation, each one a dictionary key and the address it goes to, and the `drawer` flag the hamburger button toggles:
 
@@ -1976,7 +1966,7 @@ A user moves around Learning Center from a toolbar that is always there, sees th
     git commit -m "feat(shared): add layout component."
     ```
 
-13. **Define the application routes.** Right-click `src` → `New` → `JavaScript File` → type `router` → Enter. Two named routes, a redirect from `/` to `/home`, and a last route that catches every other address and shows `page-not-found`.
+11. **Define the application routes.** Right-click `src` → `New` → `JavaScript File` → type `router` → Enter. Two named routes, a redirect from `/` to `/home`, and a last route that catches every other address and shows `page-not-found`.
 
     <details>
     <summary>src/router.js (so far)</summary>
@@ -2015,7 +2005,7 @@ A user moves around Learning Center from a toolbar that is always there, sees th
     git commit -m "feat: define the application routes."
     ```
 
-14. **Register the router in `main.js`.**
+12. **Register the router in `main.js`.**
 
     ```javascript
     createApp(App)
@@ -2061,7 +2051,7 @@ A user moves around Learning Center from a toolbar that is always there, sees th
     git commit -m "feat: register the router globally."
     ```
 
-15. **Show `layout` in the `app` shell.** `app` stops rendering the switcher and the welcome text itself, `layout` renders the switcher and everything else.
+13. **Show `layout` in the `app` shell.** `app` stops rendering the switcher and the welcome text itself, `layout` renders the switcher and everything else.
 
     <details>
     <summary>src/app.vue</summary>
@@ -2082,7 +2072,7 @@ A user moves around Learning Center from a toolbar that is always there, sees th
     git commit -m "feat(app): show layout in the app shell."
     ```
 
-16. **Run it.**
+14. **Run it.**
 
     ```
     npm run dev
@@ -2097,7 +2087,7 @@ A user moves around Learning Center from a toolbar that is always there, sees th
 
     **Note:** the toolbar has no `Categories` or `Tutorials` option yet, those sections do not exist. Each one joins the menu in its own story.
 
-17. **Publish and finish the feature.**
+15. **Publish and finish the feature.**
 
 ---
 
