@@ -1262,19 +1262,43 @@
     git commit -m "chore: add fake API routes."
     ```
 
-27. **Run the fake API.** In the terminal, at the project root:
+27. **Create the fake API launcher, `server/start.sh`.** Right-click the `server` folder → `New` → `File` → type `start.sh` → Enter. A shortcut for the command below, using paths relative to `server` itself.
+
+    <details>
+    <summary>server/start.sh</summary>
+
+    ```
+    json-server --watch db.json --routes routes.json
+    ```
+    </details>
+
+    ```
+    git add .
+    git commit -m "chore: add fake API launcher script."
+    ```
+
+28. **Run the fake API.** Two ways, pick either.
+
+    From the project root:
 
     ```
     npx json-server --watch server/db.json --routes server/routes.json --port 3000
+    ```
+
+    Or the script from the previous step, from inside `server`:
+
+    ```
+    cd server
+    sh start.sh
     ```
 
     **Tip:** open [`http://localhost:3000/api/v1/categories`](http://localhost:3000/api/v1/categories) in the browser, this raw JSON is exactly what the categories API client will receive in US001. Stop the server with `Ctrl+C`.
 
     **Note:** `--watch` also writes back to `server/db.json` every time the application creates, updates, or deletes something, so the file changes while you follow the guide. Restore it to its original content before a commit that includes it, with `git checkout server/db.json`.
 
-    **Note:** no commit here, this step only verifies the two files above.
+    **Note:** no commit here, this step only verifies the three files above.
 
-28. **Connect to GitHub.**
+29. **Connect to GitHub.**
 
     ```
     gh repo create <org>/learning-center --private --source=. --remote=origin --push --description "ACME Learning Center, a web platform for learning and development, illustrating Domain-Driven Design with Vue."
@@ -1282,9 +1306,9 @@
 
     **Note:** run this from the repo root, the same folder `git init` ran in. No `gh`? See [Appendix: Creating the repo without the GitHub CLI](#creating-the-repo-without-the-github-cli), and [Appendix: Signing in to GitHub with a token](#signing-in-to-github-with-a-token) if `gh auth login` gives you trouble on a lab machine.
 
-29. **Install the Git Flow Helper plugin.** WebStorm → `Settings`/`Preferences` → `Plugins` → search **Git Flow Helper** → `Install` → restart if asked.
+30. **Install the Git Flow Helper plugin.** WebStorm → `Settings`/`Preferences` → `Plugins` → search **Git Flow Helper** → `Install` → restart if asked.
 
-30. **Initialize Git Flow.** Git Flow Helper widget (bottom status bar) → `Init`. Accept the default branch prefixes (`feature/`, `release/`, `hotfix/`), main branch `main`, development branch `develop`.
+31. **Initialize Git Flow.** Git Flow Helper widget (bottom status bar) → `Init`. Accept the default branch prefixes (`feature/`, `release/`, `hotfix/`), main branch `main`, development branch `develop`.
 
     **Note:** you have already used Git Flow in earlier guides this course, so from here on this guide keeps every `Feature Start`/`Feature Publish`/`Feature Finish` step to one line, without repeating what each button does or which checkboxes to set. If you need the full walkthrough again (the widget's exact menu path, the `Integrate Immediately` / `Keep remote branch when finished` options), it is unchanged from those earlier guides.
 
@@ -9811,7 +9835,8 @@ A registered user signs in, the toolbar recognizes them, and every protected scr
    │   └── acme-logo.svg
    ├── server/
    │   ├── db.json                         # Fake API data: categories and tutorials
-   │   └── routes.json                     # Rewrites /api/v1/* for json-server
+   │   ├── routes.json                     # Rewrites /api/v1/* for json-server
+   │   └── start.sh                        # Launcher for json-server, run from inside server/
    ├── src/
    │   ├── iam/                            # domain, infrastructure, application, presentation
    │   ├── locales/
@@ -9874,9 +9899,14 @@ A registered user signs in, the toolbar recognizes them, and every protected scr
       ```bash
       npm install
       ```
-   3. Start the fake API in one terminal, from the project root:
+   3. Start the fake API in one terminal. Either from the project root:
       ```bash
       npx json-server --watch server/db.json --routes server/routes.json --port 3000
+      ```
+      Or the provided script, from inside `server`:
+      ```bash
+      cd server
+      sh start.sh
       ```
    4. Start the development server in another terminal:
       ```bash
